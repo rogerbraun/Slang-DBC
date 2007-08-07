@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project basedir="." default="build" name="dbc">
+    
+	<!-- Laden unserer Property-Datei für Zugriff auf Konstanten (Details folgen unten) -->
+    <property file="build.properties" />
+	
+	<path id="dbc.sourcepath">
+		<pathelement location="${path.src}"/>
+	</path>
+    
+	<path id="dbc.classpath">
+        <pathelement location="${path.bin}"/>
+    	<fileset dir="${path.lib}">
+    		<include name="**/*.jar"/>
+    	</fileset>
+    </path>
+	
+    <target name="init">
+        <mkdir dir="${path.bin}"/>
+        <copy includeemptydirs="false" todir="${path.bin}">
+            <fileset dir="${path.src}" excludes="**/*.launch, **/*.java"/>
+        </copy>
+    </target>
+	
+    <target name="clean">
+        <delete dir="${path.bin}"/>
+    </target>
+	
+    <target depends="init" name="build">
+        <echo message="${ant.project.name}: ${ant.file}" />
+        <javac destdir="${path.bin}">
+            <src refid="dbc.sourcepath" />
+            <classpath refid="dbc.classpath" />
+        </javac>
+    </target>
+	
+	<target name="jar" depends="build">
+		<!-- Convert project class path to string property -->
+		  <pathconvert property="manifest.classpath" pathsep=" ">
+		    <path refid="dbc.classpath" />
+		    <flattenmapper />
+		  </pathconvert>
+		
+		<jar destfile="${ant.project.name}.jar" baseDir="${path.bin}">
+			<manifest>
+				<attribute name="Main-Class" value="${manifest.mainclass}" />
+				<attribute name="Class-Path" value="${manifest.classpath}" />
+			</manifest>
+		</jar>
+	</target>
+	
+	<target name="docs-init">
+		<mkdir dir="${path.doc}"/>
+	</target>
+	
+	<target name="docs-clean">
+	    <delete dir="${path.doc}"/>
+	</target>
+	
+	<target name="apidocs" depends="docs-init" description="Generate JavaDocs.">		
+		<mkdir dir="${path.doc}/api"/>
+		<javadoc destdir="${path.doc}/api" sourcepathref="dbc.sourcepath" packagenames="*" windowtitle="DBC API">
+			<doctitle><![CDATA[<h1>${ant.project.name}</h1>]]></doctitle>
+		</javadoc>
+	</target>
+	
+	<target name="docs" depends="docs-init, apidocs"/>
+	
+</project>

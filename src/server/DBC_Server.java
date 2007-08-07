@@ -85,7 +85,7 @@ public class DBC_Server extends Thread {
             Class.forName("com.mysql.jdbc.Driver");
             connection = DriverManager.getConnection("jdbc:mysql://"
                   + server
-                  + ":3306/slang2_test?useUnicode=true&" //":3306/slang2_test?useUnicode=true&"
+                  + ":3306/slang2_v2?useUnicode=true&" //":3306/slang2_test?useUnicode=true&"
                   + "characterEncoding=ISO-8859-1", user, password);
             System.out.println("DB auf");
          }

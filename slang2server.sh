@@ -172,10 +172,12 @@ update()
 	cd dbc
 	env JAVA_HOME=/afs/informatik.uni-tuebingen.de/i386_fbsd52/jdk-1.5.0/jdk1.5.0/ ant jar
 	cd $CURDIR
-	cp $TMPDIR/dbc.jar .
-	cp $TMPDIR/lib/*.jar .
-	echo "The files have been updated!"
-	echo "Please restart the server for changes to take effect"
+	if cp $TMPDIR/dbc/dbc.jar . && 	cp $TMPDIR/dbc/lib/*.jar .; then
+		echo "The files have been updated!"
+		echo "Please restart the server for changes to take effect"
+	else
+		echo "Sorry, but the files could NOT be updated!"
+	fi
 }
 
 case $1 in

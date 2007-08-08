@@ -178,6 +178,7 @@ update()
 	else
 		echo "Sorry, but the files could NOT be updated!"
 	fi
+	rm -rf $TMPDIR
 }
 
 case $1 in

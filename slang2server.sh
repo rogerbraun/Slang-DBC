@@ -10,7 +10,7 @@ exec_cmd="java -jar dbc.jar"
 start()
 {
 	# Check for dead server process
-	if [ -e $pid_file ] && ! kill -0 `cat $pid_file`; then
+	if [ -e $pid_file ] && ! kill -0 `cat $pid_file` > /dev/null; then
 		rm -f $pid_file || \(echo "Could not remove old $pid_file file" && exit 1\)
 	fi
 
@@ -20,7 +20,7 @@ start()
 		RETVAL=1
 	else
 		# Check for dead controller process
-		if [ -e $lock_file ] && ! kill -0 `cat $lock_file`; then
+		if [ -e $lock_file ] && ! kill -0 `cat $lock_file` > /dev/null; then
 			rm -f $lock_file || \(echo "Could not remove old $lock_file file" && exit 1\)
 		fi
 
@@ -58,7 +58,7 @@ start()
 run_loop()
 {
 	# Check for dead lock file
-	if [ -e $lock_file ] && kill -0 `cat $lock_file`; then
+	if [ -e $lock_file ] && kill -0 `cat $lock_file` > /dev/null; then
 		rm -f $lock_file || \(echo "Could not remove old $lock_file file" && exit 1\)
 	fi
 	
@@ -94,7 +94,7 @@ run_loop()
 stop()
 {
 	# Check for dead server process
-	if [ -e $pid_file ] && ! kill -0 `cat $pid_file`; then
+	if [ -e $pid_file ] && ! kill -0 `cat $pid_file` > /dev/null; then
      		rm -f $pid_file || \(echo "Could not remove old $pid_file file" && exit 1\)
      	fi
 
@@ -103,7 +103,7 @@ stop()
 		RETVAL=1
 	else
 		# Check for dead controller process
-		if [ -e $lock_file ] && kill -0 `cat $lock_file`; then
+		if [ -e $lock_file ] && kill -0 `cat $lock_file` > /dev/null; then
 			rm -f $lock_file || \(echo "Could not remove old $lock_file file" && exit 1\)
 		fi
 		
@@ -140,14 +140,14 @@ restart()
 status()
 {
 	if [ -e "$pid_file" ]; then
-		if kill -0 `cat $pid_file`; then
+		if kill -0 `cat $pid_file` > /dev/null; then
 			echo "Server is running"
 			RETVAL=0
 		else
 			echo "Server is not running"
 			rm -f $pid_file
 			if [ -e $lock_file ]; then
-				if kill -0 `cat $lock_file`; then
+				if kill -0 `cat $lock_file` > /dev/null; then
 					echo "stop" > $cmd_file
 				else
 					rm -f $lock_file

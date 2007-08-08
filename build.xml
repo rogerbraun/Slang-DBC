@@ -10,7 +10,6 @@
 	</path>
 
 	<path id="dbc.classpath">
-		<pathelement location="${path.bin}"/>
 		<fileset dir="${path.lib}">
 			<include name="**/*.jar"/>
 		</fileset>
@@ -40,7 +39,7 @@
 
 		<pathconvert property="manifest.classpath" pathsep=" ">
 			<path refid="dbc.classpath" />
-			<map from="${basedir}" to=""/>
+			<map from="${basedir}/" to=""/>
 		</pathconvert>
 
 		<jar destfile="${ant.project.name}.jar" baseDir="${path.bin}">
@@ -49,6 +48,7 @@
 				<attribute name="Class-Path" value="${manifest.classpath}" />
 			</manifest>
 		</jar>
+		
 	</target>
 
 	<target name="docs-init">

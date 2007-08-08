@@ -10,8 +10,8 @@ exec_cmd="java -jar dbc.jar"
 start()
 {
 	# Check for dead server process
-	if [ -e $pid_file] && ! kill -0 `cat $pid_file`; then
-		rm -f $pid_file || (echo "Could not remove old $pid_file file" && exit 1)
+	if [ -e $pid_file ] && ! kill -0 `cat $pid_file`; then
+		rm -f $pid_file || \(echo "Could not remove old $pid_file file" && exit 1\)
 	fi
 
 	# Check if server is already running
@@ -21,7 +21,7 @@ start()
 	else
 		# Check for dead controller process
 		if [ -e $lock_file ] && ! kill -0 `cat $lock_file`; then
-			rm -f $lock_file || (echo "Could not remove old $lock_file file" && exit 1)
+			rm -f $lock_file || \(echo "Could not remove old $lock_file file" && exit 1\)
 		fi
 
 		# Check if this is the controller
@@ -59,7 +59,7 @@ run_loop()
 {
 	# Check for dead lock file
 	if [ -e $lock_file ] && kill -0 `cat $lock_file`; then
-		rm -f $lock_file || (echo "Could not remove old $lock_file file" && exit 1)
+		rm -f $lock_file || \(echo "Could not remove old $lock_file file" && exit 1\)
 	fi
 	
 	# Check if there is a running controller process
@@ -94,8 +94,8 @@ run_loop()
 stop()
 {
 	# Check for dead server process
-	if [ -e $pid_file] && ! kill -0 `cat $pid_file`; then
-     		rm -f $pid_file || (echo "Could not remove old $pid_file file" && exit 1)
+	if [ -e $pid_file ] && ! kill -0 `cat $pid_file`; then
+     		rm -f $pid_file || \(echo "Could not remove old $pid_file file" && exit 1\)
      	fi
 
 	if [ ! -e $pid_file ]; then
@@ -104,7 +104,7 @@ stop()
 	else
 		# Check for dead controller process
 		if [ -e $lock_file ] && kill -0 `cat $lock_file`; then
-			rm -f $lock_file || (echo "Could not remove old $lock_file file" && exit 1)
+			rm -f $lock_file || \(echo "Could not remove old $lock_file file" && exit 1\)
 		fi
 		
 		if [ ! -e $lock_file ] || [ "$$" = "`cat $lock_file`" ]; then
@@ -172,7 +172,7 @@ update()
 	cd dbc
 	env JAVA_HOME=/afs/informatik.uni-tuebingen.de/i386_fbsd52/jdk-1.5.0/jdk1.5.0/ ant jar
 	cd $CURDIR
-	if cp $TMPDIR/dbc/dbc.jar . && 	cp $TMPDIR/dbc/lib/*.jar .; then
+	if cp $TMPDIR/dbc/dbc.jar . && 	cp $TMPDIR/dbc/lib/*.jar ./lib; then
 		echo "The files have been updated!"
 		echo "Please restart the server for changes to take effect"
 	else

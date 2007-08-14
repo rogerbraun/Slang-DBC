@@ -48,4 +48,9 @@ public class WordListElement extends DB_Element{
 		// TODO Auto-generated method stub
 		
 	}
+	
+	public int getDB_ID() {
+		//TODO: DB_ID cannot be unique
+		return 0;
+	}
 }

@@ -11,7 +11,7 @@ start()
 {
 	# Check for dead server process
 	if [ -e $pid_file ] && ! kill -0 `cat $pid_file` > /dev/null; then
-		rm -f $pid_file || \(echo "Could not remove old $pid_file file" && exit 1\)
+		rm -f $pid_file || echo "Could not remove old $pid_file file" && exit 1
 	fi
 
 	# Check if server is already running
@@ -21,7 +21,7 @@ start()
 	else
 		# Check for dead controller process
 		if [ -e $lock_file ] && ! kill -0 `cat $lock_file` > /dev/null; then
-			rm -f $lock_file || \(echo "Could not remove old $lock_file file" && exit 1\)
+			rm -f $lock_file || echo "Could not remove old $lock_file file" && exit 1
 		fi
 
 		# Check if this is the controller
@@ -59,7 +59,7 @@ run_loop()
 {
 	# Check for dead lock file
 	if [ -e $lock_file ] && kill -0 `cat $lock_file` > /dev/null; then
-		rm -f $lock_file || \(echo "Could not remove old $lock_file file" && exit 1\)
+		rm -f $lock_file || echo "Could not remove old $lock_file file" && exit 1
 	fi
 	
 	# Check if there is a running controller process
@@ -95,7 +95,7 @@ stop()
 {
 	# Check for dead server process
 	if [ -e $pid_file ] && ! kill -0 `cat $pid_file` > /dev/null; then
-     		rm -f $pid_file || \(echo "Could not remove old $pid_file file" && exit 1\)
+     		rm -f $pid_file || echo "Could not remove old $pid_file file" && exit 1
      	fi
 
 	if [ ! -e $pid_file ]; then
@@ -103,8 +103,8 @@ stop()
 		RETVAL=1
 	else
 		# Check for dead controller process
-		if [ -e $lock_file ] && kill -0 `cat $lock_file` > /dev/null; then
-			rm -f $lock_file || \(echo "Could not remove old $lock_file file" && exit 1\)
+		if [ -e $lock_file ] && ! kill -0 `cat $lock_file` > /dev/null; then
+			rm -f $lock_file || echo "Could not remove old $lock_file file" && exit 1
 		fi
 		
 		if [ ! -e $lock_file ] || [ "$$" = "`cat $lock_file`" ]; then
@@ -114,7 +114,7 @@ stop()
 			       	rm -f $pid_file
 			fi
 		else
-			echo -n "Shutting done server..."
+			echo -n "Shutting down server..."
 			echo "stop" > $cmd_file
 			while [ -e $cmd_file ]; do
 				sleep 1

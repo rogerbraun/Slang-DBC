@@ -5,13 +5,11 @@
 package server;
 
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Vector;
 
@@ -19,7 +17,41 @@ import pathselector.PathNode;
 import connection.DBC_ConnectionException;
 import connection.DBC_Key;
 import connection.DBC_SaveException;
-import data.*;
+import data.Book;
+import data.Chapter;
+import data.ChapterEditingTester;
+import data.Checking;
+import data.Comment;
+import data.CommentKey;
+import data.Comments;
+import data.Complex_DB;
+import data.ConstitutiveWord;
+import data.DB_Tupel;
+import data.Dialog;
+import data.Dialogs;
+import data.DirectSpeech;
+import data.DirectSpeeches;
+import data.FunctionWord;
+import data.IDOwner;
+import data.IllocutionUnit;
+import data.IllocutionUnitRoot;
+import data.IllocutionUnitRoots;
+import data.Isotope;
+import data.Isotopes;
+import data.MacroSentence;
+import data.MeaningUnit;
+import data.Occurrence_DB;
+import data.Relation;
+import data.Renominalisation;
+import data.Renominalisations;
+import data.SememeGroup;
+import data.Sign;
+import data.SpeakerChange;
+import data.TR_Assignation;
+import data.Thema_DB;
+import data.Token;
+import data.Word;
+import data.WordListElement;
 
 public class DBC_Server extends Thread {
 
@@ -27,28 +59,30 @@ public class DBC_Server extends Thread {
    private DBC_Cache  chapterCache;
    private PathNode   root;
    private Connection connection;
-   private String     server;
-   private String     user;
-   private String     password;
+   private String     db_host;
+   private int     		db_port;
+   private String     db_name;
+   private String     db_user;
+   private String     db_password;
    private int        counter;
    private int        keepAlive;
 
-   DBC_Server(String server, String user, String password, int keepAlive)
+   DBC_Server(String host, int port, String name, String user, String password)
          throws DBC_ConnectionException {
-      this.server = server;
-      this.user = user;
-      this.password = password;
-      this.keepAlive = keepAlive;
-      counter = keepAlive;
+      
+      this.db_host = host;
+      this.db_port = port;
+      this.db_name = name;
+      this.db_user = user;
+      this.db_password = password;      
+      
+      this.keepAlive = 3000;
+      counter = this.keepAlive;
 
       key = DBC_Key.makeKey(this);
       chapterCache = new DBC_Cache(5);
       open();
       root = loadPaths();
-   }
-
-   DBC_Server(String server, int keepAlive) throws DBC_ConnectionException {
-      this(server, "slang2", "kauderwelsch", keepAlive);
    }
 
    /**
@@ -83,10 +117,8 @@ public class DBC_Server extends Thread {
       if (connection == null) {
          try {
             Class.forName("com.mysql.jdbc.Driver");
-            connection = DriverManager.getConnection("jdbc:mysql://"
-                  + server
-                  + ":3306/slang2_v2?useUnicode=true&" //":3306/slang2_test?useUnicode=true&"
-                  + "characterEncoding=ISO-8859-1", user, password);
+            connection = DriverManager.getConnection(String.format("jdbc:mysql://%1$s:%2$d/%3$s?useUnicode=true&characterEncoding=ISO-8859-1"
+                  ,this.db_host, this.db_port, this.db_name), this.db_user, this.db_password);
             System.out.println("DB auf");
          }
          catch (Exception e) {
@@ -138,7 +170,7 @@ public class DBC_Server extends Thread {
       Vector books = new Vector();
 
       Statement stmt = connection.createStatement();
-      ResultSet res = stmt.executeQuery("select * from books");
+      ResultSet res = stmt.executeQuery("SELECT * FROM books");
 
       while (res.next()) {
          books.add(new Book(key, res.getInt("id"), res.getString("title"), res
@@ -147,7 +179,7 @@ public class DBC_Server extends Thread {
 
       for (int i = 0; i < books.size(); i++) {
          Book book = (Book) books.get(i);
-         res = stmt.executeQuery("select * from chapters where book = "
+         res = stmt.executeQuery("SELECT * FROM chapters WHERE book = "
                + book.getDB_ID());
 
          while (res.next()) {
@@ -178,8 +210,8 @@ public class DBC_Server extends Thread {
          throws Exception {
       Book book = null;
       Statement stmt = connection.createStatement();
-      ResultSet res = stmt.executeQuery("select * "
-            + "from books where id = "
+      ResultSet res = stmt.executeQuery("SELECT * "
+            + "FROM books WHERE id = "
             + id.intValue());
 
       if (res.next())
@@ -197,8 +229,8 @@ public class DBC_Server extends Thread {
             .createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
                   ResultSet.CONCUR_UPDATABLE);
 
-      ResultSet res = stmt.executeQuery("select * from books "
-            + "where title like binary '"
+      ResultSet res = stmt.executeQuery("SELECT * FROM books "
+            + "WHERE title like binary '"
             + book.getTitle()
             + "' and author like binary '"
             + book.getAuthor()
@@ -214,8 +246,8 @@ public class DBC_Server extends Thread {
          res.close();
       }
 
-      res = stmt.executeQuery("select * from books "
-            + "where title like binary '"
+      res = stmt.executeQuery("SELECT * FROM books "
+            + "WHERE title like binary '"
             + book.getTitle()
             + "' and author like binary '"
             + book.getAuthor()
@@ -261,8 +293,8 @@ public class DBC_Server extends Thread {
    private Chapter loadChapter(int chapterID)
          throws Exception {
       Statement stmt = connection.createStatement();
-      ResultSet res = stmt.executeQuery("select * "
-            + "from chapters where id = "
+      ResultSet res = stmt.executeQuery("SELECT * "
+            + "FROM chapters WHERE id = "
             + chapterID);
 
       if (res.next()) {
@@ -276,14 +308,14 @@ public class DBC_Server extends Thread {
                .getInt("book"), res.getInt("index"), res.getString("title"), ts.toString().substring(0,ts.toString().length()-2));
 
          // Wï¿½rter des Kapitels
-         res = stmt.executeQuery("select words.id as id, "
+         res = stmt.executeQuery("SELECT words.id AS id, "
                + "words_in_chapter.position, "
                + "words.content, words.language "
-               + "from words_in_chapter, words "
-               + "where words_in_chapter.chapter = "
+               + "FROM words_in_chapter, words "
+               + "WHERE words_in_chapter.chapter = "
                + chapter.getDB_ID()
-               + " and words_in_chapter.word = words.id "
-               + "order by words_in_chapter.position");
+               + " AND words_in_chapter.word = words.id "
+               + "ORDER BY words_in_chapter.position");
          while (res.next())
             chapter.addWord(key,
                   res.getInt("id"),
@@ -292,30 +324,30 @@ public class DBC_Server extends Thread {
                   res.getInt("position"));
 
          // Satzzeichen des Kapitels
-         res = stmt.executeQuery("select signs.id as id, "
+         res = stmt.executeQuery("SELECT signs.id as id, "
                + "signs_in_chapter.position, "
                + "signs.sign "
-               + "from signs_in_chapter, signs "
-               + "where signs_in_chapter.chapter = "
+               + "FROM signs_in_chapter, signs "
+               + "WHERE signs_in_chapter.chapter = "
                + chapter.getDB_ID()
                + " and signs_in_chapter.sign = signs.id "
-               + "order by signs_in_chapter.position");
+               + "ORDER BY signs_in_chapter.position");
          while (res.next())
             chapter.addSign(key, res.getInt("id"), res.getString("sign")
                   .charAt(0), res.getInt("position"));
 
          // Absï¿½tze des Kapitels
-         res = stmt.executeQuery("select position "
-               + "from paragraphs_in_chapter "
-               + "where chapter = "
+         res = stmt.executeQuery("SELECT position "
+               + "FROM paragraphs_in_chapter "
+               + "WHERE chapter = "
                + chapter.getDB_ID()
-               + " order by position");
+               + " ORDER BY position");
          while (res.next())
             chapter.addNewline(key, res.getInt("position"));
 
          // ï¿½uï¿½erungseinheiten des Kapitels
-         res = stmt.executeQuery("select * from illocution_units "
-               + "where chapter = "
+         res = stmt.executeQuery("SELECT * FROM illocution_units "
+               + "WHERE chapter = "
                + chapter.getDB_ID());
          while (res.next())
             chapter.addIllocutionUnit(key, res.getInt("id"), res
@@ -347,7 +379,7 @@ public class DBC_Server extends Thread {
                   ResultSet.CONCUR_UPDATABLE);
       ResultSet res;
 
-      res = stmt.executeQuery("select * from chapters where book = "
+      res = stmt.executeQuery("SELECT * FROM chapters WHERE book = "
             + chapter.getBookID()
             + " and `index` = "
             + chapter.getIndex());
@@ -367,9 +399,9 @@ public class DBC_Server extends Thread {
       res.insertRow();
       res.close();
 
-      res = stmt.executeQuery("select * from chapters where book = "
+      res = stmt.executeQuery("SELECT * FROM chapters WHERE book = "
             + chapter.getBookID()
-            + " and `index` = "
+            + " AND `index` = "
             + chapter.getIndex());
       if (res.next())
          chapter.setDB_ID(key, res.getInt("id"));
@@ -390,57 +422,38 @@ public class DBC_Server extends Thread {
          Word word = (Word) words.get(i);
 
          if (word.getDB_ID() == -1) {
-            // prÃ¼fe, ob schon ein solches Wort gespeichert wurde
-            res = stmt.executeQuery("select * from words "
-                  + "where content like binary '"
-                  + mask(word.getContent())
-                  + "' and language like '"
-                  + word.getLanguage()
-                  + "'");
-
-            // Wort ist vorhanden
-            if (res.next()) {
-               word.setDB_ID(key, res.getInt("id"));
-               System.out.print('-');
+        	 // Insert word first if not exists
+        	int rowCount = stmt.executeUpdate(String.format(
+         		"INSERT IGNORE INTO words (content, language, cont_lang_checksum) VALUES('%1$s', '%2$s', UNHEX(MD5(CONCAT('%1$s', '%2$s'))))"
+         		, mask(word.getContent()), word.getLanguage()));
+        	
+        	res = stmt.executeQuery(String.format(
+        			"SELECT id FROM words WHERE cont_lang_checksum = UNHEX(MD5(CONCAT('%1$s', '%2$s')))"
+        			, mask(word.getContent()), word.getLanguage()));
+	        
+        	if( res.next() ) {
+	        	word.setDB_ID(key, res.getInt("id"));
+        	}
+        	else {
+            	connection.rollback();
+            	stmt.close();
+            	connection.setAutoCommit(true);
+            	throw new DBC_SaveException("Wort "
+            		+ word
+            		+ " konnte nicht in der "
+            		+ "DB gespeichert werden!");
             }
-
-            // Wort muss gespeichert werden
-            else {
-               res.moveToInsertRow();
-               res.updateString("content", word.getContent());
-               res.updateString("language", word.getLanguage());
-               res.insertRow();
-
-               res = stmt.executeQuery("select * from words "
-                     + "where content like binary '"
-                     + mask(word.getContent())
-                     + "' and language like '"
-                     + word.getLanguage()
-                     + "'");
-
-               // Wort ist vorhanden
-               if (res.next()) {
-                  word.setDB_ID(key, res.getInt("id"));
-               }
-               else {
-                  connection.rollback();
-                  stmt.close();
-                  connection.setAutoCommit(true);
-                  throw new DBC_SaveException("Wort "
-                        + word
-                        + " konnte nicht in der "
-                        + "DB gespeichert werden!");
-               }
-               System.out.print('+');
-            }
-
-            // speichere Wort im Kapitel
-            res = stmt.executeQuery("select * from words_in_chapter");
-            res.moveToInsertRow();
-            res.updateInt("chapter", word.getChapter().getDB_ID());
-            res.updateInt("word", word.getDB_ID());
-            res.updateInt("position", word.getStartPosition());
-            res.insertRow();
+            	
+        	// speichere Wort im Kapitel
+        	rowCount = stmt.executeUpdate(String.format(
+        			"INSERT INTO words_in_chapter (chapter, word, position) VALUES(%1$d, %2$d, %3$d)"
+        			, word.getChapter().getDB_ID(), word.getDB_ID(), word.getStartPosition()));
+        	if( rowCount == 1 ) {
+        		System.out.print('+');
+        	}
+         }
+         else {
+        	 System.out.print('-');
          }
       }
 
@@ -451,8 +464,8 @@ public class DBC_Server extends Thread {
 
          if (sign.getDB_ID() == -1) {
             // prï¿½fe, ob schon ein solches Zeichen gespeichert wurde
-            res = stmt.executeQuery("select * from signs "
-                  + "where sign = '"
+            res = stmt.executeQuery("SELECT * FROM signs "
+                  + "WHERE sign = '"
                   + mask(sign.getContent())
                   + "'");
 
@@ -468,8 +481,8 @@ public class DBC_Server extends Thread {
                res.updateString("sign", sign.getContent());
                res.insertRow();
 
-               res = stmt.executeQuery("select * from signs "
-                     + "where sign = '"
+               res = stmt.executeQuery("SELECT * FROM signs "
+                     + "WHERE sign = '"
                      + mask(sign.getContent())
                      + "'");
 
@@ -490,7 +503,7 @@ public class DBC_Server extends Thread {
             }
 
             // speichere Satzzeichen im Kapitel
-            res = stmt.executeQuery("select * from signs_in_chapter");
+            res = stmt.executeQuery("SELECT * FROM signs_in_chapter");
             res.moveToInsertRow();
             res.updateInt("chapter", sign.getChapter().getDB_ID());
             res.updateInt("sign", sign.getDB_ID());
@@ -504,7 +517,7 @@ public class DBC_Server extends Thread {
       System.out.println("\n\nspeichere "
             + paragraphs.size()
             + " Abs\u00e4tze:");
-      res = stmt.executeQuery("select * from paragraphs_in_chapter");
+      res = stmt.executeQuery("SELECT * FROM paragraphs_in_chapter");
       for (int i = 0; i < paragraphs.size(); i++) {
          Integer p = (Integer) paragraphs.get(i);
 
@@ -520,7 +533,7 @@ public class DBC_Server extends Thread {
       System.out.println("\n\nspeichere "
             + ius.size()
             + " Ã„uÃŸerungseinheiten:");
-      res = stmt.executeQuery("select * from illocution_units");
+      res = stmt.executeQuery("SELECT * FROM illocution_units");
       for (int i = 0; i < ius.size(); i++) {
          IllocutionUnit iu = (IllocutionUnit) ius.get(i);
          res.moveToInsertRow();
@@ -529,8 +542,8 @@ public class DBC_Server extends Thread {
          res.updateInt("end", iu.getEndPosition());
          res.insertRow();
 
-         res = stmt.executeQuery("select * from illocution_units "
-               + "where chapter = "
+         res = stmt.executeQuery("SELECT * FROM illocution_units "
+               + "WHERE chapter = "
                + chapter.getDB_ID()
                + " and start = "
                + iu.getStartPosition()
@@ -561,19 +574,19 @@ public class DBC_Server extends Thread {
    public synchronized void deleteChapter(Integer chapterID)
    throws Exception {
 	   Statement stmt = connection.createStatement();
-	   ResultSet res = stmt.executeQuery("select * "
-			   + "from chapters where id = "
+	   ResultSet res = stmt.executeQuery("SELECT * "
+			   + "FROM chapters WHERE id = "
 			   + chapterID);
 	   if (res.next()) {
 		   int bookID = res.getInt("book");
-		   res = stmt.executeQuery("select * "
-				   + "from chapters where book = "
+		   res = stmt.executeQuery("SELECT * "
+				   + "FROM chapters WHERE book = "
 				   + bookID);
 		   res.next(); //zeigt auf zu löschendes, auf jeden Fall vorhandene Chapter
 		   if(!res.next()){ //Buch kann gelöscht werden, da kein weiteres Kapitel von diesem Buch vorhanden ist
-			   stmt.execute("delete from books where id = "+bookID);
+			   stmt.execute("delete FROM books WHERE id = "+bookID);
 		   }
-		   stmt.execute("delete from chapters where id = "+chapterID);
+		   stmt.execute("delete FROM chapters WHERE id = "+chapterID);
 	   }
    }
 
@@ -598,10 +611,10 @@ public class DBC_Server extends Thread {
       ResultSet res;
 
       // Grunddaten der direkten Reden einlesen.
-      res = stmt.executeQuery("select * "
-            + "from direct_speeches where chapter = "
+      res = stmt.executeQuery("SELECT * "
+            + "FROM direct_speeches WHERE chapter = "
             + chapter.getDB_ID()
-            + " order by `index`");
+            + " ORDER BY `index`");
 
       while (res.next())
          speeches.add(new DirectSpeech(key, res.getInt("id"), chapter, res
@@ -611,11 +624,11 @@ public class DBC_Server extends Thread {
       // ï¿½uï¿½erungseinheiten zu den direkten Reeden einlesen.
       for (int i = 0; i < speeches.size(); i++) {
          DirectSpeech ds = (DirectSpeech) speeches.get(i);
-         res = stmt.executeQuery("select illocution_unit "
-               + "from ius_from_direct_speeches "
-               + "where direct_speech = "
+         res = stmt.executeQuery("SELECT illocution_unit "
+               + "FROM ius_FROM_direct_speeches "
+               + "WHERE direct_speech = "
                + ds.getDB_ID()
-               + " order by illocution_unit");
+               + " ORDER BY illocution_unit");
 
          while (res.next())
             ds.setIllocutionUnit(key, res.getInt("illocution_unit"));
@@ -660,18 +673,18 @@ public class DBC_Server extends Thread {
 		   	DirectSpeech ds = (DirectSpeech) oldDss.get(i);
 
 			//lösche alle direct_speeches Einträge aus oldDss die bereits in der Datenbank gespeichert sind
-			res = stmt.executeQuery("select * "
-					+ "from direct_speeches "
-					+ "where id = "
+			res = stmt.executeQuery("SELECT * "
+					+ "FROM direct_speeches "
+					+ "WHERE id = "
 					+ ds.getDB_ID());
 			
 			if(res.next())
 				res.deleteRow();
 			
-			//lösche alle ius_from_direct_speeches Einträge aus oldDss die bereits in der Datenbank gespeichert
-			res = stmt.executeQuery("select * "
-					+ "from ius_from_direct_speeches "
-					+ "where direct_speech = "
+			//lösche alle ius_FROM_direct_speeches Einträge aus oldDss die bereits in der Datenbank gespeichert
+			res = stmt.executeQuery("SELECT * "
+					+ "FROM ius_FROM_direct_speeches "
+					+ "WHERE direct_speech = "
 					+ ds.getDB_ID());
 			
 			if(res.next())
@@ -684,9 +697,9 @@ public class DBC_Server extends Thread {
 		{
 			DirectSpeech ds = (DirectSpeech) newDss.get(i);
 			
-			res = stmt.executeQuery("select * "
-					+ "from direct_speeches "
-					+ "where id = "
+			res = stmt.executeQuery("SELECT * "
+					+ "FROM direct_speeches "
+					+ "WHERE id = "
 					+ ds.getDB_ID());
 			
 			//wenn Eintrag nicht in Datenbank vorhanden
@@ -707,8 +720,8 @@ public class DBC_Server extends Thread {
 				res.close();
 				ds.resetState(key);
 			
-				res = stmt.executeQuery("select id "
-						+ "from direct_speeches where chapter = "
+				res = stmt.executeQuery("SELECT id "
+						+ "FROM direct_speeches WHERE chapter = "
 						+ chapter.getDB_ID()
 						+ " and `index` = "
 						+ ds.getIndex()
@@ -724,7 +737,7 @@ public class DBC_Server extends Thread {
 			
 				res.close();
 				
-				res = stmt.executeQuery("select * from ius_from_direct_speeches");
+				res = stmt.executeQuery("SELECT * FROM ius_FROM_direct_speeches");
 				Vector ius = ds.getIllocutionUnits();
 			
 				for (int j = 0; j < ius.size(); j++) 
@@ -765,9 +778,9 @@ public class DBC_Server extends Thread {
       for (int i = 0; i < dss.size(); i++) {
          DirectSpeech ds = (DirectSpeech) dss.get(i);
 
-         res = stmt.executeQuery("select * "
-               + "from direct_speeches "
-               + "where id = "
+         res = stmt.executeQuery("SELECT * "
+               + "FROM direct_speeches "
+               + "WHERE id = "
                + ds.getDB_ID());
 
          if (res.next() && ds.getDB_ID() != -1) {
@@ -788,8 +801,8 @@ public class DBC_Server extends Thread {
                Vector ius = ds.getIllocutionUnits();
                Vector existingIUs = new Vector();
                res = stmt
-                     .executeQuery("select * from ius_from_direct_speeches "
-                           + "where direct_speech = "
+                     .executeQuery("SELECT * FROM ius_FROM_direct_speeches "
+                           + "WHERE direct_speech = "
                            + ds.getDB_ID());
 
                while (res.next()) {
@@ -830,8 +843,8 @@ public class DBC_Server extends Thread {
             res.close();
             ds.resetState(key);
 
-            res = stmt.executeQuery("select id "
-                  + "from direct_speeches where chapter = "
+            res = stmt.executeQuery("SELECT id "
+                  + "FROM direct_speeches WHERE chapter = "
                   + chapter.getDB_ID()
                   + " and `index` = "
                   + ds.getIndex()
@@ -846,7 +859,7 @@ public class DBC_Server extends Thread {
                      + "konnte nicht angelegt werden");
 
             res.close();
-            res = stmt.executeQuery("select * from ius_from_direct_speeches");
+            res = stmt.executeQuery("SELECT * FROM ius_FROM_direct_speeches");
             Vector ius = ds.getIllocutionUnits();
             for (int j = 0; j < ius.size(); j++) {
                IllocutionUnit iu = (IllocutionUnit) ius.get(j);
@@ -882,9 +895,9 @@ public class DBC_Server extends Thread {
       for (int i = 0; i < ds.size(); i++) {
          Dialog d = (Dialog) ds.get(i);
 
-         res = stmt.executeQuery("select * "
-               + "from dialogs "
-               + "where id = "
+         res = stmt.executeQuery("SELECT * "
+               + "FROM dialogs "
+               + "WHERE id = "
                + d.getDB_ID());
 
          if (res.next() && d.getDB_ID() != -1) {
@@ -899,7 +912,7 @@ public class DBC_Server extends Thread {
                d.resetState(key);
                res.close();
 
-               res = stmt.executeQuery("select * from run_up where dialog = "
+               res = stmt.executeQuery("SELECT * FROM run_up WHERE dialog = "
                      + d.getDB_ID());
                if (res.next()) {
                   if (d.hasRunUp()) {
@@ -913,7 +926,7 @@ public class DBC_Server extends Thread {
                res.close();
 
                res = stmt
-                     .executeQuery("select * from follow_up where dialog = "
+                     .executeQuery("SELECT * FROM follow_up WHERE dialog = "
                            + d.getDB_ID());
                if (res.next()) {
                   if (d.hasFollowUp()) {
@@ -943,8 +956,8 @@ public class DBC_Server extends Thread {
             res.close();
             d.resetState(key);
 
-            res = stmt.executeQuery("select id "
-                  + "from dialogs where chapter = "
+            res = stmt.executeQuery("SELECT id "
+                  + "FROM dialogs WHERE chapter = "
                   + chapter.getDB_ID()
                   + " and `index` = "
                   + d.getIndex()
@@ -960,7 +973,7 @@ public class DBC_Server extends Thread {
             res.close();
 
             if (d.hasFollowUp()) {
-               res = stmt.executeQuery("select * from follow_up");
+               res = stmt.executeQuery("SELECT * FROM follow_up");
                res.moveToInsertRow();
                res.updateInt("dialog", d.getDB_ID());
                res.updateInt("start", d.getFollowUpStart().getDB_ID());
@@ -970,7 +983,7 @@ public class DBC_Server extends Thread {
             }
 
             if (d.hasRunUp()) {
-               res = stmt.executeQuery("select * from run_up");
+               res = stmt.executeQuery("SELECT * FROM run_up");
                res.moveToInsertRow();
                res.updateInt("dialog", d.getDB_ID());
                res.updateInt("start", d.getRunUpStart().getDB_ID());
@@ -1005,9 +1018,9 @@ public class DBC_Server extends Thread {
       for (int i = 0; i < scs.size(); i++) {
          SpeakerChange sc = (SpeakerChange) scs.get(i);
 
-         res = stmt.executeQuery("select * "
-               + "from speaker_changes "
-               + "where id = "
+         res = stmt.executeQuery("SELECT * "
+               + "FROM speaker_changes "
+               + "WHERE id = "
                + sc.getDB_ID());
 
          if (res.next() && sc.getDB_ID() != -1) {
@@ -1021,8 +1034,8 @@ public class DBC_Server extends Thread {
 
                Vector words = sc.getWords();
                Vector existingWords = new Vector();
-               res = stmt.executeQuery("select * from words_in_speaker_change "
-                     + "where speaker_change = "
+               res = stmt.executeQuery("SELECT * FROM words_in_speaker_change "
+                     + "WHERE speaker_change = "
                      + sc.getDB_ID());
 
                // lï¿½sche die Wï¿½rter, die nicht mehr im Sprecherwechsel vorkommen
@@ -1060,8 +1073,8 @@ public class DBC_Server extends Thread {
             res.close();
             sc.resetState(key);
 
-            res = stmt.executeQuery("select id "
-                  + "from speaker_changes where dialog = "
+            res = stmt.executeQuery("SELECT id "
+                  + "FROM speaker_changes WHERE dialog = "
                   + sc.getDialog().getDB_ID()
                   + " and `index` = "
                   + sc.getIndex());
@@ -1074,7 +1087,7 @@ public class DBC_Server extends Thread {
                      + "konnte nicht angelegt werden");
 
             res.close();
-            res = stmt.executeQuery("select * words_in_speaker_change");
+            res = stmt.executeQuery("SELECT * FROM words_in_speaker_change");
             Vector words = sc.getWords();
             for (int j = 0; j < words.size(); j++) {
                Word w = (Word) words.get(j);
@@ -1102,10 +1115,10 @@ public class DBC_Server extends Thread {
 
       // Grunddaten der Dialoge einlesen.
       res = stmt
-            .executeQuery("select id, `index`, depth, start, end, accepted "
-                  + "from dialogs where chapter = "
+            .executeQuery("SELECT id, `index`, depth, start, end, accepted "
+                  + "FROM dialogs WHERE chapter = "
                   + chapter.getDB_ID()
-                  + " order by `index`");
+                  + " ORDER BY `index`");
 
       while (res.next()) {
          Dialog dialog = new Dialog(key, res.getInt("id"), chapter, res
@@ -1121,8 +1134,8 @@ public class DBC_Server extends Thread {
       // ï¿½uï¿½erungseinheiten zu dem Vorfeld einlesen.
       for (int i = 0; i < ds.size(); i++) {
          Dialog dialog = (Dialog) ds.get(i);
-         res = stmt.executeQuery("select start, end "
-               + "from run_up where dialog = "
+         res = stmt.executeQuery("SELECT start, end "
+               + "FROM run_up WHERE dialog = "
                + dialog.getDB_ID());
 
          if (res.next()) {
@@ -1136,8 +1149,8 @@ public class DBC_Server extends Thread {
       // ï¿½uï¿½erungseinheiten zu dem Nachfeld einlesen.
       for (int i = 0; i < ds.size(); i++) {
          Dialog dialog = (Dialog) ds.get(i);
-         res = stmt.executeQuery("select start, end "
-               + "from follow_up where dialog = "
+         res = stmt.executeQuery("SELECT start, end "
+               + "FROM follow_up WHERE dialog = "
                + dialog.getDB_ID());
 
          if (res.next()) {
@@ -1150,8 +1163,8 @@ public class DBC_Server extends Thread {
 
       for (int i = 0; i < ds.size(); i++) {
          Dialog dialog = (Dialog) ds.get(i);
-         res = stmt.executeQuery("select * "
-               + "from speaker_changes where dialog = "
+         res = stmt.executeQuery("SELECT * "
+               + "FROM speaker_changes WHERE dialog = "
                + dialog.getDB_ID());
 
          if (res.next()) {
@@ -1159,8 +1172,8 @@ public class DBC_Server extends Thread {
                   res.getInt("speaker_change"), res.getInt("index"), res
                         .getBoolean("accepted"));
 
-            res = stmt.executeQuery("select word from words_in_speaker_change "
-                  + "where speaker_change = "
+            res = stmt.executeQuery("SELECT word FROM words_in_speaker_change "
+                  + "WHERE speaker_change = "
                   + sc.getDB_ID());
             while (res.next()) {
                Word w = chapter.getWordWithID(res.getInt("word"));
@@ -1202,8 +1215,8 @@ public class DBC_Server extends Thread {
       Vector ius = chapter.getIllocutionUnits();
       Vector roots = new Vector(ius.size());
       Statement stmt = connection.createStatement();
-      ResultSet res = stmt.executeQuery("select * from illocution_units "
-            + "where chapter = "
+      ResultSet res = stmt.executeQuery("SELECT * FROM illocution_units "
+            + "WHERE chapter = "
             + chapter.getDB_ID());
       while (res.next()) {
          int start = res.getInt("start");
@@ -1220,10 +1233,10 @@ public class DBC_Server extends Thread {
       Statement stmt = connection.createStatement();
       Vector fwords = new Vector();
 
-      ResultSet res = stmt.executeQuery("select function_words.id, "
+      ResultSet res = stmt.executeQuery("SELECT function_words.id, "
             + "word, start, end, accepted "
-            + "from function_words "
-            + "where chapter = "
+            + "FROM function_words "
+            + "WHERE chapter = "
             + chapter.getDB_ID());
       while (res.next()) {
          Token token = chapter.getTokenAtPosition(res.getInt("start"));
@@ -1245,9 +1258,9 @@ public class DBC_Server extends Thread {
       Statement stmt = connection.createStatement();
       Vector cwords = new Vector();
 
-      ResultSet res = stmt.executeQuery("select * "
-            + "from constitutive_words "
-            + "where chapter = "
+      ResultSet res = stmt.executeQuery("SELECT * "
+            + "FROM constitutive_words "
+            + "WHERE chapter = "
             + chapter.getDB_ID());
       while (res.next()) {
          Token token = chapter.getTokenAtPosition(res.getInt("start"));
@@ -1273,9 +1286,9 @@ public class DBC_Server extends Thread {
          throws Exception {
       Vector mus = new Vector();
       Statement stmt = connection.createStatement();
-      ResultSet res = stmt.executeQuery("select * from meaning_units "
-            + "where illocution_unit in"
-            + "(select id from illocution_units where chapter = "
+      ResultSet res = stmt.executeQuery("SELECT * FROM meaning_units "
+            + "WHERE illocution_unit in"
+            + "(SELECT id FROM illocution_units WHERE chapter = "
             + chapter.getDB_ID()
             + ")");
 
@@ -1303,9 +1316,9 @@ public class DBC_Server extends Thread {
 
       Vector sgs = new Vector();
       Statement stmt = connection.createStatement();
-      ResultSet res = stmt.executeQuery("select * from sememe_groups "
-            + "where illocution_unit in"
-            + "(select id from illocution_units where chapter = "
+      ResultSet res = stmt.executeQuery("SELECT * FROM sememe_groups "
+            + "WHERE illocution_unit in"
+            + "(SELECT id FROM illocution_units WHERE chapter = "
             + chapter.getDB_ID()
             + ")");
 
@@ -1334,9 +1347,9 @@ public class DBC_Server extends Thread {
          throws Exception {
       Vector chs = new Vector();
       Statement stmt = connection.createStatement();
-      ResultSet res = stmt.executeQuery("select * "
-            + "from checkings "
-            + "where chapter = "
+      ResultSet res = stmt.executeQuery("SELECT * "
+            + "FROM checkings "
+            + "WHERE chapter = "
             + chapter.getDB_ID());
 
       while (res.next())
@@ -1352,9 +1365,9 @@ public class DBC_Server extends Thread {
          throws Exception {
       Vector mss = new Vector();
       Statement stmt = connection.createStatement();
-      ResultSet res = stmt.executeQuery("select * "
-            + "from macro_sentences "
-            + "where chapter = "
+      ResultSet res = stmt.executeQuery("SELECT * "
+            + "FROM macro_sentences "
+            + "WHERE chapter = "
             + chapter.getDB_ID());
 
       while (res.next())
@@ -1365,8 +1378,8 @@ public class DBC_Server extends Thread {
 
       for (int i = 0; i < mss.size(); i++) {
          MacroSentence ms = (MacroSentence) mss.get(i);
-         res = stmt.executeQuery("select * from macro_sentences_dependencies "
-               + "where macro_sentence = "
+         res = stmt.executeQuery("SELECT * FROM macro_sentences_dependencies "
+               + "WHERE macro_sentence = "
                + ms.getDB_ID());
          while (res.next())
             ms.addDependency(iurs.getRoot(chapter.getIllocutionUnitWithID(res
@@ -1408,9 +1421,9 @@ public class DBC_Server extends Thread {
          if (root.isUnchanged())
             continue;
 
-         res = stmt.executeQuery("select * "
-               + "from illocution_units "
-               + "where id = "
+         res = stmt.executeQuery("SELECT * "
+               + "FROM illocution_units "
+               + "WHERE id = "
                + root.getIllocutionUnit().getDB_ID());
          if (res.next() && root.hasChanged()) {
             res.updateInt("path", root.getPath());
@@ -1457,9 +1470,9 @@ public class DBC_Server extends Thread {
          if (word.isUnchanged())
             continue;
 
-         res = stmt.executeQuery("select * "
-               + "from function_words "
-               + "where id = "
+         res = stmt.executeQuery("SELECT * "
+               + "FROM function_words "
+               + "WHERE id = "
                + word.getDB_ID());
 
          if (res.next() && word.getDB_ID() != -1) {
@@ -1488,8 +1501,8 @@ public class DBC_Server extends Thread {
             res.close();
             word.resetState(key);
 
-            res = stmt.executeQuery("select id "
-                  + "from function_words where word = "
+            res = stmt.executeQuery("SELECT id "
+                  + "FROM function_words WHERE word = "
                   + word.getWord().getDB_ID()
                   + " and chapter = "
                   + word.getWord().getChapter().getDB_ID()
@@ -1562,9 +1575,9 @@ public class DBC_Server extends Thread {
          if (word.isUnchanged())
             continue;
 
-         res = stmt.executeQuery("select * "
-               + "from constitutive_words "
-               + "where id = "
+         res = stmt.executeQuery("SELECT * "
+               + "FROM constitutive_words "
+               + "WHERE id = "
                + word.getDB_ID());
          if (res.next() && word.getDB_ID() != -1) {
             if (word.hasChanged()) {
@@ -1624,8 +1637,8 @@ public class DBC_Server extends Thread {
             res.close();
             word.resetState(key);
 
-            res = stmt.executeQuery("select id "
-                  + "from constitutive_words where word = "
+            res = stmt.executeQuery("SELECT id "
+                  + "FROM constitutive_words WHERE word = "
                   + word.getWord().getDB_ID()
                   + " and chapter = "
                   + word.getWord().getChapter().getDB_ID()
@@ -1680,8 +1693,8 @@ public class DBC_Server extends Thread {
          if (mu.isUnchanged())
             continue;
 
-         res = stmt.executeQuery("select * from "
-               + "meaning_units where id = "
+         res = stmt.executeQuery("SELECT * FROM "
+               + "meaning_units WHERE id = "
                + mu.getDB_ID());
 
          if (res.next()) {
@@ -1717,8 +1730,8 @@ public class DBC_Server extends Thread {
             res.close();
             mu.resetState(key);
 
-            res = stmt.executeQuery("select id "
-                  + "from meaning_units where illocution_unit = "
+            res = stmt.executeQuery("SELECT id "
+                  + "FROM meaning_units WHERE illocution_unit = "
                   + mu.getRoot().getIllocutionUnit().getDB_ID()
                   + " and constitutive_word = "
                   + mu.getConstitutiveWord().getDB_ID());
@@ -1754,8 +1767,8 @@ public class DBC_Server extends Thread {
          if (sg.isUnchanged())
             continue;
 
-         res = stmt.executeQuery("select * from "
-               + "sememe_groups where id = "
+         res = stmt.executeQuery("SELECT * FROM "
+               + "sememe_groups WHERE id = "
                + sg.getDB_ID());
 
          // schon in der DB vorhanden
@@ -1795,8 +1808,8 @@ public class DBC_Server extends Thread {
             res.close();
             sg.resetState(key);
 
-            res = stmt.executeQuery("select id "
-                  + "from sememe_groups where meaning_unit_1 = "
+            res = stmt.executeQuery("SELECT id "
+                  + "FROM sememe_groups WHERE meaning_unit_1 = "
                   + sg.getFirst().getDB_ID()
                   + " and meaning_unit_2 = "
                   + sg.getSecond().getDB_ID());
@@ -1833,8 +1846,8 @@ public class DBC_Server extends Thread {
          if (ch.isUnchanged())
             continue;
 
-         res = stmt.executeQuery("select * from "
-               + "checkings where id = "
+         res = stmt.executeQuery("SELECT * FROM "
+               + "checkings WHERE id = "
                + ch.getDB_ID());
 
          // schon in der DB vorhanden
@@ -1861,8 +1874,8 @@ public class DBC_Server extends Thread {
             res.close();
             ch.resetState(key);
 
-            res = stmt.executeQuery("select id "
-                  + "from checkings where meaning_unit = "
+            res = stmt.executeQuery("SELECT id "
+                  + "FROM checkings WHERE meaning_unit = "
                   + ch.getMeaningUnit().getDB_ID());
 
             if (res.next())
@@ -1896,8 +1909,8 @@ public class DBC_Server extends Thread {
          if (ms.isUnchanged())
             continue;
 
-         res = stmt.executeQuery("select * from "
-               + "macro_sentences where id = "
+         res = stmt.executeQuery("SELECT * FROM "
+               + "macro_sentences WHERE id = "
                + ms.getDB_ID());
 
          // schon in der DB vorhanden
@@ -1910,9 +1923,9 @@ public class DBC_Server extends Thread {
                res.updateRow();
                ms.resetState(key);
 
-               res = stmt.executeQuery("select * from "
+               res = stmt.executeQuery("SELECT * FROM "
                      + "macro_sentences_dependencies "
-                     + "where macro_sentence = "
+                     + "WHERE macro_sentence = "
                      + ms.getDB_ID());
                Vector dep = ms.getDependencies();
                for (int j = 0; j < dep.size(); j++) {
@@ -1942,8 +1955,8 @@ public class DBC_Server extends Thread {
             res.close();
             ms.resetState(key);
 
-            res = stmt.executeQuery("select id "
-                  + "from macro_sentences where checking = "
+            res = stmt.executeQuery("SELECT id "
+                  + "FROM macro_sentences WHERE checking = "
                   + ms.getHead().getDB_ID());
 
             if (res.next())
@@ -1955,9 +1968,9 @@ public class DBC_Server extends Thread {
                      + " konnte nicht in der "
                      + "DB gespeichert werden!");
 
-            res = stmt.executeQuery("select * from "
+            res = stmt.executeQuery("SELECT * FROM "
                   + "macro_sentences_dependencies "
-                  + "where macro_sentence = "
+                  + "WHERE macro_sentence = "
                   + ms.getDB_ID());
             Vector dep = ms.getDependencies();
             for (int j = 0; j < dep.size(); j++) {
@@ -1981,10 +1994,10 @@ public class DBC_Server extends Thread {
       Statement stmt = connection.createStatement();
       Vector fwords = new Vector();
 
-      ResultSet res = stmt.executeQuery("select content "
-            + "from words where id in "
-            + "(select distinct word "
-            + "from function_words)");
+      ResultSet res = stmt.executeQuery("SELECT content "
+            + "FROM words WHERE id IN "
+            + "(SELECT distinct word "
+            + "FROM function_words)");
       while (res.next())
          fwords.add(res.getString(1));
 
@@ -1997,15 +2010,15 @@ public class DBC_Server extends Thread {
       Statement stmt = connection.createStatement();
 
       // Anzahl der Kategorien bestimmen
-      ResultSet res = stmt.executeQuery("select count(*) "
-            + "from function_words_categories");
+      ResultSet res = stmt.executeQuery("SELECT count(*) "
+            + "FROM function_words_categories");
       res.next();
       Vector cats = new Vector(res.getInt(1));
 
       // Kategorien auslesen.
-      res = stmt.executeQuery("select category from "
+      res = stmt.executeQuery("SELECT category FROM "
             + "function_words_categories "
-            + "order by category");
+            + "ORDER BY category");
       while (res.next())
          cats.add(res.getString("category"));
 
@@ -2018,10 +2031,10 @@ public class DBC_Server extends Thread {
       Statement stmt = connection.createStatement();
       Vector cwords = new Vector();
 
-      ResultSet res = stmt.executeQuery("select content "
-            + "from words where id in "
-            + "(select distinct word "
-            + "from constitutive_words)");
+      ResultSet res = stmt.executeQuery("SELECT content "
+            + "FROM words WHERE id in "
+            + "(SELECT distinct word "
+            + "FROM constitutive_words)");
       while (res.next())
          cwords.add(res.getString(1));
 
@@ -2034,7 +2047,7 @@ public class DBC_Server extends Thread {
       try {
          Statement stmt = connection.createStatement();
          ResultSet res = stmt
-               .executeQuery("select * from paths where id > 0 order by parent");
+               .executeQuery("SELECT * FROM paths WHERE id > 0 ORDER BY parent");
 
          while (res.next()) {
             PathNode parent = root.getNode(res.getInt("parent"));
@@ -2058,8 +2071,8 @@ public class DBC_Server extends Thread {
          throws Exception {
       Boolean result = new Boolean(false);
       Statement stmt = connection.createStatement();
-      ResultSet res = stmt.executeQuery("select * from function_words "
-            + "where word = "
+      ResultSet res = stmt.executeQuery("SELECT * FROM function_words "
+            + "WHERE word = "
             + wordID.intValue());
 
       while (res.next()) {
@@ -2080,8 +2093,8 @@ public class DBC_Server extends Thread {
          throws Exception {
       Boolean result = new Boolean(false);
       Statement stmt = connection.createStatement();
-      ResultSet res = stmt.executeQuery("select * from constitutive_words "
-            + "where word = "
+      ResultSet res = stmt.executeQuery("SELECT * FROM constitutive_words "
+            + "WHERE word = "
             + wordID.intValue());
 
       while (res.next()) {
@@ -2102,16 +2115,17 @@ public class DBC_Server extends Thread {
       Vector result = new Vector();
       Statement stmt = connection.createStatement();
       ResultSet res = stmt
-            .executeQuery("select distinct "
-                  + "substring(content, start-position+1, end-position+1) as content "
-                  + "from constitutive_words as cws, words, "
-                  + "words_in_chapter as winc where words.id = cws.word "
-                  + "and words.id = winc.word and winc.chapter = cws.chapter "
-                  + "and winc.position <= cws.start "
-                  + "and cws.end <= winc.position + length(content) "
-                  + "and words.language = '"
+            .executeQuery("SELECT DISTINCT "
+                  + "SUBSTRING(content, start-position+1, end-position+1) AS content "
+                  + "FROM constitutive_words AS cws, words, words_in_chapter AS winc "
+                  + "WHERE words.id = cws.word "
+                  + "AND words.id = winc.word "
+                  + "AND winc.chapter = cws.chapter "
+                  + "AND winc.position <= cws.start "
+                  + "AND cws.end <= winc.position + length(content) "
+                  + "AND words.language = '"
                   + language
-                  + "' order by content");
+                  + "' ORDER BY content");
 
       while (res.next()) {
          DB_Tupel tupel = new DB_Tupel();
@@ -2127,16 +2141,17 @@ public class DBC_Server extends Thread {
          throws Exception {
       Vector result = new Vector();
       Statement stmt = connection.createStatement();
-      ResultSet res = stmt.executeQuery("select distinct "
-            + "substring(content, start-position+1, end-position+1) as string "
-            + "from function_words as fws, words, "
-            + "words_in_chapter as winc where words.id = fws.word "
-            + "and words.id = winc.word and winc.chapter = fws.chapter "
-            + "and winc.position <= fws.start "
-            + "and fws.end <= winc.position + length(content) "
-            + "and words.language = '"
+      ResultSet res = stmt.executeQuery("SELECT DISTINCT "
+            + "SUBSTRING(content, start-position+1, end-position+1) AS string "
+            + "FROM function_words AS fws, words, words_in_chapter AS winc "
+            + "WHERE words.id = fws.word "
+            + "AND words.id = winc.word "
+            + "AND winc.chapter = fws.chapter "
+            + "AND winc.position <= fws.start "
+            + "AND fws.end <= winc.position + length(content) "
+            + "AND words.language = '"
             + language
-            + "' order by string");
+            + "' ORDER BY string");
 
       while (res.next())
          result.add(res.getString("string"));
@@ -2157,22 +2172,18 @@ public class DBC_Server extends Thread {
          query = "%" + word + "%";
 
       ResultSet res = stmt
-            .executeQuery("select cws.chapter, content, position, start, end, "
+            .executeQuery("SELECT cws.chapter, content, position, start, end, "
                   + "lexprag_path, lexprag_level, "
                   + "text_gr_path, sem_path "
-                  + "from constitutive_words as cws, words, "
-                  + "words_in_chapter as winc "
-                  + "where words.id = cws.word "
-                  + "and words.id = winc.word "
-                  + "and winc.chapter = cws.chapter "
-                  + "and winc.position <= cws.start "
-                  + "and cws.end <= winc.position+length(content) "
-                  + "and words.id in "
-                  + "(select id from words where content like '"
-                  + query
-                  + "' and language = '"
-                  + language
-                  + "')");
+                  + "FROM constitutive_words AS cws, words, words_in_chapter AS winc "
+                  + "WHERE words.id = cws.word "
+                  + "AND words.id = winc.word "
+                  + "AND winc.chapter = cws.chapter "
+                  + "AND winc.position <= cws.start "
+                  + "AND cws.end <= winc.position+length(content) "
+                  + "AND words.id IN " + String.format("(SELECT id FROM words WHERE content LIKE '%1$s' AND language = '%2$s')"
+                		  , query, language)
+                  );
 
       while (res.next()) {
          String content = res.getString("content");
@@ -2212,19 +2223,16 @@ public class DBC_Server extends Thread {
       Statement stmt = connection.createStatement();
 
       ResultSet res = stmt
-            .executeQuery("select fws.chapter, content, position, start, end "
-                  + "from function_words as fws, words, words_in_chapter as winc "
-                  + "where words.id = fws.word "
-                  + "and words.id = winc.word "
-                  + "and winc.chapter = fws.chapter "
-                  + "and winc.position <= fws.start "
-                  + "and fws.end <= winc.position+length(content) "
-                  + "and words.id in "
-                  + "(select id from words where content = '"
-                  + word
-                  + "' and language = '"
-                  + language
-                  + "')");
+            .executeQuery("SELECT fws.chapter, content, position, start, end "
+                  + "FROM function_words AS fws, words, words_in_chapter AS winc "
+                  + "WHERE words.id = fws.word "
+                  + "AND words.id = winc.word "
+                  + "AND winc.chapter = fws.chapter "
+                  + "AND winc.position <= fws.start "
+                  + "AND fws.end <= winc.position + LENGTH(content) "
+                  + "AND words.id IN " + String.format("(SELECT id FROM words WHERE content LIKE '%1$s' AND language = '%2$s')"
+                		  , word, language)
+                );
 
       while (res.next()) {
          String content = res.getString("content");
@@ -2253,8 +2261,8 @@ public class DBC_Server extends Thread {
       Chapter chapter = getChapter(chapterID.intValue());
 
       Statement stmt = connection.createStatement();
-      ResultSet res = stmt.executeQuery("select * from themas "
-            + "where chapter = "
+      ResultSet res = stmt.executeQuery("SELECT * FROM themas "
+            + "WHERE chapter = "
             + chapter.getDB_ID());
 
       // erst alle Themas einlesen
@@ -2278,8 +2286,8 @@ public class DBC_Server extends Thread {
          }
          thema.setFirstOccurrence(key, firstOccurrence);
 
-         res = stmt.executeQuery("select * from thema_occurrences "
-               + "where thema = "
+         res = stmt.executeQuery("SELECT * FROM thema_occurrences "
+               + "WHERE thema = "
                + thema.getDB_ID());
          while (res.next())
             thema.addOccurrence(res.getInt("start"), res.getInt("end"));
@@ -2294,8 +2302,8 @@ public class DBC_Server extends Thread {
       Statement stmt = connection
             .createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
                   ResultSet.CONCUR_UPDATABLE);
-      stmt.executeUpdate("delete from themas where chapter = " + chapterID);
-      ResultSet res = stmt.executeQuery("select * from themas where chapter = "
+      stmt.executeUpdate("delete FROM themas WHERE chapter = " + chapterID);
+      ResultSet res = stmt.executeQuery("SELECT * FROM themas WHERE chapter = "
             + chapterID);
 
       // alle Themas speichern
@@ -2311,7 +2319,7 @@ public class DBC_Server extends Thread {
       }
 
       // IDs auslesen und setzen
-      res = stmt.executeQuery("select * from themas where chapter = "
+      res = stmt.executeQuery("SELECT * FROM themas WHERE chapter = "
             + chapterID);
       while (res.next()) {
          Thema_DB thema = (Thema_DB) themas.get(res.getInt("index"));
@@ -2319,7 +2327,7 @@ public class DBC_Server extends Thread {
       }
 
       // Referenzen speichern
-      res = stmt.executeQuery("select * from themas where chapter = "
+      res = stmt.executeQuery("SELECT * FROM themas WHERE chapter = "
             + chapterID);
       while (res.next()) {
          Thema_DB thema = (Thema_DB) themas.get(res.getInt("index"));
@@ -2330,7 +2338,7 @@ public class DBC_Server extends Thread {
       }
 
       // Vorkommen speichern
-      res = stmt.executeQuery("select * from thema_occurrences");
+      res = stmt.executeQuery("SELECT * FROM thema_occurrences");
       for (int i = 0; i < themas.size(); i++) {
          Thema_DB thema = (Thema_DB) themas.get(i);
          Vector ocs = thema.getOccurrences();
@@ -2370,9 +2378,9 @@ public class DBC_Server extends Thread {
 
          // Suche die ID zu der Kategorie
          int categoryID = -1;
-         res = stmt.executeQuery("select id "
-               + "from isotope_categories "
-               + "where category like binary '"
+         res = stmt.executeQuery("SELECT id "
+               + "FROM isotope_categories "
+               + "WHERE category like binary '"
                + isotope.getCategory()
                + "'");
          if (res.next()) {
@@ -2392,8 +2400,8 @@ public class DBC_Server extends Thread {
 
          // Prï¿½fe, ob schon ein Tupel mit der ID in der DB
          // gespeichert ist
-         res = stmt.executeQuery("select * "
-               + "from isotopes where id = "
+         res = stmt.executeQuery("SELECT * "
+               + "FROM isotopes WHERE id = "
                + isotope.getDB_ID());
 
          // Tupel ist vorhanden...
@@ -2423,8 +2431,8 @@ public class DBC_Server extends Thread {
             res.close();
             isotope.resetState(key);
 
-            res = stmt.executeQuery("select id "
-                  + "from isotopes where category = "
+            res = stmt.executeQuery("SELECT id "
+                  + "FROM isotopes WHERE category = "
                   + categoryID
                   + " and word = "
                   + isotope.getWord().getDB_ID()
@@ -2462,10 +2470,10 @@ public class DBC_Server extends Thread {
       Isotopes isotopes = new Isotopes(chapter);
 
       Statement stmt = connection.createStatement();
-      ResultSet res = stmt.executeQuery("select isotopes.id, isotopes.index, "
+      ResultSet res = stmt.executeQuery("SELECT isotopes.id, isotopes.index, "
             + "isotope_categories.category "
-            + "from isotopes, isotope_categories "
-            + "where isotopes.chapter = "
+            + "FROM isotopes, isotope_categories "
+            + "WHERE isotopes.chapter = "
             + chapter.getDB_ID()
             + " and isotope_categories.id = isotopes.category");
 
@@ -2482,9 +2490,9 @@ public class DBC_Server extends Thread {
          throws Exception {
       Vector hierachy = new Vector();
       Statement stmt = connection.createStatement();
-      ResultSet res = stmt.executeQuery("select hierachy "
-            + "from isotope_hierachies "
-            + "where chapter = "
+      ResultSet res = stmt.executeQuery("SELECT hierachy "
+            + "FROM isotope_hierachies "
+            + "WHERE chapter = "
             + chapterID);
 
       if (res.next()) {
@@ -2504,9 +2512,9 @@ public class DBC_Server extends Thread {
       Statement stmt = connection
             .createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
                   ResultSet.CONCUR_UPDATABLE);
-      ResultSet res = stmt.executeQuery("select chapter, hierachy "
-            + "from isotope_hierachies "
-            + "where chapter = "
+      ResultSet res = stmt.executeQuery("SELECT chapter, hierachy "
+            + "FROM isotope_hierachies "
+            + "WHERE chapter = "
             + chapterID);
 
       if (res.next()) {
@@ -2539,8 +2547,8 @@ public class DBC_Server extends Thread {
          throws Exception {
       Vector languages = new Vector();
       Statement stmt = connection.createStatement();
-      ResultSet res = stmt.executeQuery("select count(*) as c, language "
-            + "from words group by language order by c desc");
+      ResultSet res = stmt.executeQuery("SELECT count(*) AS c, language "
+            + "FROM words GROUP BY language ORDER BY c DESC");
 
       while (res.next())
          languages.add(res.getString("language"));
@@ -2556,21 +2564,21 @@ public class DBC_Server extends Thread {
 
       switch (ownerClassCode.intValue()) {
          case Comments.CLASS_CODE_ILLOCUTION_UNIT :
-            subquery = "select id from illocution_units where chapter = "
+            subquery = "SELECT id FROM illocution_units WHERE chapter = "
                   + ChapterID;
             break;
          case Comments.CLASS_CODE_DIRECT_SPEECH :
-            subquery = "select id from direct_speeches where chapter = "
+            subquery = "SELECT id FROM direct_speeches WHERE chapter = "
                   + ChapterID;
             break;
          case Comments.CLASS_CODE_DIALOG :
-            subquery = "select id from dialogs where chapter = " + ChapterID;
+            subquery = "SELECT id FROM dialogs WHERE chapter = " + ChapterID;
             break;
          case Comments.CLASS_CODE_DIALOG_FOLLOWUP :
-            subquery = "select id from dialogs where chapter = " + ChapterID;
+            subquery = "SELECT id FROM dialogs WHERE chapter = " + ChapterID;
             break;
          case Comments.CLASS_CODE_DIALOG_RUNUP :
-            subquery = "select id from dialogs where chapter = " + ChapterID;
+            subquery = "SELECT id FROM dialogs WHERE chapter = " + ChapterID;
             break;
          default :
             subquery = "";
@@ -2578,9 +2586,9 @@ public class DBC_Server extends Thread {
       }
 
       Statement stmt = connection.createStatement();
-      ResultSet res = stmt.executeQuery("select owner_id, owner_class_code, "
-            + "program, comment from comments "
-            + "where owner_class_code = "
+      ResultSet res = stmt.executeQuery("SELECT owner_id, owner_class_code, "
+            + "program, comment FROM comments "
+            + "WHERE owner_class_code = "
             + ownerClassCode
             + " and owner_id in ("
             + subquery
@@ -2609,7 +2617,7 @@ public class DBC_Server extends Thread {
          CommentKey ck = (CommentKey) cks.nextElement();
          Comment c = comments.getComment(ck);
 
-         res = stmt.executeQuery("select * from comments where owner_id = "
+         res = stmt.executeQuery("SELECT * FROM comments WHERE owner_id = "
                + ck.getOwnerID()
                + " and owner_class_code = "
                + ck.getOwnerClassCode()
@@ -2666,7 +2674,7 @@ public class DBC_Server extends Thread {
 
          // Tupel soll gelï¿½scht werden
          if (tupel.getState() == DB_Tupel.DELETE) {
-            res = stmt.executeQuery("select * from word_list where id = "
+            res = stmt.executeQuery("SELECT * FROM word_list WHERE id = "
                   + tupel.getInt("id"));
             if (res.next()) {
                // System.out.println("lï¿½sche "+ tupel);
@@ -2678,20 +2686,23 @@ public class DBC_Server extends Thread {
          // Tupel wird in der DB neu angelegt oder geï¿½ndert
          else {
             // Fï¿½ge erst eventuell das Wort in die Wort-DB ein
-            res = stmt.executeQuery("select * from words where content like '"
-                  + tupel.getString("content")
-                  + "' and language like '"
-                  + tupel.getString("language")
-                  + "'");
-            if (!res.next()) {
-               res.moveToInsertRow();
-               res.updateString("content", tupel.getString("content"));
-               res.updateString("language", tupel.getString("language"));
-               res.insertRow();
-               i--;
-               connection.commit();
-               continue;
-            }
+        	 
+        	 
+        	 int rowCount = stmt.executeUpdate(String.format(
+        			 
+        			 "INSERT IGNORE INTO words " +
+        			 "(content, language, cont_lang_checksum) " +
+        			 "VALUES('%1$s', '%2$s', UNHEX(MD5(CONCAT('%1$s', '%2$s'))))",
+        			 
+        		tupel.getString("content"), tupel.getString("language")));
+        	 
+            res = stmt.executeQuery(String.format(
+            		
+            		"SELECT id, language, content " +
+            		"FROM words " +
+            		"AND words.cont_lang_checksum = UNHEX(MD5(CONCAT('%1$s', '%2$s')))",
+            		
+            	mask(tupel.getString("content")), tupel.getString("language")));
 
             // hole die Wort-ID aud der Wort-DB
             int wordID = res.getInt("id");
@@ -2700,7 +2711,7 @@ public class DBC_Server extends Thread {
 
             // Tupel soll geï¿½ndert werden
             if (tupel.getState() == DB_Tupel.CHANGE) {
-               res = stmt.executeQuery("select * from word_list where id = "
+               res = stmt.executeQuery("SELECT * FROM word_list WHERE id = "
                      + tupel.getInt("id"));
                if (res.next()) {
                   // System.out.println("ï¿½ndere "+ tupel);
@@ -2741,8 +2752,7 @@ public class DBC_Server extends Thread {
                      res.updateByte("tr_tempus", tupel.getByte("tr_tempus"));
 
                   if (tupel.containsKey("tr_diathese"))
-                     res
-                           .updateByte("tr_diathese", tupel
+                     res.updateByte("tr_diathese", tupel
                                  .getByte("tr_diathese"));
 
                   if (tupel.containsKey("type"))
@@ -2765,7 +2775,7 @@ public class DBC_Server extends Thread {
 
             // Tupel wird neu angelegt
             else {
-               String query = "select * from word_list where word = " + wordID;
+               String query = "SELECT * FROM word_list WHERE word = " + wordID;
 
                if (tupel.containsKey("tr_genus"))
                   query += " and tr_genus = " + tupel.getByte("tr_genus");
@@ -2890,8 +2900,8 @@ public class DBC_Server extends Thread {
          if (complex.isUnchanged())
             continue;
 
-         res = stmt.executeQuery("select * from "
-               + "complexes where id = "
+         res = stmt.executeQuery("SELECT * FROM "
+               + "complexes WHERE id = "
                + complex.getDB_ID());
 
          if (res.next()) {
@@ -2902,8 +2912,8 @@ public class DBC_Server extends Thread {
 
                // noch die Nomen des Komplexes abspeichern
                Vector ns = complex.getNounsID();
-               res = stmt.executeQuery("select * from "
-                     + "complex_nouns where complex = "
+               res = stmt.executeQuery("SELECT * FROM "
+                     + "complex_nouns WHERE complex = "
                      + complex.getDB_ID());
 
                // die alten Eintrï¿½ge lï¿½schen
@@ -2920,8 +2930,8 @@ public class DBC_Server extends Thread {
 
                // noch die Deiktikas des Komplexes abspeichern
                Vector ds = complex.getDeicticasID();
-               res = stmt.executeQuery("select * from "
-                     + "deicticons where complex = "
+               res = stmt.executeQuery("SELECT * FROM "
+                     + "deicticons WHERE complex = "
                      + complex.getDB_ID());
 
                // die alten Eintrï¿½ge lï¿½schen
@@ -2948,7 +2958,7 @@ public class DBC_Server extends Thread {
             res.close();
             complex.resetState(key);
 
-            res = stmt.executeQuery("select id from complexes where chapter = "
+            res = stmt.executeQuery("SELECT id FROM complexes WHERE chapter = "
                   + chapter.getDB_ID()
                   + " and type = "
                   + complex.getComplexType()
@@ -2966,8 +2976,8 @@ public class DBC_Server extends Thread {
 
             // noch die Deiktikas des Komplexes abspeichern
             Vector ds = complex.getDeicticasID();
-            res = stmt.executeQuery("select * from "
-                  + "deicticons where complex = "
+            res = stmt.executeQuery("SELECT * FROM "
+                  + "deicticons WHERE complex = "
                   + complex.getDB_ID());
 
             // die alten Eintrï¿½ge lï¿½schen
@@ -2984,8 +2994,8 @@ public class DBC_Server extends Thread {
 
             // noch die Nomen des Komplexes abspeichern
             Vector ns = complex.getNounsID();
-            res = stmt.executeQuery("select * from "
-                  + "complex_nouns where complex = "
+            res = stmt.executeQuery("SELECT * FROM "
+                  + "complex_nouns WHERE complex = "
                   + complex.getDB_ID());
 
             // die alten Eintrï¿½ge lï¿½schen
@@ -3013,8 +3023,8 @@ public class DBC_Server extends Thread {
          throws Exception {
       Vector result = new Vector();
       Statement stmt = connection.createStatement();
-      ResultSet res = stmt.executeQuery("select id, type "
-            + "from complexes where chapter = "
+      ResultSet res = stmt.executeQuery("SELECT id, type "
+            + "FROM complexes WHERE chapter = "
             + chapterID);
 
       while (res.next())
@@ -3022,8 +3032,8 @@ public class DBC_Server extends Thread {
 
       for (int i = 0; i < result.size(); i++) {
          Complex_DB c = (Complex_DB) result.get(i);
-         res = stmt.executeQuery("select deicticon from deicticons "
-               + "where complex = "
+         res = stmt.executeQuery("SELECT deicticon FROM deicticons "
+               + "WHERE complex = "
                + c.getDB_ID());
          while (res.next())
             c.addDeicticonID(key, res.getInt("deicticon"));
@@ -3032,8 +3042,8 @@ public class DBC_Server extends Thread {
 
       for (int i = 0; i < result.size(); i++) {
          Complex_DB c = (Complex_DB) result.get(i);
-         res = stmt.executeQuery("select noun from complex_nouns "
-               + "where complex = "
+         res = stmt.executeQuery("SELECT noun FROM complex_nouns "
+               + "WHERE complex = "
                + c.getDB_ID());
          while (res.next())
             c.addNounID(key, res.getInt("noun"));
@@ -3061,9 +3071,9 @@ public class DBC_Server extends Thread {
          Renominalisation renominalisation = (Renominalisation) renoms.get(i);
          // Suche die ID zu der Kategorie
          int categoryID = -1;
-         res = stmt.executeQuery("select id "
-               + "from renominalisation_categories "
-               + "where category like binary '"
+         res = stmt.executeQuery("SELECT id "
+               + "FROM renominalisation_categories "
+               + "WHERE category like binary '"
                + renominalisation.getCategory()
                + "'");
          if (res.next()) {
@@ -3083,8 +3093,8 @@ public class DBC_Server extends Thread {
 
          // PrÃ¼fe, ob schon ein Tupel mit der ID in der DB
          // gespeichert ist
-         res = stmt.executeQuery("select * "
-               + "from renominalisations where id = "
+         res = stmt.executeQuery("SELECT * "
+               + "FROM renominalisations WHERE id = "
                + renominalisation.getDB_ID());
 
          // Tupel ist vorhanden...
@@ -3119,8 +3129,8 @@ public class DBC_Server extends Thread {
             res.close();
             renominalisation.resetState(key);
 
-            res = stmt.executeQuery("select id "
-                  + "from renominalisations where category = "
+            res = stmt.executeQuery("SELECT id "
+                  + "FROM renominalisations WHERE category = "
                   + categoryID
                   + " and constitutive_word = "
                   + renominalisation.getConstitutiveWord().getDB_ID()
@@ -3160,10 +3170,10 @@ public class DBC_Server extends Thread {
       Renominalisations renominalisations = new Renominalisations(chapter);
       Statement stmt = connection.createStatement();
       ResultSet res = stmt
-            .executeQuery("select renominalisations.id, renominalisations.constitutive_word,  "
+            .executeQuery("SELECT renominalisations.id, renominalisations.constitutive_word,  "
                   + "renominalisation_categories.category "
-                  + "from renominalisations, renominalisation_categories "
-                  + "where renominalisations.chapter = "
+                  + "FROM renominalisations, renominalisation_categories "
+                  + "WHERE renominalisations.chapter = "
                   + chapter.getDB_ID()
                   + " and renominalisation_categories.id = renominalisations.category");
       IllocutionUnitRoots iur = loadIllocutionUnitRoots(chapterID);// Integer.valueOf(res.getInt("chapter")
@@ -3186,17 +3196,28 @@ public class DBC_Server extends Thread {
    
 public WordListElement saveWordListElement(WordListElement element) throws Exception{
 	
-	connection.setAutoCommit(false);
+	connection.setAutoCommit(true);
 	   Statement stmt = connection
 	   		.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
             ResultSet.CONCUR_UPDATABLE);
-	   ResultSet res = stmt.executeQuery("select * from words "
-            + "where content like binary '"
-            + mask(element.getContent())
-            + "' and language like '"
-            + element.getLanguage()
-            + "'");
-	   connection.commit();
+	   
+	   int rowCount = stmt.executeUpdate(String.format(
+  			 
+  			 "INSERT IGNORE INTO words " +
+  			 "(content, language, cont_lang_checksum) " +
+  			 "VALUES('%1$s', '%2$s', UNHEX(MD5(CONCAT('%1$s', '%2$s'))))",
+  			 
+  			mask(element.getContent()), element.getLanguage()));
+
+	   
+	   ResultSet res = stmt.executeQuery(String.format(
+			   
+			   "SELECT id " +
+			   "FROM words " +
+			   "WHERE cont_lang_checksum = UNHEX(MD5(CONCAT('%1$s', '%2$s')))",
+       		
+       		mask(element.getContent()), element.getLanguage()));
+	   
       
     int wordId = 0;
     //Wort ist vorhanden
@@ -3204,88 +3225,60 @@ public WordListElement saveWordListElement(WordListElement element) throws Excep
          wordId = res.getInt("id");
          System.out.print('-');
 	}
-    else {// Wort muss gespeichert werden
-     	 //res.moveToInsertRow();
-    	  res.close();
-    	  stmt.executeUpdate("insert into "
-                + "words (content,language) "
-                + "values('" 
-                + element.getContent()+"','"
-                + element.getLanguage() +"'"
-                +")");
-    	  connection.commit();
-   	   		
-         res = stmt.executeQuery("select * from words "
-                 + "where content like binary '"
-                 + mask(element.getContent())
-                 + "' and language like '"
-                 + element.getLanguage()
-                 + "'");
-         connection.commit();
-         res.next();
-         wordId = res.getInt("id"); //problem: leeres result set
+    else {
+    	//TODO: Fehlerfall behandeln
       }
 	   res.close();
 	
 	   for(int i = 0; i != element.getAssignations().size();i++){
 		   int idBefore = ((TR_Assignation)element.getAssignations().get(i)).DB_ID;
 		   int assignationId = saveAssignation((TR_Assignation)element.getAssignations().get(i));
-		   if(idBefore == -1){
-		   connection.setAutoCommit(false);
-		   stmt.executeUpdate("insert into "
-                  + "word_list_elements (word_id,assignation_id) "
-                  + "values('" 
-                  + wordId+"','"
-                  + assignationId +"'"
-                  +")");
-		   connection.commit();
+		   if( idBefore == -1 ) {
+			   stmt.executeUpdate(String.format(
+					   
+					   "INSERT INTO word_list_elements " +
+					   "(word_id, assignation_id) " +
+					   "VALUES(%1$d, %2$d)",
+					   
+				wordId, assignationId));
 		   }
-		   
 	   }
 	   stmt.close();
-	   connection.setAutoCommit(true);
 	   return element;
 }
-public synchronized WordListElement loadWordListElement(String content) throws Exception{
+
+public synchronized WordListElement loadWordListElement(String content) throws Exception
+{
 	WordListElement element = null;
-	connection.setAutoCommit(false);
-	Statement stmt = connection.createStatement();
-    ResultSet res = stmt.executeQuery("select * from words where content = '"+content+"'");
-	connection.commit();
-	if(res.next()){
+	Statement stmt = connection.createStatement();   
+		
+	ResultSet res = stmt.executeQuery(String.format(
+			
+			"SELECT assignations.* " +
+			"FROM assignations, word_list_elements, words " +
+			"WHERE assignations.id = word_list_elements.assignation_id " +
+			"AND word_list_elements.word_id = words.id " +
+			"AND words.cont_lang_checksum = UNHEX(MD5(CONCAT('%1$s', '%2$s')))",
+			
+		mask(content), "DE")); //TODO: Get language as function parameter
+	
+	if( res.next() ) {
+		
 		element = new WordListElement(content);
-		int wordID = res.getInt("id");
-		res = stmt.executeQuery("select * from word_list_elements where word_id = "+wordID);
-		connection.commit();
-		Vector<Integer> assignationIDs = new Vector<Integer>();
-		while(res.next()){
-			int assignationID = res.getInt("assignation_id");
-			assignationIDs.add(assignationID);
-		}
-		for(int i = 0; i != assignationIDs.size(); i++){
-			res = stmt.executeQuery("select * from assignations where id = "+assignationIDs.get(i));
-			connection.commit();
-			if(res.next()){
-				TR_Assignation assi = new TR_Assignation(res.getByte("tr_type"), res.getByte("tr_genus"), res.getByte("tr_numerus"), res.getByte("tr_determination"), 
+		
+		do {
+			TR_Assignation assi = new TR_Assignation(res.getByte("tr_type"), res.getByte("tr_genus"), res.getByte("tr_numerus"), res.getByte("tr_determination"), 
 						res.getLong("tr_case"), res.getByte("tr_person"), res.getShort("tr_conjugation"), res.getByte("tr_tempus"), res.getByte("tr_diathese"), 
 						res.getInt("tr_wordclass"), res.getByte("tr_subclass_connector"), res.getByte("tr_subclass_verb"), res.getByte("tr_subclass_adjective"), 
 						res.getShort("tr_subclass_pronoun"), res.getShort("tr_subclass_sign"), res.getShort("tr_wortart1"), res.getShort("tr_wortart2"), 
 						res.getByte("tr_wortart3"), res.getByte("tr_wortart4"), res.getString("etymol"), res.getString("description"),content);
-				assi.DB_ID = res.getInt("id");
-				element.addAssignation(assi);
-			}
-			
+			assi.DB_ID = res.getInt("id");
+			element.addAssignation(assi);
 		}
+		while( res.next() );
 	}
-	else{
-		res.close();
-		stmt.close();
-		connection.setAutoCommit(true);
-		return null;
-	}
-	res.close();
+	
 	stmt.close();
-	connection.setAutoCommit(true);
 	return element;
 }
 
@@ -3331,26 +3324,24 @@ public synchronized WordListElement loadWordListElement(TR_Assignation assignati
 	}
 	connection.setAutoCommit(false);
 	Statement stmt = connection.createStatement();
-	ResultSet res = stmt.executeQuery("select * from word_list_elements where assignation_id = "+assignation.DB_ID);
+	ResultSet res = stmt.executeQuery(String.format(
+			
+			"SELECT words.content " +
+			"FROM word_list_elements, words " +
+			"WHERE assignation_id = %1$d " +
+			"AND words.id = assignation_id.word_id",
+		
+		assignation.DB_ID));
+	
 	connection.commit();
-	if(res.next()){
-		int wordId = res.getInt("word_id");
-		res = stmt.executeQuery("select * from words where id = "+wordId);
-		connection.commit();
-		if(res.next()){
-			String content = res.getString("content");
-			element = loadWordListElement(content);
-		}
+	if( res.next() ) {
+		element = loadWordListElement(res.getString(1));
 	}
-	else{
-		res.close();
-		stmt.close();
-		connection.setAutoCommit(true);
-		return null;
-	}
+	
 	res.close();
 	stmt.close();
 	connection.setAutoCommit(true);
+	
 	return element;
 }
 
@@ -3361,8 +3352,8 @@ public synchronized int saveAssignation(TR_Assignation assignation) throws Excep
 	   		.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
                ResultSet.CONCUR_UPDATABLE);
 	   if(assignation.DB_ID != -1){
-		   stmt.executeUpdate("update assignations "
-	                  + "set tr_type = '" + assignation.getTypesBinary() +"',"
+		   stmt.executeUpdate("UPDATE assignations "
+	                  + "SET tr_type = '" + assignation.getTypesBinary() +"',"
 	                  + "tr_genus = '" + assignation.getGenusBinary() +"',"
 	                  + "tr_numerus = '" + assignation.getNumerusBinary() +"',"
 	                  + "tr_determination = '" + assignation.getDeterminationBinary() +"',"
@@ -3384,15 +3375,15 @@ public synchronized int saveAssignation(TR_Assignation assignation) throws Excep
 	                  + "tr_wortart4 = '" + assignation.getWortarten4Binary() +"',"
 	                  + "description = '" + assignation.getDescription() +"',"
 	                  + "etymol = '" + assignation.getEtymol() +"'"
-	                  + " where id = "+assignation.DB_ID
+	                  + " WHERE id = "+assignation.DB_ID
 	       );
 	   }
 	   else{ //Assignation exists, just change existing values
-		   stmt.executeUpdate("insert into "
+		   stmt.executeUpdate("INSERT INTO "
 	                  + "assignations (tr_type,tr_genus,tr_numerus,tr_determination,tr_case,tr_person,tr_conjugation,tr_tempus,tr_diathese,tr_wordclass,tr_subclass_connector," +
 	                  		"tr_subclass_verb,tr_subclass_adjective,tr_subclass_preposition,tr_subclass_pronoun,tr_subclass_sign,tr_wortart1,tr_wortart2,tr_wortart3," +
 	                  		"tr_wortart4,description,etymol) "
-	                  + "values("
+	                  + "VALUES("
 	                  + "'" + assignation.getTypesBinary() +"'," 
 	                  + "'" + assignation.getGenusBinary() +"',"
 	                  + "'" + assignation.getNumerusBinary() +"',"
@@ -3439,7 +3430,7 @@ public synchronized int saveAssignation(TR_Assignation assignation) throws Excep
 	                  ResultSet.CONCUR_UPDATABLE);
 	      ResultSet res;
 
-	      res = stmt.executeQuery("select * from relations where origin = "
+	      res = stmt.executeQuery("SELECT * FROM relations WHERE origin = "
 	            + r.getOrigin().DB_ID
 	            + " and target = "
 	            + r.getTarget().DB_ID
@@ -3474,8 +3465,8 @@ public synchronized int saveAssignation(TR_Assignation assignation) throws Excep
 	            .createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
 	                  ResultSet.CONCUR_UPDATABLE);
 	      ResultSet res;
-	      //first case: relation from given assignation as origin
-	      res = stmt.executeQuery("select * from relations where origin = "
+	      //first case: relation FROM given assignation as origin
+	      res = stmt.executeQuery("SELECT * FROM relations WHERE origin = "
 	            + assignation.DB_ID);
 	      Vector<Integer> relationIds = new Vector<Integer>();
 	      Vector<Integer> targetIds = new Vector<Integer>();
@@ -3489,7 +3480,7 @@ public synchronized int saveAssignation(TR_Assignation assignation) throws Excep
 	         types.add(type);
 	      }
 	      for(int i = 0; i != relationIds.size();i++){
-	         res = stmt.executeQuery("select * from assignations where id = "
+	         res = stmt.executeQuery("SELECT * FROM assignations WHERE id = "
 	 	            + targetIds.get(i));
 	        
 			connection.commit();
@@ -3502,12 +3493,12 @@ public synchronized int saveAssignation(TR_Assignation assignation) throws Excep
 							res.getByte("tr_wortart3"), res.getByte("tr_wortart4"), res.getString("etymol"), res.getString("description"));
 					targetAssignation.DB_ID = res.getInt("id");
 				}
-			res = stmt.executeQuery("select * from word_list_elements where assignation_id = "
+			res = stmt.executeQuery("SELECT * FROM word_list_elements WHERE assignation_id = "
 	 	            + targetAssignation.DB_ID);
 			 connection.commit();
 			 if(res.next()){
 				 int wordId = res.getInt("word_id");
-				 res = stmt.executeQuery("select * from words where id = "
+				 res = stmt.executeQuery("SELECT * FROM words WHERE id = "
 			 	            + wordId);
 				 if(res.next()){
 					 String content = res.getString("content");
@@ -3522,7 +3513,7 @@ public synchronized int saveAssignation(TR_Assignation assignation) throws Excep
 	         
 	      }
 	      //second case: relation to given assignation as target
-	      res = stmt.executeQuery("select * from relations where target = "
+	      res = stmt.executeQuery("SELECT * FROM relations WHERE target = "
 		            + assignation.DB_ID);
 	      relationIds = new Vector<Integer>();
 	      Vector<Integer> sourceIds = new Vector<Integer>();
@@ -3536,7 +3527,7 @@ public synchronized int saveAssignation(TR_Assignation assignation) throws Excep
 		         types.add(type);
 		      }
 		      for(int i = 0; i != relationIds.size();i++){
-		         res = stmt.executeQuery("select * from assignations where id = "
+		         res = stmt.executeQuery("SELECT * FROM assignations WHERE id = "
 		 	            + sourceIds.get(i));
 		         connection.commit();
 				TR_Assignation originAssignation = null;
@@ -3548,12 +3539,12 @@ public synchronized int saveAssignation(TR_Assignation assignation) throws Excep
 								res.getByte("tr_wortart3"), res.getByte("tr_wortart4"), res.getString("etymol"), res.getString("description"));
 						originAssignation.DB_ID = res.getInt("id");
 					}
-				 res = stmt.executeQuery("select * from word_list_elements where assignation_id = "
+				 res = stmt.executeQuery("SELECT * FROM word_list_elements WHERE assignation_id = "
 		 	            + originAssignation.DB_ID);
 				 connection.commit();
 				 if(res.next()){
 					 int wordId = res.getInt("word_id");
-					 res = stmt.executeQuery("select * from words where id = "
+					 res = stmt.executeQuery("SELECT * FROM words WHERE id = "
 				 	            + wordId);
 					 if(res.next()){
 						 String content = res.getString("content");
@@ -3590,41 +3581,46 @@ public synchronized int saveAssignation(TR_Assignation assignation) throws Excep
 	   switch(category){
 	   		
 		   case ChapterEditingTester.CONSTITUTIVE_WORD:
-			   res = stmt.executeQuery("select * from constitutive_words where chapter="+c.getDB_ID());
+			   res = stmt.executeQuery("SELECT * FROM constitutive_words WHERE chapter="+c.getDB_ID());
 			   break;
 		   case ChapterEditingTester.FUNCTION_WORD:
-			   res = stmt.executeQuery("select * from function_words where chapter="+c.getDB_ID());
+			   res = stmt.executeQuery("SELECT * FROM function_words WHERE chapter="+c.getDB_ID());
 			   break;
 		   case ChapterEditingTester.COMPLEX:
-			   res = stmt.executeQuery("select * from complexes where chapter="+c.getDB_ID());
+			   res = stmt.executeQuery("SELECT * FROM complexes WHERE chapter="+c.getDB_ID());
 			   break;
 		   case ChapterEditingTester.DIALOG:
-			   res = stmt.executeQuery("select * from dialogs where chapter="+c.getDB_ID());
+			   res = stmt.executeQuery("SELECT * FROM dialogs WHERE chapter="+c.getDB_ID());
 			   break;
 		   case ChapterEditingTester.DIRECT_SPEECH:
-			   res = stmt.executeQuery("select * from direct_speeches where chapter="+c.getDB_ID());
+			   res = stmt.executeQuery("SELECT * FROM direct_speeches WHERE chapter="+c.getDB_ID());
 			   break;
 		   case ChapterEditingTester.ILLOCUTION_UNIT:
-			   res = stmt.executeQuery("select * from illocution_units where chapter="+c.getDB_ID());
+			   res = stmt.executeQuery("SELECT * FROM illocution_units WHERE chapter="+c.getDB_ID());
 			   break;
 		   case ChapterEditingTester.ISOTOPE:
-			   res = stmt.executeQuery("select * from isotopes where chapter="+c.getDB_ID());
+			   res = stmt.executeQuery("SELECT * FROM isotopes WHERE chapter="+c.getDB_ID());
 			   break;
 		   case ChapterEditingTester.MACRO_SENTENCE:
-			   res = stmt.executeQuery("select * from macro_sentences where chapter="+c.getDB_ID());
+			   res = stmt.executeQuery("SELECT * FROM macro_sentences WHERE chapter="+c.getDB_ID());
 			   break;
 		   case ChapterEditingTester.RENOMINALISATION:
-			   res = stmt.executeQuery("select * from renominalisations where chapter="+c.getDB_ID());
+			   res = stmt.executeQuery("SELECT * FROM renominalisations WHERE chapter="+c.getDB_ID());
 			   break;
 		   case ChapterEditingTester.THEMA:
-			   res = stmt.executeQuery("select * from themas where chapter="+c.getDB_ID());
+			   res = stmt.executeQuery("SELECT * FROM themas WHERE chapter="+c.getDB_ID());
 			   break;
 	   }
 	      
 	   return res.next();
    }
    
-   private static String mask(String s) {
+   /**
+    * Bereitet den übergebenen String zur Verwendung in einer mySQL Abfrage vor, indem jedes Vorkommen von `'' mit `\'' ersetzt.
+ * @param s
+ * @return Den maskierten String
+ */
+private static String mask(String s) {
       char[] s1 = s.toCharArray();
       int found = 0;
 

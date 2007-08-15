@@ -1,9 +1,10 @@
 #!/bin/sh
 
-pid_file=./slang2server.pid
-lock_file=./slang2server.lock
-cmd_file=./slang2server.cmd
-log_file=./slang2server.log
+work_dir=./
+pid_file=slang2server.pid
+lock_file=slang2server.lock
+cmd_file=slang2server.cmd
+log_file=slang2server.log
 exec_cmd="java -jar dbc.jar"
 
 
@@ -11,7 +12,7 @@ start()
 {
 	# Check for dead server process
 	if [ -e $pid_file ] && ! kill -0 `cat $pid_file` > /dev/null; then
-		rm -f $pid_file || echo "Could not remove old $pid_file file" && exit 1
+		rm -f $pid_file || { echo "Could not remove old $pid_file file"; exit 1 }
 	fi
 
 	# Check if server is already running
@@ -21,7 +22,7 @@ start()
 	else
 		# Check for dead controller process
 		if [ -e $lock_file ] && ! kill -0 `cat $lock_file` > /dev/null; then
-			rm -f $lock_file || echo "Could not remove old $lock_file file" && exit 1
+			rm -f $lock_file || { echo "Could not remove old $lock_file file" 1>&2; exit 1 }
 		fi
 
 		# Check if this is the controller
@@ -32,14 +33,21 @@ start()
 			$exec_cmd >> $log_file 2>&1 &
 			pid=$!
 			if [ $pid ] ; then
-				echo "$pid" > $pid_file
+				# java should start...
+				sleep 3
+				# ...but what about the application it starts
+				if [ kill -0 $pid > /dev/null ]; then
+					echo "$pid" > $pid_file
+				fi
 			fi
 
 		# ... or the interface
 		else
 			echo -n "Server wird gestartet..."
 			echo "start" > $cmd_file
-			$0 run_loop > /dev/null 2>&1 &
+			if [ ! -e $lock_file ]; then
+				$0 run_loop > /dev/null 2>&1 &
+			fi
 			while [ -e $cmd_file ]; do
 				sleep 1
 			done;
@@ -59,7 +67,7 @@ run_loop()
 {
 	# Check for dead lock file
 	if [ -e $lock_file ] && kill -0 `cat $lock_file` > /dev/null; then
-		rm -f $lock_file || echo "Could not remove old $lock_file file" && exit 1
+		rm -f $lock_file || { echo "Could not remove old $lock_file file" 1>&2; exit 1 }
 	fi
 	
 	# Check if there is a running controller process
@@ -95,7 +103,7 @@ stop()
 {
 	# Check for dead server process
 	if [ -e $pid_file ] && ! kill -0 `cat $pid_file` > /dev/null; then
-     		rm -f $pid_file || echo "Could not remove old $pid_file file" && exit 1
+     		rm -f $pid_file || { echo "Could not remove old $pid_file file" 1>&2; exit 1 }
      	fi
 
 	if [ ! -e $pid_file ]; then
@@ -104,7 +112,7 @@ stop()
 	else
 		# Check for dead controller process
 		if [ -e $lock_file ] && ! kill -0 `cat $lock_file` > /dev/null; then
-			rm -f $lock_file || echo "Could not remove old $lock_file file" && exit 1
+			rm -f $lock_file || { echo "Could not remove old $lock_file file" 1>&2; exit 1 }
 		fi
 		
 		if [ ! -e $lock_file ] || [ "$$" = "`cat $lock_file`" ]; then

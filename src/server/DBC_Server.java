@@ -3482,6 +3482,7 @@ public synchronized int saveAssignation(TR_Assignation assignation) throws Excep
 				   res.getByte("tr_wortart3"), res.getByte("tr_wortart4"), res.getString("etymol"), res.getString("description"));
 		   
 		   targetAssignation.DB_ID = res.getInt("id");
+		   targetAssignation.setContent(res.getString("content"));
 
 		   Relation r = new Relation(assignation,targetAssignation,res.getInt("relationType"));
 		   r.setDB_ID(res.getInt("relationID"));

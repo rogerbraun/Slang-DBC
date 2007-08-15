@@ -3468,7 +3468,7 @@ public synchronized int saveAssignation(TR_Assignation assignation) throws Excep
 
 			   "SELECT assignations.*, assignationContent(assignations.id) AS content, relations.id AS relationID, relations.type AS relationType " +
 			   "FROM assignations, relations " +
-			   "WHERE assignations.id = relations.origin " +
+			   "WHERE assignations.id = relations.target " +
 			   "AND relations.origin = %1$d",
 
 			   assignation.DB_ID));

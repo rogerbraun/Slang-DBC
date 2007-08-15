@@ -3454,123 +3454,54 @@ public synchronized int saveAssignation(TR_Assignation assignation) throws Excep
 		  return r;
    }
    
-   public Vector loadRelations(TR_Assignation assignation) throws SQLException{
-	   Vector resultSet = new Vector();
+   public Vector loadRelations(TR_Assignation assignation) throws SQLException
+   {
+	   Vector resultSet = new Vector<Relation>();
+	   
 	   if(assignation.DB_ID == -1){
 		   System.out.println("Assignation ist noch nicht gespeichert, daher können keine Relations geladen werden.");
 		   return resultSet;
 	   }
-	   	  connection.setAutoCommit(false);
-	      Statement stmt = connection
-	            .createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
-	                  ResultSet.CONCUR_UPDATABLE);
-	      ResultSet res;
-	      //first case: relation FROM given assignation as origin
-	      res = stmt.executeQuery("SELECT * FROM relations WHERE origin = "
-	            + assignation.DB_ID);
-	      Vector<Integer> relationIds = new Vector<Integer>();
-	      Vector<Integer> targetIds = new Vector<Integer>();
-	      Vector<Integer> types = new Vector<Integer>();
-	      while (res.next()) {   
-	    	 int dbID = res.getInt(1);
-	    	 relationIds.add(dbID);
-	         int targetID = res.getInt("target");
-	         targetIds.add(targetID);
-	         int type = res.getInt("type");
-	         types.add(type);
-	      }
-	      for(int i = 0; i != relationIds.size();i++){
-	         res = stmt.executeQuery("SELECT * FROM assignations WHERE id = "
-	 	            + targetIds.get(i));
-	        
-			connection.commit();
-			TR_Assignation targetAssignation = null;
-			if(res.next()){
-			   targetAssignation = new TR_Assignation(res.getByte("tr_type"), res.getByte("tr_genus"), res.getByte("tr_numerus"), res.getByte("tr_determination"), 
-							res.getLong("tr_case"), res.getByte("tr_person"), res.getShort("tr_conjugation"), res.getByte("tr_tempus"), res.getByte("tr_diathese"), 
-							res.getInt("tr_wordclass"), res.getByte("tr_subclass_connector"), res.getByte("tr_subclass_verb"), res.getByte("tr_subclass_adjective"), 
-							res.getShort("tr_subclass_pronoun"), res.getShort("tr_subclass_sign"), res.getShort("tr_wortart1"), res.getShort("tr_wortart2"), 
-							res.getByte("tr_wortart3"), res.getByte("tr_wortart4"), res.getString("etymol"), res.getString("description"));
-					targetAssignation.DB_ID = res.getInt("id");
-				}
-			res = stmt.executeQuery("SELECT * FROM word_list_elements WHERE assignation_id = "
-	 	            + targetAssignation.DB_ID);
-			 connection.commit();
-			 if(res.next()){
-				 int wordId = res.getInt("word_id");
-				 res = stmt.executeQuery("SELECT * FROM words WHERE id = "
-			 	            + wordId);
-				 if(res.next()){
-					 String content = res.getString("content");
-					 targetAssignation.setContent(content);
-				 }
-					 
-			 }
-			 Relation r = new Relation(assignation,targetAssignation,types.get(i));
-	         r.setDB_ID(relationIds.get(i));
-			 resultSet.add(r);
-	         connection.commit();
-	         
-	      }
-	      //second case: relation to given assignation as target
-	      res = stmt.executeQuery("SELECT * FROM relations WHERE target = "
-		            + assignation.DB_ID);
-	      relationIds = new Vector<Integer>();
-	      Vector<Integer> sourceIds = new Vector<Integer>();
-	      types = new Vector<Integer>();
-	      while (res.next()) {   
-		    	 int dbID = res.getInt(1);
-		    	 relationIds.add(dbID);
-		         int sourceID = res.getInt("origin");
-		         sourceIds.add(sourceID);
-		         int type = res.getInt("type");
-		         types.add(type);
-		      }
-		      for(int i = 0; i != relationIds.size();i++){
-		         res = stmt.executeQuery("SELECT * FROM assignations WHERE id = "
-		 	            + sourceIds.get(i));
-		         connection.commit();
-				TR_Assignation originAssignation = null;
-				if(res.next()){
-				   originAssignation = new TR_Assignation(res.getByte("tr_type"), res.getByte("tr_genus"), res.getByte("tr_numerus"), res.getByte("tr_determination"), 
-								res.getLong("tr_case"), res.getByte("tr_person"), res.getShort("tr_conjugation"), res.getByte("tr_tempus"), res.getByte("tr_diathese"), 
-								res.getInt("tr_wordclass"), res.getByte("tr_subclass_connector"), res.getByte("tr_subclass_verb"), res.getByte("tr_subclass_adjective"), 
-								res.getShort("tr_subclass_pronoun"), res.getShort("tr_subclass_sign"), res.getShort("tr_wortart1"), res.getShort("tr_wortart2"), 
-								res.getByte("tr_wortart3"), res.getByte("tr_wortart4"), res.getString("etymol"), res.getString("description"));
-						originAssignation.DB_ID = res.getInt("id");
-					}
-				 res = stmt.executeQuery("SELECT * FROM word_list_elements WHERE assignation_id = "
-		 	            + originAssignation.DB_ID);
-				 connection.commit();
-				 if(res.next()){
-					 int wordId = res.getInt("word_id");
-					 res = stmt.executeQuery("SELECT * FROM words WHERE id = "
-				 	            + wordId);
-					 if(res.next()){
-						 String content = res.getString("content");
-						 originAssignation.setContent(content);
-					 }
-						 
-				 }
-				
-				 Relation r = new Relation(originAssignation,assignation,types.get(i));
-		         r.setDB_ID(relationIds.get(i));
-				 resultSet.add(r);
-		         connection.commit();
-		         
-		      }
+	   
+	   Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+	   ResultSet res = stmt.executeQuery(String.format(
+
+			   "SELECT assignations.*, assignationContent(id) AS content, relations.id AS relationID, relations.type AS relationType " +
+			   "FROM assignations, relations " +
+			   "WHERE assignations.id = relations.origin " +
+			   "AND relations.origin = %1$d)",
+
+			   assignation.DB_ID));
+
+	   while ( res.next() ) {
+		   
+		   TR_Assignation targetAssignation = new TR_Assignation(res.getByte("tr_type"), res.getByte("tr_genus"), res.getByte("tr_numerus"), res.getByte("tr_determination"), 
+				   res.getLong("tr_case"), res.getByte("tr_person"), res.getShort("tr_conjugation"), res.getByte("tr_tempus"), res.getByte("tr_diathese"), 
+				   res.getInt("tr_wordclass"), res.getByte("tr_subclass_connector"), res.getByte("tr_subclass_verb"), res.getByte("tr_subclass_adjective"), 
+				   res.getShort("tr_subclass_pronoun"), res.getShort("tr_subclass_sign"), res.getShort("tr_wortart1"), res.getShort("tr_wortart2"), 
+				   res.getByte("tr_wortart3"), res.getByte("tr_wortart4"), res.getString("etymol"), res.getString("description"));
+		   
+		   targetAssignation.DB_ID = res.getInt("id");
+
+		   Relation r = new Relation(assignation,targetAssignation,res.getInt("relationType"));
+		   r.setDB_ID(res.getInt("relationID"));
+		   
+		   resultSet.add(r);
+	   }
 
 	   return resultSet;
    }
    
-   public Vector loadRelations(Vector assignations) throws SQLException{
-	   Vector resultSet = new Vector();
-	   for(int i = 0; i != assignations.size();i++){
+   public Vector loadRelations(Vector assignations) throws SQLException
+   {
+	   Vector resultSet = new Vector<Relation>();
+	   
+	   for(int i = 0; i != assignations.size(); i++) {
 		   TR_Assignation assignation = (TR_Assignation)assignations.get(i);
 		   resultSet.addAll(loadRelations(assignation));
 	   }
+	   
 	   return resultSet;
-	  
    }
    
    public boolean isEdited(Chapter c, int category) throws SQLException{

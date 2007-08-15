@@ -36,7 +36,7 @@ start()
 				# java should start...
 				sleep 3
 				# ...but what about the application it starts
-				if [ kill -0 $pid > /dev/null ]; then
+				if kill -0 $pid > /dev/null; then
 					echo "$pid" > $pid_file
 				fi
 			fi

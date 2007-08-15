@@ -3466,7 +3466,7 @@ public synchronized int saveAssignation(TR_Assignation assignation) throws Excep
 	   Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 	   ResultSet res = stmt.executeQuery(String.format(
 
-			   "SELECT assignations.*, assignationContent(id) AS content, relations.id AS relationID, relations.type AS relationType " +
+			   "SELECT assignations.*, assignationContent(assignations.id) AS content, relations.id AS relationID, relations.type AS relationType " +
 			   "FROM assignations, relations " +
 			   "WHERE assignations.id = relations.origin " +
 			   "AND relations.origin = %1$d",

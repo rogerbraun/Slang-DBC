@@ -116,9 +116,9 @@ public class DBC_Server extends Thread {
          throws DBC_ConnectionException {
       if (connection == null) {
          try {
-            Class.forName("com.mysql.jdbc.Driver");
+        	Class.forName("com.mysql.jdbc.Driver");
             connection = DriverManager.getConnection(String.format("jdbc:mysql://%1$s:%2$d/%3$s?useUnicode=true&characterEncoding=ISO-8859-1"
-                  ,this.db_host, this.db_port, this.db_name), this.db_user, this.db_password);
+                 ,this.db_host, this.db_port, this.db_name), this.db_user, this.db_password);
             System.out.println("DB auf");
          }
          catch (Exception e) {
@@ -189,7 +189,7 @@ public class DBC_Server extends Thread {
         	 }
         	 ts.setNanos(0);
         	 book.add(key, new Chapter(key, res.getInt("id"), book.getDB_ID(),
-                  res.getInt("index"), res.getString("title"), ts.toString().substring(0,ts.toString().length()-2))); //dirty, aber sehe keine andere Möglichkeit, den nano-
+                  res.getInt("index"), res.getString("title"), ts.toString().substring(0,ts.toString().length()-2))); //dirty, aber sehe keine andere Mï¿½glichkeit, den nano-
         	 																											//Anteil loszuwerden
          }
       }
@@ -582,8 +582,8 @@ public class DBC_Server extends Thread {
 		   res = stmt.executeQuery("SELECT * "
 				   + "FROM chapters WHERE book = "
 				   + bookID);
-		   res.next(); //zeigt auf zu löschendes, auf jeden Fall vorhandene Chapter
-		   if(!res.next()){ //Buch kann gelöscht werden, da kein weiteres Kapitel von diesem Buch vorhanden ist
+		   res.next(); //zeigt auf zu lï¿½schendes, auf jeden Fall vorhandene Chapter
+		   if(!res.next()){ //Buch kann gelï¿½scht werden, da kein weiteres Kapitel von diesem Buch vorhanden ist
 			   stmt.execute("delete FROM books WHERE id = "+bookID);
 		   }
 		   stmt.execute("delete FROM chapters WHERE id = "+chapterID);
@@ -625,7 +625,7 @@ public class DBC_Server extends Thread {
       for (int i = 0; i < speeches.size(); i++) {
          DirectSpeech ds = (DirectSpeech) speeches.get(i);
          res = stmt.executeQuery("SELECT illocution_unit "
-               + "FROM ius_FROM_direct_speeches "
+               + "FROM ius_from_direct_speeches "
                + "WHERE direct_speech = "
                + ds.getDB_ID()
                + " ORDER BY illocution_unit");
@@ -667,12 +667,12 @@ public class DBC_Server extends Thread {
 		
 	   ResultSet res;
 		
-	   //lösche alle Direct Speeches des chapters in der Datenbank
+	   //lï¿½sche alle Direct Speeches des chapters in der Datenbank
 	   for (int i = 0; i < oldDss.size(); i++) 
 	   {
 		   	DirectSpeech ds = (DirectSpeech) oldDss.get(i);
 
-			//lösche alle direct_speeches Einträge aus oldDss die bereits in der Datenbank gespeichert sind
+			//lï¿½sche alle direct_speeches Eintrï¿½ge aus oldDss die bereits in der Datenbank gespeichert sind
 			res = stmt.executeQuery("SELECT * "
 					+ "FROM direct_speeches "
 					+ "WHERE id = "
@@ -681,9 +681,9 @@ public class DBC_Server extends Thread {
 			if(res.next())
 				res.deleteRow();
 			
-			//lösche alle ius_FROM_direct_speeches Einträge aus oldDss die bereits in der Datenbank gespeichert
+			//lï¿½sche alle ius_FROM_direct_speeches Eintrï¿½ge aus oldDss die bereits in der Datenbank gespeichert
 			res = stmt.executeQuery("SELECT * "
-					+ "FROM ius_FROM_direct_speeches "
+					+ "FROM ius_from_direct_speeches "
 					+ "WHERE direct_speech = "
 					+ ds.getDB_ID());
 			
@@ -737,7 +737,7 @@ public class DBC_Server extends Thread {
 			
 				res.close();
 				
-				res = stmt.executeQuery("SELECT * FROM ius_FROM_direct_speeches");
+				res = stmt.executeQuery("SELECT * FROM ius_from_direct_speeches");
 				Vector ius = ds.getIllocutionUnits();
 			
 				for (int j = 0; j < ius.size(); j++) 
@@ -3282,7 +3282,7 @@ public synchronized WordListElement loadWordListElement(String content) throws E
 	return element;
 }
 
-	//gibt für jede Assigantion eines Strings die Wortklasse und Subklasse zurück
+	//gibt fï¿½r jede Assigantion eines Strings die Wortklasse und Subklasse zurï¿½ck
 	public Vector loadWordClasses(Vector contents) throws Exception {
 		Vector<Vector> resultSet = new Vector<Vector>();
 		for(int i=0; i != contents.size(); ++i)
@@ -3459,7 +3459,7 @@ public synchronized int saveAssignation(TR_Assignation assignation) throws Excep
 	   Vector resultSet = new Vector<Relation>();
 	   
 	   if(assignation.DB_ID == -1){
-		   System.out.println("Assignation ist noch nicht gespeichert, daher können keine Relations geladen werden.");
+		   System.out.println("Assignation ist noch nicht gespeichert, daher kï¿½nnen keine Relations geladen werden.");
 		   return resultSet;
 	   }
 	   
@@ -3548,7 +3548,7 @@ public synchronized int saveAssignation(TR_Assignation assignation) throws Excep
    }
    
    /**
-    * Bereitet den übergebenen String zur Verwendung in einer mySQL Abfrage vor, indem jedes Vorkommen von `'' mit `\'' ersetzt.
+    * Bereitet den ï¿½bergebenen String zur Verwendung in einer mySQL Abfrage vor, indem jedes Vorkommen von `'' mit `\'' ersetzt.
  * @param s
  * @return Den maskierten String
  */

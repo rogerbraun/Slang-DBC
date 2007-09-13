@@ -8,7 +8,7 @@ import java.io.Serializable;
 import java.util.Vector;
 
 /*
- * Traditionelle Bestimmungen. Werden über ConstitutiveWords, FunctionWords oder WordListElements mit Wortformen assoziiert.
+ * Traditionelle Bestimmungen. Werden ï¿½ber ConstitutiveWords, FunctionWords oder WordListElements mit Wortformen assoziiert.
  * 
  * author: Martin Schaefer
 */
@@ -18,9 +18,9 @@ public class TR_Assignation
       implements
          Serializable {
 
-   //Intern werden die Bestimmungen jeder Kategorie in einer Variablen gespeichert, deren Wert als binäre Folge
+   //Intern werden die Bestimmungen jeder Kategorie in einer Variablen gespeichert, deren Wert als binï¿½re Folge
    //interpretiert wird. Das erlaubt auch die Zuweisung mehrerer Bestimmungen innerhalb einer Kategorie. Auf diese Variablen kann von aussen
-   //nicht direkt zugegriffen werden. Dafür stehen Methoden zur Verfügung, denen Listen von den unten aufgeführten Bestimmungskonstanten übergeben
+   //nicht direkt zugegriffen werden. Dafï¿½r stehen Methoden zur Verfï¿½gung, denen Listen von den unten aufgefï¿½hrten Bestimmungskonstanten ï¿½bergeben
    //werden.
 	
 	
@@ -39,7 +39,7 @@ public class TR_Assignation
    
    
    
-   //Bestimmungen für CW
+   //Bestimmungen fï¿½r CW
 	   
    public static final int GENUS_UNKNOWN                = 0;
    public static final int GENUS_MASCULIN               = 1;
@@ -209,7 +209,7 @@ public class TR_Assignation
    public static final int WORDSUBCLASS_PRONOUN_POSSESSIVE           = 2;
    public static final int WORDSUBCLASS_PRONOUN_DEMONSTRATIVE        = 3;
    public static final int WORDSUBCLASS_PRONOUN_RELATIVE             = 4;
-   public static final int WORDSUBCLASS_PRONOUN_RELATIVE2            = 5; //für pronouns, die auch ARTICLE sein können, fraglich, 
+   public static final int WORDSUBCLASS_PRONOUN_RELATIVE2            = 5; //fï¿½r pronouns, die auch ARTICLE sein kï¿½nnen, fraglich, 
    																			//ob notwendig, wenn eine wortform alternative Bestimmungen erhalten kann
    public static final int WORDSUBCLASS_PRONOUN_DEICTICON            = 6;
    
@@ -229,31 +229,31 @@ public class TR_Assignation
    private String[] wordsubclassSignOptions = {"Unknown","Separator","Separator strong","Separator quotation","Comma","Dash","Whitespace"};
    
    
-   // Bestimmungen für FW
+   // Bestimmungen fï¿½r FW
    
-   public static final int WORTART1_UNKNOWN              		= 0;
-   public static final int WORTART1_PRAE„POSITION           	= 1;
+   public static final int WORTART1_UNKNOWN              	= 0;
+   public static final int WORTART1_PRAEPOSITION           	= 1;
    public static final int WORTART1_KONJUNKTION            	= 2;
    public static final int WORTART1_ARTIKEL				  	= 3;
    public static final int WORTART1_INTERJEKTION          	= 4;
    public static final int WORTART1_NEGATIONSWORT         	= 5;
-   public static final int WORTART1_HILFSVERB					= 6;
-   public static final int WORTART1_PARTIKEL					= 7;
+   public static final int WORTART1_HILFSVERB				= 6;
+   public static final int WORTART1_PARTIKEL				= 7;
    public static final int WORTART1_CONNECTOR 				= 8;
    
    private short wortart1;
    private String[] wortart1Options = {"Unknown","Praeposition","Konjunktion","Artikel","Interjektion","Negationswort","Hilfsverb","Partikel","Connector"};
    
-   public static final int WORTART2_UNKNOWN              		= 0;
-   public static final int WORTART2_CONCESSIVE           	  	= 1;
+   public static final int WORTART2_UNKNOWN              	= 0;
+   public static final int WORTART2_CONCESSIVE           	= 1;
    public static final int WORTART2_CAUSAL                 	= 2;
-   public static final int WORTART2_FINAL				  		= 3;
-   public static final int WORTART2_CONSECUTIVE              = 4;
-   public static final int WORTART2_COMPARATIVE              	= 5;
+   public static final int WORTART2_FINAL				  	= 3;
+   public static final int WORTART2_CONSECUTIVE             = 4;
+   public static final int WORTART2_COMPARATIVE             = 5;
    public static final int WORTART2_CONDITIONAL				= 6;
    public static final int WORTART2_INDIRECT_KNOWLEDGE		= 7;
-   public static final int WORTART2_TEMPORAL 				  	= 8;
-   public static final int WORTART2_LOCATIVE				  	= 9;
+   public static final int WORTART2_TEMPORAL 				= 8;
+   public static final int WORTART2_LOCATIVE				= 9;
    public static final int WORTART2_OTHERS 			  		= 10;
    
    private short wortart2;
@@ -754,7 +754,7 @@ public class TR_Assignation
 		this.etymol = etymol;
 	}
 	
-	//folgende Getter sind nur für die Datenbank gedacht
+	//folgende Getter sind nur fï¿½r die Datenbank gedacht
 	public void setCasesBinary(long case_) {
 		this.case_ = case_;
 	}

@@ -58,6 +58,7 @@ public class DBC_Server extends Thread {
    static DBC_Key     key;
    private DBC_Cache  chapterCache;
    private PathNode   root;
+   private PathNode	  numerusRoot;	
    private Connection connection;
    private String     db_host;
    private int     		db_port;
@@ -83,6 +84,7 @@ public class DBC_Server extends Thread {
       chapterCache = new DBC_Cache(5);
       open();
       root = loadPaths();
+      numerusRoot = loadNumerusPaths();
    }
 
    /**
@@ -1221,6 +1223,7 @@ public class DBC_Server extends Thread {
       while (res.next()) {
          int start = res.getInt("start");
          int path = res.getInt("path");
+         int numerusPath = res.getInt("numerus_paths");
          IllocutionUnit iu = chapter.getIllocutionUnitAtPosition(start);
          roots.add(new IllocutionUnitRoot(key, iu, path));
       }
@@ -1300,7 +1303,7 @@ public class DBC_Server extends Thread {
          ConstitutiveWord cw = (ConstitutiveWord) getElement(res
                .getInt("constitutive_word"), constetutiveWords);
          MeaningUnit mu = new MeaningUnit(key, root, res.getInt("id"), fw, cw,
-               res.getInt("path"), res.getBoolean("accepted"));
+               res.getInt("path"), res.getInt("numerus_paths"), res.getBoolean("accepted"));
          mus.add(mu);
       }
 
@@ -1332,7 +1335,7 @@ public class DBC_Server extends Thread {
          MeaningUnit mu2 = (MeaningUnit) getElement(res
                .getInt("meaning_unit_2"), meaningUnits);
          SememeGroup sg = new SememeGroup(key, root, res.getInt("id"), fw, mu1,
-               mu2, res.getInt("path"), res.getBoolean("accepted"));
+               mu2, res.getInt("path"), res.getInt("numerus_paths"), res.getBoolean("accepted"));
          sgs.add(sg);
       }
 
@@ -1355,7 +1358,7 @@ public class DBC_Server extends Thread {
       while (res.next())
          chs.add(new Checking(key, res.getInt("id"), iurs,
                (MeaningUnit) getElement(res.getInt("meaning_unit"), mus), res
-                     .getInt("path"), res.getBoolean("accepted")));
+                     .getInt("path"), res.getInt("numerus_paths"), res.getBoolean("accepted")));
       res.close();
       stmt.close();
       return chs;
@@ -1372,7 +1375,7 @@ public class DBC_Server extends Thread {
 
       while (res.next())
          mss.add(new MacroSentence(key, res.getInt("id"), iurs, iurs
-               .getRootWithID(res.getInt("head")), res.getInt("path"), res
+               .getRootWithID(res.getInt("head")), res.getInt("path"), res.getInt("numerus_paths"), res
                .getBoolean("accepted")));
       res.close();
 
@@ -1427,6 +1430,7 @@ public class DBC_Server extends Thread {
                + root.getIllocutionUnit().getDB_ID());
          if (res.next() && root.hasChanged()) {
             res.updateInt("path", root.getPath());
+            res.updateInt("numerus_paths", root.getNumerusPath());
             res.updateRow();
             res.close();
             root.resetState(key);
@@ -1709,6 +1713,7 @@ public class DBC_Server extends Thread {
                res.updateInt("constitutive_word", mu.getConstitutiveWord()
                      .getDB_ID());
                res.updateInt("path", mu.getPath());
+               res.updateInt("numerus_paths", mu.getNumerusPath());
                res.updateBoolean("accepted", mu.isAccepted());
                res.updateRow();
                mu.resetState(key);
@@ -1725,6 +1730,7 @@ public class DBC_Server extends Thread {
             res.updateInt("constitutive_word", mu.getConstitutiveWord()
                   .getDB_ID());
             res.updateInt("path", mu.getPath());
+            res.updateInt("numerus_paths", mu.getNumerusPath());
             res.updateBoolean("accepted", mu.isAccepted());
             res.insertRow();
             res.close();
@@ -1784,6 +1790,7 @@ public class DBC_Server extends Thread {
                res.updateInt("meaning_unit_1", sg.getFirst().getDB_ID());
                res.updateInt("meaning_unit_2", sg.getSecond().getDB_ID());
                res.updateInt("path", sg.getPath());
+               res.updateInt("numerus_paths", sg.getNumerusPath());
                res.updateBoolean("accepted", sg.isAccepted());
                res.updateRow();
                sg.resetState(key);
@@ -1803,6 +1810,7 @@ public class DBC_Server extends Thread {
             res.updateInt("meaning_unit_1", sg.getFirst().getDB_ID());
             res.updateInt("meaning_unit_2", sg.getSecond().getDB_ID());
             res.updateInt("path", sg.getPath());
+            res.updateInt("numerus_paths", sg.getNumerusPath());
             res.updateBoolean("accepted", sg.isAccepted());
             res.insertRow();
             res.close();
@@ -1856,6 +1864,7 @@ public class DBC_Server extends Thread {
                res.updateInt("meaning_unit", ch.getMeaningUnit().getDB_ID());
                res.updateInt("chapter", ch.getRoot().getChapter().getDB_ID());
                res.updateInt("path", ch.getPath());
+               res.updateInt("numerus_paths", ch.getNumerusPath());
                res.updateBoolean("accepted", ch.isAccepted());
                res.updateRow();
                ch.resetState(key);
@@ -1869,6 +1878,7 @@ public class DBC_Server extends Thread {
             res.updateInt("meaning_unit", ch.getMeaningUnit().getDB_ID());
             res.updateInt("chapter", ch.getRoot().getChapter().getDB_ID());
             res.updateInt("path", ch.getPath());
+            res.updateInt("numerus_paths", ch.getNumerusPath());
             res.updateBoolean("accepted", ch.isAccepted());
             res.insertRow();
             res.close();
@@ -1919,6 +1929,7 @@ public class DBC_Server extends Thread {
                res.updateInt("head", ms.getHead().getDB_ID());
                res.updateInt("chapter", ms.getHead().getChapter().getDB_ID());
                res.updateInt("path", ms.getPath());
+               res.updateInt("numerus_paths", ms.getNumerusPath());
                res.updateBoolean("accepted", ms.isAccepted());
                res.updateRow();
                ms.resetState(key);
@@ -1950,6 +1961,7 @@ public class DBC_Server extends Thread {
             res.updateInt("head", ms.getHead().getDB_ID());
             res.updateInt("chapter", ms.getHead().getChapter().getDB_ID());
             res.updateInt("path", ms.getPath());
+            res.updateInt("numerus_paths", ms.getNumerusPath());
             res.updateBoolean("accepted", ms.isAccepted());
             res.insertRow();
             res.close();
@@ -2063,10 +2075,35 @@ public class DBC_Server extends Thread {
       return root;
    }
 
+   private PathNode loadNumerusPaths() {
+	      PathNode root = new PathNode(key, 0, null, "numerusPathRoot", "---");
+	      try {
+	         Statement stmt = connection.createStatement();
+	         ResultSet res = stmt
+	               .executeQuery("select * from numerus_paths where id > 0 order by parent");
+
+	         while (res.next()) {
+	            PathNode parent = root.getNode(res.getInt("parent"));
+	            new PathNode(key, res.getInt("id"), parent, res.getString("name"),
+	                  res.getString("description"));
+	         }
+
+	         stmt.close();
+	      }
+	      catch (SQLException e) {
+	         e.printStackTrace();
+	      }
+	      return root;
+	}
+   
    public PathNode getPaths() {
       return root;
    }
 
+   public PathNode getNumerusPaths() {
+	   return numerusRoot;
+   }
+   
    public synchronized Boolean existsFunctionWord(Integer wordID, Integer length)
          throws Exception {
       Boolean result = new Boolean(false);

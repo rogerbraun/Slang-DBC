@@ -5,6 +5,8 @@
 package data;
 
 import connection.DBC_Key;
+import data.IllocutionUnitRoots;
+import data.MeaningUnit;
 
 public class Checking extends DB_Element {
 
@@ -14,6 +16,7 @@ public class Checking extends DB_Element {
    private static final long serialVersionUID = 6718606469348044669L;
    private MeaningUnit       meaningUnit;
    private int               path;
+   private int 				 numerusPath
    private boolean           accepted;
 
    public Checking(DBC_Key key,
@@ -31,6 +34,23 @@ public class Checking extends DB_Element {
       meaningUnit.getRoot().addChecking(this);
    }
 
+   public Checking(DBC_Key key,
+	         int id,
+	         IllocutionUnitRoots roots,
+	         MeaningUnit meaningUnit,
+	         int path,
+	         int numerusPath,
+	         boolean accepted) {
+	      super(id);
+	      key.unlock();
+	      this.meaningUnit = meaningUnit;
+	      this.path = path;
+	      this.numerusPath = numerusPath;
+	      this.accepted = accepted;
+	      roots.addChecking(this);
+	      meaningUnit.getRoot().addChecking(this);
+   }
+   
    public Checking(IllocutionUnitRoots roots, MeaningUnit meaningUnit) {
       super(-1);
       this.meaningUnit = meaningUnit;
@@ -56,11 +76,23 @@ public class Checking extends DB_Element {
       path = pathID;
    }
 
+   public void setNumerusPath(int pathID) {
+	      changeState(CHANGE);
+	      numerusPath = pathID;
+   }
+   
    /**
     * Die ID des Pfades.
     */
    public int getPath() {
       return path;
+   }
+   
+   /**
+    * Die ID des Numerus-Pfades.
+    */
+   public int getNumerusPath() {
+      return numerusPath;
    }
 
    public boolean isAccepted() {

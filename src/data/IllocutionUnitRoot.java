@@ -9,6 +9,9 @@ import java.util.Vector;
 
 import pathselector.PathSelector;
 import connection.DBC_Key;
+import data.IllocutionUnit;
+import data.MeaningUnit;
+import data.SememeGroup;
 
 /**
  * Die Wurzel eine Äußerungseinheit. Hier werden Sememegruppen, Semantische
@@ -29,6 +32,7 @@ public class IllocutionUnitRoot extends DB_Element
    private transient IllocutionUnit illocutionUnit;
    private int                      illocutionUnitIndex;
    private int                      path;
+   private int 						numerusPath;
    private Vector                   elements;
    private Vector                   allElements;
    private Vector                   checkings;
@@ -37,6 +41,12 @@ public class IllocutionUnitRoot extends DB_Element
    private transient Vector         musCache;
    private transient Vector         sgsCache;
 
+   /**
+    * 0 = phrastic
+    * 1 = aphrastic
+    */
+   private int phrastic;
+   
    /**
     * Wird vom DBC benötigt
     */
@@ -52,6 +62,23 @@ public class IllocutionUnitRoot extends DB_Element
       checkings = new Vector();
    }
 
+   /**
+    * Wird vom DBC benötigt
+    */
+   public IllocutionUnitRoot(DBC_Key key, IllocutionUnit iu, int path, int numerusPath) {
+      super(iu.getDB_ID());
+      key.unlock();
+      chapter = iu.getChapter();
+      illocutionUnit = iu;
+      illocutionUnitIndex = iu.getIndex();
+      this.path = path;
+      this.numerusPath = numerusPath;
+      elements = new Vector();
+      allElements = new Vector();
+      checkings = new Vector();
+      phrastic = -1;
+   }
+   
    void addChecking(Checking checking) {
       if (!checkings.contains(checking))
          checkings.add(checking);
@@ -111,7 +138,21 @@ public class IllocutionUnitRoot extends DB_Element
    public int getPath() {
       return path;
    }
+   
+   /**
+    * Die ID des Numerus-Pfades.
+    */
+   public int getNumerusPath() {
+      return numerusPath;
+   }
 
+   /**
+    * Gibt zurück ob die IU phrastisch oder aphrastisch ist
+    */
+   public int getPhrastic(){
+	   return phrastic;
+   }
+   
    /**
     * Setzt den Pafd dieser Äußerungseinheit
     * 
@@ -124,6 +165,30 @@ public class IllocutionUnitRoot extends DB_Element
       path = pathID;
    }
 
+   /**
+    * Setzt den Numerus-Pfad dieser Äußerungseinheit
+    * 
+    * @param numerusPathID
+    *        die ID des Pfades
+    * @see NumerusPathSelector
+    */
+   public void setNumerusPath(int numerusPathID) {
+      changeState(CHANGE);
+      numerusPath = numerusPathID;
+   }
+   
+   /**
+    * Setzt den Pafd dieser Äußerungseinheit
+    * 
+    * @param pathID
+    *        die ID des Pfades
+    * @see PathSelector
+    */
+   public void setPhrastic(int phras) {
+      changeState(CHANGE);
+      phrastic = phras;
+   }
+   
    /**
     * Die Äußerungseinheit, zu der diese Wurzel gehört
     */
@@ -610,5 +675,50 @@ public class IllocutionUnitRoot extends DB_Element
       for (int i = 0; i < sgs.size(); i++)
          ((SememeGroup) sgs.get(i)).resetIDs();
    }
+   /**
+    * entfernt letzte Sememe Gruppe. Wichtig für step back bei der Auswahl der SG!
+    */
+   public void removeLastSG(){
+	   if(sgsCache.size()>0 && elements.get(elements.size()-1) instanceof SememeGroup && allElements.get(allElements.size()-1) instanceof SememeGroup)
+	   {
+		   elements.removeElementAt(elements.size()-1);
+		   allElements.removeElementAt(allElements.size()-1);
+		   sgsCache.removeElementAt(sgsCache.size()-1);
+	   }
+   }
+   
+   /**
+    * entfernt letzte MU. Wichtig für step back bei der Auswahl der MU!
+    */
+   public void removeLastMU(Vector<MeaningUnit> vector){
+	   
+	   if(musCache.size()>0)
+	   {
+		   // finde die letzte MU in elements, vergleiche diese zur Sicherheit nochmal mit dem
+		   // letzten Element von allElements und entferne diese beiden und das letzte Element des 
+		   // musCaches
+		   for(int i = elements.size()-1; i >= 0; i--)
+		   {
+			   if(elements.get(i) instanceof MeaningUnit && elements.get(i) == allElements.get(allElements.size()-1))
+			   {
+				   MeaningUnit mu = (MeaningUnit) elements.elementAt(i);
+				   elements.removeElementAt(i);
+				   add(mu.getConstitutiveWord());
+				   if(mu.getFunctionWord() != null)
+						   add(mu.getFunctionWord());
 
+				   allElements.removeElementAt(allElements.size()-1);
+				   musCache.removeElementAt(musCache.size()-1);
+				   
+					if(vector.size() > 0)
+					{
+						MeaningUnit lastMU = vector.elementAt(vector.size()-1);
+						lastMU.remove();
+					}
+				   return;
+			   }
+		   }
+		   System.out.println("MU not found ...!!!");
+	   }
+	}
 }

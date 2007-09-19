@@ -8,6 +8,8 @@ import java.util.Vector;
 
 import pathselector.PathSelector;
 import connection.DBC_Key;
+import data.IllocutionUnitRoot;
+import data.IllocutionUnitRoots;
 
 /**
  * @author Volker Klöbb
@@ -21,6 +23,7 @@ public class MacroSentence extends DB_Element {
    private IllocutionUnitRoot head;
    private Vector             dependencies;
    private int                path;
+   private int 				  numerusPath;
    private boolean            accepted;
 
    public MacroSentence(DBC_Key key,
@@ -38,6 +41,23 @@ public class MacroSentence extends DB_Element {
       roots.addMacroSentence(this);
    }
 
+   public MacroSentence(DBC_Key key,
+	         int id,
+	         IllocutionUnitRoots roots,
+	         IllocutionUnitRoot head,
+	         int path,
+	         int numerusPath,
+	         boolean accepted) {
+	      super(id);
+	      key.unlock();
+	      this.head = head;
+	      this.path = path;
+	      this.numerusPath = numerusPath;
+	      this.accepted = accepted;
+	      dependencies = new Vector();
+	      roots.addMacroSentence(this);
+   }
+   
    public MacroSentence(IllocutionUnitRoots roots, IllocutionUnitRoot head) {
       super(-1);
       this.head = head;
@@ -138,6 +158,13 @@ public class MacroSentence extends DB_Element {
    }
 
    /**
+    * Die ID des Numerus-Pfades.
+    */
+   public int getNumerusPath() {
+      return numerusPath;
+   }
+   
+   /**
     * Setzt den Pafd von diesem Makrosatz
     * 
     * @param pathID
@@ -147,6 +174,18 @@ public class MacroSentence extends DB_Element {
    public void setPath(int pathID) {
       changeState(CHANGE);
       path = pathID;
+   }
+   
+   /**
+    * Setzt den Numerus-Pfad von diesem Makrosatz
+    * 
+    * @param pathID
+    *        die ID des Pfades
+    * @see NumerusPathSelector
+    */
+   public void setNumerusPath(int pathID) {
+      changeState(CHANGE);
+      numerusPath = pathID;
    }
 
    public String toString() {

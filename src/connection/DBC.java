@@ -9,6 +9,8 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Vector;
 
+import connection.Message;
+
 import pathselector.PathNode;
 import data.Book;
 import data.Chapter;
@@ -312,6 +314,15 @@ public class DBC {
             .getArguments()[0];
    }
 
+   /**
+    * Die Numerus-Pfade
+    */
+   public PathNode getNumerusPaths()
+         throws Exception {
+      return (PathNode) connection.call(new Message(key, "getNumerusPaths"))
+            .getArguments()[0];
+   }
+   
    /**
     * �berpr�ft, ob zu diesem Wort in einem Kapitel ein Funktionswort
     * gespeichert wurde. Dabei werden keine Teilw�rter beachtet. Bei dem Wort

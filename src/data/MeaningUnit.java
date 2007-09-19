@@ -8,6 +8,9 @@ import java.util.Vector;
 
 import pathselector.PathSelector;
 import connection.DBC_Key;
+import data.ConstitutiveWord;
+import data.FunctionWord;
+import data.IllocutionUnitRoot;
 import exceptions.WordNotInIllocutionUnitException;
 
 /**
@@ -30,6 +33,7 @@ public class MeaningUnit extends DB_Element
    private ConstitutiveWord   constitutiveWord;
    private Vector             sememeGroups;
    private int                path;
+   private int 				  numerusPath;
    private boolean            accepted;
 
    /**
@@ -48,6 +52,39 @@ public class MeaningUnit extends DB_Element
       this.functionWord = functionWord;
       this.constitutiveWord = constitutiveWord;
       this.path = path;
+      this.accepted = accepted;
+      sememeGroups = new Vector();
+
+      if (functionWord != null) {
+         functionWord.setMeaningUnit(key, this);
+         root.remove(functionWord);
+      }
+
+      constitutiveWord.setMeaningUnit(key, this);
+      root.remove(constitutiveWord);
+
+      root.add(this);
+      root.register(this);
+   }
+   
+   /**
+    * Wird vom DBC benötigt
+    */
+   public MeaningUnit(DBC_Key key,
+         IllocutionUnitRoot root,
+         int id,
+         FunctionWord functionWord,
+         ConstitutiveWord constitutiveWord,
+         int path,
+         int numerusPath,
+         boolean accepted) {
+      super(id);
+      key.unlock();
+      this.root = root;
+      this.functionWord = functionWord;
+      this.constitutiveWord = constitutiveWord;
+      this.path = path;
+      this.numerusPath = numerusPath;
       this.accepted = accepted;
       sememeGroups = new Vector();
 
@@ -94,7 +131,6 @@ public class MeaningUnit extends DB_Element
       root.remove(constitutiveWord);
       if (root.add(this))
          root.register(this);
-
    }
 
    /**
@@ -297,6 +333,26 @@ public class MeaningUnit extends DB_Element
       changeState(CHANGE);
       path = pathID;
    }
+   
+   /**
+    * Die ID des Numerus-Pfades.
+    */
+   public int getNumerusPath() {
+      return numerusPath;
+   }
+
+   /**
+    * Setzt den Numerus-Pfad dieser semantischen Einheit
+    * 
+    * @param pathID
+    *        die ID des Pfades
+    * @see PathSelector
+    */
+   public void setNumerusPath(int pathID) {
+      changeState(CHANGE);
+      numerusPath = pathID;
+   }
+   
 
    public boolean containsPosition(int position) {
       if (functionWord == null)

@@ -225,7 +225,7 @@ public class ConstitutiveWord extends DB_Element
       return meaningUnit;
    }
 
-   void setMeaningUnit(MeaningUnit meaningUnit) {
+   public void setMeaningUnit(MeaningUnit meaningUnit) {
       this.meaningUnit = meaningUnit;
       changeState(CHANGE);
    }

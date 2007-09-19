@@ -5,6 +5,9 @@
 package data;
 
 import connection.DBC_Key;
+import data.FunctionWord;
+import data.IllocutionUnitRoot;
+import data.MeaningUnit;
 
 /**
  * Eine Sememegruppe, bestehend aus zwei semantischen Einheiten und eventuell
@@ -25,6 +28,7 @@ public class SememeGroup extends DB_Element
    private MeaningUnit        meaningUnit1;
    private MeaningUnit        meaningUnit2;
    private int                path;
+   private int 				  numerusPath;
    private boolean            accepted;
 
    /**
@@ -45,6 +49,37 @@ public class SememeGroup extends DB_Element
       meaningUnit1 = mu1;
       meaningUnit2 = mu2;
       this.path = path;
+      this.accepted = accepted;
+
+      if (fw != null) {
+         fw.setSememeGroup(this);
+      }
+      mu1.addSememeGroup(this);
+      mu2.addSememeGroup(this);
+      root.register(this);
+      root.add(this);
+   }
+
+   /**
+    * Wird vom DBC benötigt.
+    */
+   public SememeGroup(DBC_Key key,
+         IllocutionUnitRoot root,
+         int id,
+         FunctionWord fw,
+         MeaningUnit mu1,
+         MeaningUnit mu2,
+         int path,
+         int numerusPath,
+         boolean accepted) {
+      super(id);
+      key.unlock();
+      this.root = root;
+      functionWord = fw;
+      meaningUnit1 = mu1;
+      meaningUnit2 = mu2;
+      this.path = path;
+      this.numerusPath = numerusPath;
       this.accepted = accepted;
 
       if (fw != null) {
@@ -150,6 +185,13 @@ public class SememeGroup extends DB_Element
    }
 
    /**
+    * Die ID des Numerus-Pfads
+    */
+   public int getNumerusPath() {
+      return numerusPath;
+   }
+   
+   /**
     * Setzt den Pfad dieser Sememegruppe
     * 
     * @param pathID
@@ -158,6 +200,17 @@ public class SememeGroup extends DB_Element
    public void setPath(int pathID) {
       changeState(CHANGE);
       path = pathID;
+   }
+
+   /**
+    * Setzt den Numerus-Pfad dieser Sememegruppe
+    * 
+    * @param pathID
+    *        die PfadID
+    */
+   public void setNumerusPath(int pathID) {
+      changeState(CHANGE);
+      numerusPath = pathID;
    }
 
    /**

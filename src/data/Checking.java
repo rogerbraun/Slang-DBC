@@ -16,7 +16,7 @@ public class Checking extends DB_Element {
    private static final long serialVersionUID = 6718606469348044669L;
    private MeaningUnit       meaningUnit;
    private int               path;
-   private int 				 numerusPath
+   private int 				 numerusPath;
    private boolean           accepted;
 
    public Checking(DBC_Key key,

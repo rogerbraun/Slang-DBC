@@ -1,4 +1,4 @@
-* Erstellt: 01.08.2007
+/* Erstellt: 01.08.2007
  */
 
 package pathselector;
@@ -30,9 +30,9 @@ import connection.DBC;
 import connection.DBC_ConnectionException;
 
 /**
- * Ein Dialog, um einen Pfad anzuzeigen und auszuwählen.
+ * Ein Dialog, um einen Pfad anzuzeigen und auszuwï¿½hlen.
  * 
- * @author Volker Klöbb extended by Thomas Müller
+ * @author Volker Klï¿½bb extended by Thomas Mï¿½ller
  */
 public class NumerusPathSelector extends JComponent
       implements
@@ -40,7 +40,7 @@ public class NumerusPathSelector extends JComponent
          ActionListener {
 
 	/**
-	 * TODO: die filter-options einfügen????
+	 * TODO: die filter-options einfï¿½gen????
 	 */
 	
    /**
@@ -59,7 +59,7 @@ public class NumerusPathSelector extends JComponent
    // private int selectedID = 0;
 
    /**
-    * Erstellt einen Dialog, um Pfade auszuwählen.
+    * Erstellt einen Dialog, um Pfade auszuwï¿½hlen.
     * 
     * @param server
     *        Die URL des Server
@@ -224,7 +224,7 @@ public class NumerusPathSelector extends JComponent
    }
 
    /**
-    * Gibt die ID des selektierten Pfades zurück
+    * Gibt die ID des selektierten Pfades zurï¿½ck
     */
    public int getSelectedPathID() {
       if (selection != null)

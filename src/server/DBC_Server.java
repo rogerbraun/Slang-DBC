@@ -3103,15 +3103,17 @@ public class DBC_Server extends Thread {
 	 * @return Vector<Vector<Long>>
 	 * gibt f�r jede Assigantion eines Strings die Wortklasse und Subklasse zur�ck
 	 */
-	public Vector loadWordClasses(Vector contents) throws Exception {
+	public Vector loadWordClasses(Vector contents) throws Exception 
+	{
 		Vector<Vector> resultSet = new Vector<Vector>();
-		for (int i = 0; i != contents.size(); ++i) {
+		for (int i = 0; i != contents.size(); ++i) 
+		{
 			String content = (String) contents.get(i);
-			Vector assignations = loadWordListElement(content)
-					.getAssignations();
+			Vector assignations = loadWordListElement(content).getAssignations();
 			Vector<Long> wordClasses = new Vector<Long>();
 			Vector<Long> wordSubClasses = new Vector<Long>();
-			for (int j = 0; j != assignations.size(); ++j) {
+			for (int j = 0; j != assignations.size(); ++j) 
+			{
 				TR_Assignation assi = (TR_Assignation) assignations.get(j);
 				wordClasses.add(assi.getWordclassesBinary());
 				if (assi.getWordsubclassAdjectivesBinary() != 0)
@@ -3119,8 +3121,7 @@ public class DBC_Server extends Thread {
 				else if (assi.getWordsubclassConnectorsBinary() != 0)
 					wordSubClasses.add(assi.getWordsubclassConnectorsBinary());
 				else if (assi.getWordsubclassPrepositionsBinary() != 0)
-					wordSubClasses
-							.add(assi.getWordsubclassPrepositionsBinary());
+					wordSubClasses.add(assi.getWordsubclassPrepositionsBinary());
 				else if (assi.getWordsubclassPronounsBinary() != 0)
 					wordSubClasses.add(assi.getWordsubclassPronounsBinary());
 				else if (assi.getWordsubclassSignsBinary() != 0)

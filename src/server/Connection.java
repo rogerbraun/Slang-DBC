@@ -13,7 +13,7 @@ import java.net.Socket;
 import connection.Message;
 
 /**
- * @author Volker Klöbb
+ * @author Volker Klï¿½bb
  */
 public class Connection extends Thread {
 
@@ -31,7 +31,7 @@ public class Connection extends Thread {
          in = new ObjectInputStream(socket.getInputStream());
       }
       catch (NullPointerException e) {
-         System.err.println("Ströme konnten nicht geöffnet werden.");
+         System.err.println("Strï¿½me konnten nicht geï¿½ffnet werden.");
       }
    }
 

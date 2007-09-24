@@ -7,7 +7,7 @@ package data;
 /**
  * Ein Wort
  * 
- * @author Volker Klöbb
+ * @author Volker Klï¿½bb
  */
 public class Word extends Token {
 
@@ -19,7 +19,7 @@ public class Word extends Token {
    private String            language;
 
    /**
-    * Wird vom DBC benötigt
+    * Wird vom DBC benï¿½tigt
     */
    Word(int id, Chapter chapter, int start, String content, String language) {
       super(id, chapter, start, content.length() - 1);
@@ -35,7 +35,7 @@ public class Word extends Token {
    }
 
    /**
-    * Die Sprache des Wortes (Z.B. DE für Deutsch, EN für Englisch)
+    * Die Sprache des Wortes (Z.B. DE fï¿½r Deutsch, EN fï¿½r Englisch)
     */
    public String getLanguage() {
       return language;

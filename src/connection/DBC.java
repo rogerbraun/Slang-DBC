@@ -6,7 +6,6 @@ package connection;
 
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Vector;
 
 import connection.Message;
@@ -170,7 +169,7 @@ public class DBC {
    }
    
    /*
-    * Löscht ein Kapitel aus der Datenbank
+    * Lï¿½scht ein Kapitel aus der Datenbank
     * 
     * @see #deleteChapter(int)
     */
@@ -234,7 +233,7 @@ public class DBC {
    public Dialogs loadDialogs(Chapter chapter)
          throws Exception {
       Message answer = connection.call(new Message(key, "loadDialogs",
-            new Integer(chapter.getDB_ID())));
+    		  						   new Integer(chapter.getDB_ID())));
       Dialogs ds = (Dialogs) answer.getArguments()[0];
       ds.setChapter(key, chapter);
       return ds;

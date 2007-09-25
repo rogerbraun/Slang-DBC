@@ -10,10 +10,10 @@ import java.util.Vector;
 import connection.DBC_Key;
 
 /**
- * Ein Dialog ist die Zusammenfassung mehrerer Äußerungseinheiten. Dabei wird
+ * Ein Dialog ist die Zusammenfassung mehrerer ï¿½uï¿½erungseinheiten. Dabei wird
  * unterschieden zwischen dem Dialog selbst und einem Vor- und Nachfeld.
  * 
- * @author Volker Klöbb
+ * @author Volker Klï¿½bb
  */
 public class Dialog extends DB_Element
       implements
@@ -40,7 +40,7 @@ public class Dialog extends DB_Element
    private Vector                   allSpeakerChanges;
 
    /**
-    * Konstruktor für die Datenbank. Nicht verwenden!
+    * Konstruktor fï¿½r die Datenbank. Nicht verwenden!
     * 
     * @param chapter
     *        Das Kapitel, in dem der Dialog vorkommt
@@ -106,6 +106,7 @@ public class Dialog extends DB_Element
 
    public Dialog(Dialog dialog) {
       super(dialog.getDB_ID());
+      
       chapter = dialog.chapter;
       index = dialog.index;
       depth = dialog.depth;

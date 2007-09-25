@@ -828,14 +828,16 @@ public class DBC_Server extends Thread {
 				ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 		ResultSet res;
 
-		for (int i = 0; i < ds.size(); i++) {
+		for (int i = 0; i < ds.size(); i++) 
+		{
 			Dialog d = (Dialog) ds.get(i);
 
 			res = stmt.executeQuery("SELECT * " + "FROM dialogs "
-					+ "WHERE id = " + d.getDB_ID());
-
+							+ "WHERE id = " + d.getDB_ID());
+			
 			if (res.next() && d.getDB_ID() != -1) {
-				if (d.hasChanged()) {
+				if (d.hasChanged()) 
+				{
 					res.updateInt("chapter", chapter.getDB_ID());
 					res.updateInt("index", d.getIndex());
 					res.updateInt("depth", d.getDepth());
@@ -846,14 +848,12 @@ public class DBC_Server extends Thread {
 					d.resetState(key);
 					res.close();
 
-					res = stmt
-							.executeQuery("SELECT * FROM run_up WHERE dialog = "
+					res = stmt.executeQuery("SELECT * FROM run_up WHERE dialog = "
 									+ d.getDB_ID());
 					if (res.next()) {
-						if (d.hasRunUp()) {
-							res
-									.updateInt("start", d.getRunUpStart()
-											.getDB_ID());
+						if (d.hasRunUp()) 
+						{
+							res.updateInt("start", d.getRunUpStart().getDB_ID());
 							res.updateInt("end", d.getRunUpEnd().getDB_ID());
 							res.updateRow();
 						} else
@@ -861,25 +861,24 @@ public class DBC_Server extends Thread {
 					}
 					res.close();
 
-					res = stmt
-							.executeQuery("SELECT * FROM follow_up WHERE dialog = "
+					res = stmt.executeQuery("SELECT * FROM follow_up WHERE dialog = "
 									+ d.getDB_ID());
 					if (res.next()) {
-						if (d.hasFollowUp()) {
-							res.updateInt("start", d.getFollowUpStart()
-									.getDB_ID());
+						if (d.hasFollowUp()) 
+						{
+							res.updateInt("start", d.getFollowUpStart().getDB_ID());
 							res.updateInt("end", d.getFollowUpEnd().getDB_ID());
 							res.updateRow();
 						} else
 							res.deleteRow();
 					}
 					res.close();
-				} else if (d.isRemoved()) {
+				} else if (d.isRemoved()) 
 					res.deleteRow();
-				}
 			}
 
-			else if (!d.isRemoved() && d.getDB_ID() == -1) {
+			else if (!d.isRemoved() && d.getDB_ID() == -1) 
+			{
 				res.moveToInsertRow();
 				res.updateInt("chapter", chapter.getDB_ID());
 				res.updateInt("index", d.getIndex());
@@ -899,11 +898,12 @@ public class DBC_Server extends Thread {
 				if (res.next())
 					d.setDB_ID(key, res.getInt("id"));
 				else
-					throw new DBC_SaveException("Dialog " + d
-							+ "konnte nicht angelegt werden");
+					throw new DBC_SaveException("Dialog " + d + "konnte nicht angelegt werden");
+				
 				res.close();
 
-				if (d.hasFollowUp()) {
+				if (d.hasFollowUp()) 
+				{
 					res = stmt.executeQuery("SELECT * FROM follow_up");
 					res.moveToInsertRow();
 					res.updateInt("dialog", d.getDB_ID());
@@ -913,7 +913,8 @@ public class DBC_Server extends Thread {
 					res.close();
 				}
 
-				if (d.hasRunUp()) {
+				if (d.hasRunUp()) 
+				{
 					res = stmt.executeQuery("SELECT * FROM run_up");
 					res.moveToInsertRow();
 					res.updateInt("dialog", d.getDB_ID());
@@ -1043,7 +1044,8 @@ public class DBC_Server extends Thread {
 						+ chapter.getDB_ID()
 						+ " ORDER BY `index`");
 
-		while (res.next()) {
+		while (res.next()) 
+		{
 			Dialog dialog = new Dialog(key, res.getInt("id"), chapter, res
 					.getInt("index"), res.getInt("depth"), res
 					.getBoolean("accepted"));

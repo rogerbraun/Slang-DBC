@@ -13,22 +13,22 @@ import connection.DBC_Key;
 import dialogs.chapterloader.ChapterLoader;
 
 /**
- * Das Kapitel ist die grundlegende Datenstruktur, die immer benötigt wird. Hier
- * erhält man Zugriff auf die einzelnen Tokens (Wörter oder Satzzeichen) und die
- * Äußerungseinheiten (illocutionunit). <br>
- * Die Adressierung der Tokens und Äußerungseinheit ist über zwei Wege möglich:
+ * Das Kapitel ist die grundlegende Datenstruktur, die immer benï¿½tigt wird. Hier
+ * erhï¿½lt man Zugriff auf die einzelnen Tokens (Wï¿½rter oder Satzzeichen) und die
+ * ï¿½uï¿½erungseinheiten (illocutionunit). <br>
+ * Die Adressierung der Tokens und ï¿½uï¿½erungseinheit ist ï¿½ber zwei Wege mï¿½glich:
  * <ul>
- * <li>über den Index, eine Folgem beginnend bei 0 (wie bei einem Array)</li>
- * <li>über die Zeichenposition (oder einfach nur Position), also die Position
+ * <li>ï¿½ber den Index, eine Folgem beginnend bei 0 (wie bei einem Array)</li>
+ * <li>ï¿½ber die Zeichenposition (oder einfach nur Position), also die Position
  * des Buchstabens, auch beginnend bei 0. Hier kann es aber vorkommen, das die
  * angegebene Zeichenposition auch auch ein Leerzeichen zeigen kann</li>
  * </ul>
- * Jedes Zusatzmodul baut auf dem Kapitel auf, verändert jedoch nicht dessen
+ * Jedes Zusatzmodul baut auf dem Kapitel auf, verï¿½ndert jedoch nicht dessen
  * Daten. <br>
  * Ein Kapitel wird mit der Funktion loadChapter() vom DBC geladen, eine
- * Übersicht über alle Bücher und Kapitel bietet der ChapterLoader
+ * ï¿½bersicht ï¿½ber alle Bï¿½cher und Kapitel bietet der ChapterLoader
  * 
- * @author Volker Klöbb
+ * @author Volker Klï¿½bb
  * @see DBC#loadChapter(int)
  * @see ChapterLoader
  */
@@ -52,7 +52,7 @@ public class Chapter
    private Hashtable         wordCache;
 
    /**
-    * Wird vom DBC benötigt
+    * Wird vom DBC benï¿½tigt
     */
    public Chapter(DBC_Key key, int id, int bookID, int index, String title, String date) {
       key.unlock();
@@ -76,7 +76,7 @@ public class Chapter
    }
 
    /**
-    * Wird vom DBC benötigt
+    * Wird vom DBC benï¿½tigt
     */
    public void setDB_ID(DBC_Key key, int id) {
       key.unlock();
@@ -84,7 +84,7 @@ public class Chapter
    }
 
    /**
-    * Der Index des Kapitels. Die Zählung beginnt bei 0.
+    * Der Index des Kapitels. Die Zï¿½hlung beginnt bei 0.
     * 
     */
    public int getIndex() {
@@ -114,7 +114,7 @@ public class Chapter
    }
 
    /**
-    * Wird vom DBC benötigt
+    * Wird vom DBC benï¿½tigt
     */
    public void addWord(DBC_Key key,
          int id,
@@ -128,14 +128,14 @@ public class Chapter
    }
 
    /**
-    * Wird vom DBC benötigt
+    * Wird vom DBC benï¿½tigt
     */
    public void addWord(DBC_Key handler, String content, int startPosition) {
       addWord(handler, -1, content, "DE", startPosition);
    }
 
    /**
-    * Wird vom DBC benötigt
+    * Wird vom DBC benï¿½tigt
     */
    public void addWord(DBC_Key handler,
          String content,
@@ -145,7 +145,7 @@ public class Chapter
    }
 
    /**
-    * Wird vom DBC benötigt
+    * Wird vom DBC benï¿½tigt
     */
    public void addSign(DBC_Key key, int id, char sign, int position) {
       key.unlock();
@@ -157,7 +157,7 @@ public class Chapter
    }
 
    /**
-    * Wird vom DBC benötigt
+    * Wird vom DBC benï¿½tigt
     */
    public void addSign(DBC_Key handler, char sign, int position) {
       addSign(handler, -1, sign, position);
@@ -246,24 +246,24 @@ public class Chapter
    }
 
    /**
-    * Gibt alle Wörter des Kapitels zurück, die den gleichen Content wie das
-    * übergebene Wort haben. Groß/Kleinschreibung spielt dabei keine Rolle.
+    * Gibt alle Wï¿½rter des Kapitels zurï¿½ck, die den gleichen Content wie das
+    * ï¿½bergebene Wort haben. Groï¿½/Kleinschreibung spielt dabei keine Rolle.
     * 
     * @param word
-    *        Das Wort, dessen Content alle gefundenen Wörter haben sollen
-    * @return Ein Vektor mit allen Wörtern mit dem gleichen Content
+    *        Das Wort, dessen Content alle gefundenen Wï¿½rter haben sollen
+    * @return Ein Vektor mit allen Wï¿½rtern mit dem gleichen Content
     */
    public Vector getWords(Word word) {
       return getWords(word.getContent());
    }
 
    /**
-    * Gibt alle Wörter des Kapitels zurück, die den gleichen Content haben.
-    * Groß/Kleinschreibung spielt dabei keine Rolle.
+    * Gibt alle Wï¿½rter des Kapitels zurï¿½ck, die den gleichen Content haben.
+    * Groï¿½/Kleinschreibung spielt dabei keine Rolle.
     * 
     * @param content
-    *        Der Content, denn alle gefundenen Wörter haben sollen
-    * @return Ein Vektor mit allen Wörtern mit dem gleichen Content
+    *        Der Content, denn alle gefundenen Wï¿½rter haben sollen
+    * @return Ein Vektor mit allen Wï¿½rtern mit dem gleichen Content
     */
    public Vector getWords(String content) {
       String key = content.toLowerCase();
@@ -274,13 +274,13 @@ public class Chapter
    }
 
    /**
-    * Gibt alle Wörter des Kapitels zurück, die den gleichen Content haben.
+    * Gibt alle Wï¿½rter des Kapitels zurï¿½ck, die den gleichen Content haben.
     * 
     * @param content
-    *        Der Content, denn alle gefundenen Wörter haben sollen
+    *        Der Content, denn alle gefundenen Wï¿½rter haben sollen
     * @param ignoreCase
-    *        gibt an, ob de Groß/Kleinschreibung ignortiert werden soll.
-    * @return Ein Vektor mit allen Wörtern mit dem gleichen Content
+    *        gibt an, ob de Groï¿½/Kleinschreibung ignortiert werden soll.
+    * @return Ein Vektor mit allen Wï¿½rtern mit dem gleichen Content
     */
    public Vector getWords(String content, boolean ignoreCase) {
       Object o = wordCache.get(content.toLowerCase());
@@ -300,7 +300,7 @@ public class Chapter
    }
 
    public Word getWordWithID(int id) {
-      // nur lineare suche möglich, da Wörter nicht nach IDs geordnet sind
+      // nur lineare suche mï¿½glich, da Wï¿½rter nicht nach IDs geordnet sind
       for (int i = 0; i < tokens.size(); i++) {
          Object o = tokens.get(i);
 
@@ -675,6 +675,7 @@ public class Chapter
          return (IllocutionUnit) illocutionUnits.get(index);
       }
       catch (Exception e) {
+    	  e.printStackTrace();
          return null;
       }
    }

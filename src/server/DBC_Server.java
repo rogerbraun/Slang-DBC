@@ -551,9 +551,8 @@ public class DBC_Server extends Thread {
 	 * @see DirectSpeech
 	 */
 	public synchronized DirectSpeeches loadDirectSpeeches(Integer chapterID)
-			throws Exception {
-
-		System.out.println("***********saveDirectSpeeches********");
+			throws Exception 
+	{
 		Chapter chapter = getChapter(chapterID.intValue());
 
 		DirectSpeeches directSpeeches = new DirectSpeeches();
@@ -653,8 +652,7 @@ public class DBC_Server extends Thread {
 				res.updateBoolean("accepted", ds.isAccepted());
 
 				if (ds.getPossibleQuestionID() > 0)
-					res.updateInt("possible_question", ds
-							.getPossibleQuestionID());
+					res.updateInt("possible_question", ds.getPossibleQuestionID());
 				else
 					res.updateNull("possible_question");
 
@@ -815,10 +813,10 @@ public class DBC_Server extends Thread {
 	 }
 	 */
 
-	public synchronized Dialogs saveDialogs(Integer chapterID, Dialogs dialogs)
-			throws Exception {
 
-		System.out.println("******* SAVE *******");
+	public synchronized Dialogs saveDialogs(Integer chapterID, Dialogs dialogs)
+			throws Exception 
+	{
 		Chapter chapter = getChapter(chapterID.intValue());
 		Vector ds = dialogs.getAllDialogs(key);
 		dialogs.setChapter(key, chapter);
@@ -934,7 +932,7 @@ public class DBC_Server extends Thread {
 
 		return dialogs;
 	}
-
+	
 	private void saveSpeakerChanges(Dialogs dialogs) throws Exception {
 		Vector scs = dialogs.getAllSpeakerChanges(key);
 		// Kapitel muss nicht gesetzt werden, da dies schon durch saveDialogs
@@ -1030,9 +1028,11 @@ public class DBC_Server extends Thread {
 		stmt.close();
 	}
 
-	public synchronized Dialogs loadDialogs(Integer chapterID) throws Exception {
+	public synchronized Dialogs loadDialogs(Integer chapterID) throws Exception 
+	{
+		System.out.println("ChapterID: " + chapterID);
+		
 		Chapter chapter = getChapter(chapterID.intValue());
-
 		Dialogs dialogs = new Dialogs();
 		Vector ds = new Vector();
 		Statement stmt = connection.createStatement();

@@ -263,8 +263,7 @@ public class Dialog extends DB_Element
     */
    public Vector getRunUpTokens() {
       if (hasRunUp())
-         return chapter.getTokenSequence(runUp.getFirstToken(), runUp
-               .getLastToken());
+         return chapter.getTokenSequence(runUp.getFirstToken(), runUp.getLastToken());
       return null;
    }
 

@@ -1331,6 +1331,7 @@ public class DBC_Server extends Thread {
 			if (res.next() && root.hasChanged()) {
 				res.updateInt("path", root.getPath());
 				res.updateInt("numerus_paths", root.getNumerusPath());
+				res.updateInt("phrastic", root.getPhrastic());
 				res.updateRow();
 				res.close();
 				root.resetState(key);

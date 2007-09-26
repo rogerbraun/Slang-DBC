@@ -65,7 +65,7 @@ public class IllocutionUnitRoot extends DB_Element
    /**
     * Wird vom DBC benötigt
     */
-   public IllocutionUnitRoot(DBC_Key key, IllocutionUnit iu, int path, int numerusPath) {
+   public IllocutionUnitRoot(DBC_Key key, IllocutionUnit iu, int path, int numerusPath, int phrastic) {
       super(iu.getDB_ID());
       key.unlock();
       chapter = iu.getChapter();
@@ -76,7 +76,7 @@ public class IllocutionUnitRoot extends DB_Element
       elements = new Vector();
       allElements = new Vector();
       checkings = new Vector();
-      phrastic = -1;
+      this.phrastic = phrastic;
    }
    
    void addChecking(Checking checking) {

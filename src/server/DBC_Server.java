@@ -1143,8 +1143,9 @@ public class DBC_Server extends Thread {
 			int start = res.getInt("start");
 			int path = res.getInt("path");
 			int numerusPath = res.getInt("numerus_paths");
+			int phrastic = res.getInt("phrastic");
 			IllocutionUnit iu = chapter.getIllocutionUnitAtPosition(start);
-			roots.add(new IllocutionUnitRoot(key, iu, path));
+			roots.add(new IllocutionUnitRoot(key, iu, path, numerusPath, phrastic));
 		}
 		stmt.close();
 		return roots;

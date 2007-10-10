@@ -11,10 +11,10 @@ import connection.DBC;
 import connection.DBC_Key;
 
 /**
- * Eine Sammlung von Äußerungseinheiten-Wurzel eines ganzen Kapitels. Diese
+ * Eine Sammlung von ï¿½uï¿½erungseinheiten-Wurzel eines ganzen Kapitels. Diese
  * Datenstruktur wird vom DBC geladen und gespeichert.
  * 
- * @author Volker Klöbb
+ * @author Volker Klï¿½bb
  * @see DBC#loadIllocutionUnitRoots(Chapter)
  * @see DBC#saveIllocutionUnitRoots(IllocutionUnitRoots)
  */
@@ -32,7 +32,7 @@ public class IllocutionUnitRoots
    private Vector            macroSentences;
 
    /**
-    * Wird vom DBC benötigt
+    * Wird vom DBC benï¿½tigt
     */
    public IllocutionUnitRoots(DBC_Key key, Chapter chapter, Vector roots) {
       key.unlock();
@@ -89,7 +89,7 @@ public class IllocutionUnitRoots
       return checkings;
    }
 
-   void addMacroSentence(MacroSentence ms) {
+   public void addMacroSentence(MacroSentence ms) {
       for (int i = 0; i < macroSentences.size(); i++) {
          MacroSentence m = (MacroSentence) macroSentences.get(i);
          if (m.getIndex() > ms.getIndex()) {
@@ -103,7 +103,7 @@ public class IllocutionUnitRoots
    }
 
    /**
-    * Gibt den Makrosatz zurück, der an diesem Index steht
+    * Gibt den Makrosatz zurï¿½ck, der an diesem Index steht
     */
    public MacroSentence getMacroSentenceAtIndex(int index) {
       for (int i = 0; i < macroSentences.size(); i++) {
@@ -115,7 +115,7 @@ public class IllocutionUnitRoots
    }
 
    /**
-    * Gibt den Makrosatz zurück, der an dieser Zeichenposition steht.
+    * Gibt den Makrosatz zurï¿½ck, der an dieser Zeichenposition steht.
     */
    public MacroSentence getMacroSentenceAtPosition(int position) {
       for (int i = 0; i < macroSentences.size(); i++) {
@@ -127,7 +127,7 @@ public class IllocutionUnitRoots
    }
 
    /**
-    * Gibt alle Makrosätze des Kapitels in einem Vektor zurück.
+    * Gibt alle Makrosï¿½tze des Kapitels in einem neuen(!) Vektor zurï¿½ck.
     */
    public Vector getMacroSentences() {
       Vector mss = new Vector();
@@ -140,7 +140,7 @@ public class IllocutionUnitRoots
    }
 
    /**
-    * Wird vom DBC benötigt
+    * Wird vom DBC benï¿½tigt
     */
    public Vector getMacroSentences(DBC_Key key) {
       key.unlock();
@@ -148,14 +148,14 @@ public class IllocutionUnitRoots
    }
 
    /**
-    * Das Kapitel, zu dem die ganzen Äußerungseinheiten gehören
+    * Das Kapitel, zu dem die ganzen ï¿½uï¿½erungseinheiten gehï¿½ren
     */
    public Chapter getChapter() {
       return chapter;
    }
 
    /**
-    * Wird vom DBC benötigt
+    * Wird vom DBC benï¿½tigt
     */
    public void setChapter(DBC_Key key, Chapter chapter) {
       key.unlock();
@@ -168,7 +168,7 @@ public class IllocutionUnitRoots
    }
 
    /**
-    * Wird vom DBC benötigt
+    * Wird vom DBC benï¿½tigt
     */
    public void updateIDs(DBC_Key key, IllocutionUnitRoots answer) {
       key.unlock();
@@ -201,41 +201,41 @@ public class IllocutionUnitRoots
    }
 
    /**
-    * Gibt die Wurzel zurück, deren Äußerungseinheit an diesem Index zu finden
+    * Gibt die Wurzel zurï¿½ck, deren ï¿½uï¿½erungseinheit an diesem Index zu finden
     * ist.
     * 
     * @param index
-    *        der Index der Äußerungseinheit
-    * @return Die Wurzel zu der Äußerungseinheit
+    *        der Index der ï¿½uï¿½erungseinheit
+    * @return Die Wurzel zu der ï¿½uï¿½erungseinheit
     */
    public IllocutionUnitRoot getRoot(int index) {
       return (IllocutionUnitRoot) roots.get(index);
    }
 
    /**
-    * Gibt die Wurzel zu der Äußerungseinheit zurück.
+    * Gibt die Wurzel zu der ï¿½uï¿½erungseinheit zurï¿½ck.
     * 
     * @param iu
-    *        die Äußerungseinheit
-    * @return Die Wurzel zu der Äußerungseinheit
+    *        die ï¿½uï¿½erungseinheit
+    * @return Die Wurzel zu der ï¿½uï¿½erungseinheit
     */
    public IllocutionUnitRoot getRoot(IllocutionUnit iu) {
       return getRoot(iu.getIndex());
    }
 
    /**
-    * Gibt die Wurzel zurück, deren Äußerungseinheit diesen Token beinhaltet.
+    * Gibt die Wurzel zurï¿½ck, deren ï¿½uï¿½erungseinheit diesen Token beinhaltet.
     * 
     * @param token
-    *        die Position der Äußerungseinheit
-    * @return Die Wurzel zu der Äußerungseinheit
+    *        die Position der ï¿½uï¿½erungseinheit
+    * @return Die Wurzel zu der ï¿½uï¿½erungseinheit
     */
    public IllocutionUnitRoot getRoot(Token token) {
       return getRoot(token.getIllocutionUnit());
    }
 
    /**
-    * Gibt die Wurzel zurück, die diese Zeichenposition abdeckt
+    * Gibt die Wurzel zurï¿½ck, die diese Zeichenposition abdeckt
     * 
     * @param position
     *        die Zeichenposition
@@ -250,7 +250,7 @@ public class IllocutionUnitRoots
    }
 
    /**
-    * Gibt die Funktionswörter zurück, die auf dem Wort aufbauen, welches an dem
+    * Gibt die Funktionswï¿½rter zurï¿½ck, die auf dem Wort aufbauen, welches an dem
     * besagten Index steht.
     */
    public Vector getFunctionWordsAtIndex(int index) {
@@ -266,8 +266,8 @@ public class IllocutionUnitRoots
    }
 
    /**
-    * Gibt das Funktionswort zurück, das diese Zeichenposition abdeckt. Steht an
-    * dieser Stelle kein Token, wird null zurückgegeben.
+    * Gibt das Funktionswort zurï¿½ck, das diese Zeichenposition abdeckt. Steht an
+    * dieser Stelle kein Token, wird null zurï¿½ckgegeben.
     * 
     * @param position
     *        Die Zeichenposition
@@ -290,11 +290,11 @@ public class IllocutionUnitRoots
    }
 
    /**
-    * Gibt die Funktionswörter zurück, die auf dem übergebenen Wort aufbauen.
+    * Gibt die Funktionswï¿½rter zurï¿½ck, die auf dem ï¿½bergebenen Wort aufbauen.
     * 
     * @param word
-    *        Das zugrundeliegende Wort der Funktionswörter
-    * @return Die Funktionswörter, die auf dem Wort aufbauen.
+    *        Das zugrundeliegende Wort der Funktionswï¿½rter
+    * @return Die Funktionswï¿½rter, die auf dem Wort aufbauen.
     */
    public Vector getFunctionWords(Word word) {
       IllocutionUnitRoot iur = getRoot(word);
@@ -309,7 +309,7 @@ public class IllocutionUnitRoots
    }
 
    /**
-    * Gibt die konstitutiven Wörter zurück, die auf dem Wort aufbauen, welches
+    * Gibt die konstitutiven Wï¿½rter zurï¿½ck, die auf dem Wort aufbauen, welches
     * an dem Index steht.
     */
    public Vector getConstitutiveWordsAtIndex(int index) {
@@ -325,8 +325,8 @@ public class IllocutionUnitRoots
    }
 
    /**
-    * Gibt das Konstitutive Wort zurück, das diese Zeichenposition abdeckt.
-    * Steht an dieser Stelle kein Token, wird null zurückgegeben.
+    * Gibt das Konstitutive Wort zurï¿½ck, das diese Zeichenposition abdeckt.
+    * Steht an dieser Stelle kein Token, wird null zurï¿½ckgegeben.
     * 
     * @param position
     *        Die Zeichenposition
@@ -387,11 +387,11 @@ public class IllocutionUnitRoots
    }
 
    /**
-    * Gibt die konstitutiven Wörter zurück, die auf diesem Wort aufbauen.
+    * Gibt die konstitutiven Wï¿½rter zurï¿½ck, die auf diesem Wort aufbauen.
     * 
     * @param word
-    *        Das zugrunde liegende Wort der konstitutiven Wörter
-    * @return Ein Vektor mit allen konstitutiven Wörtern, die auf diesem Wort
+    *        Das zugrunde liegende Wort der konstitutiven Wï¿½rter
+    * @return Ein Vektor mit allen konstitutiven Wï¿½rtern, die auf diesem Wort
     *         aufbauen
     */
    public Vector getConstitutiveWords(Word word) {
@@ -407,7 +407,7 @@ public class IllocutionUnitRoots
    }
 
    /**
-    * Alle konstitutiven Wörter
+    * Alle konstitutiven Wï¿½rter
     */
    public Vector getConstitutiveWords() {
       Vector res = new Vector();
@@ -439,7 +439,7 @@ public class IllocutionUnitRoots
    }
 
    /**
-    * Wird vom DBC benötigt.
+    * Wird vom DBC benï¿½tigt.
     */
    public Vector getConstitutiveWords(DBC_Key key) {
       key.unlock();
@@ -452,7 +452,7 @@ public class IllocutionUnitRoots
    }
 
    /**
-    * Alle Funktionswörter
+    * Alle Funktionswï¿½rter
     */
    public Vector getFunctionWords() {
       Vector res = new Vector();
@@ -464,7 +464,7 @@ public class IllocutionUnitRoots
    }
 
    /**
-    * Wird vom DBC benötigt
+    * Wird vom DBC benï¿½tigt
     */
    public Vector getFunctionWords(DBC_Key key) {
       key.unlock();
@@ -489,7 +489,7 @@ public class IllocutionUnitRoots
    }
 
    /**
-    * Wird vom DBC benötigt.
+    * Wird vom DBC benï¿½tigt.
     */
    public Vector getMeaningUnits(DBC_Key key) {
       key.unlock();
@@ -514,7 +514,7 @@ public class IllocutionUnitRoots
    }
 
    /**
-    * Wird vom DBC benötigt.
+    * Wird vom DBC benï¿½tigt.
     */
    public Vector getSememeGroups(DBC_Key key) {
       key.unlock();
@@ -527,16 +527,16 @@ public class IllocutionUnitRoots
    }
 
    /**
-    * Prüft, ob schon eine semantische Einheit mit diesen Funktionswort und
-    * diesem konstitutiven Wort existiert. Die beiden Wörter müssen unter der
-    * selben Wurzel stehen, ansonsten wird false zurückgegeben.
+    * Prï¿½ft, ob schon eine semantische Einheit mit diesen Funktionswort und
+    * diesem konstitutiven Wort existiert. Die beiden Wï¿½rter mï¿½ssen unter der
+    * selben Wurzel stehen, ansonsten wird false zurï¿½ckgegeben.
     */
    public boolean existMeaningUnit(FunctionWord fw, ConstitutiveWord cw) {
       return fw.getRoot().existMeaningUnit(fw, cw);
    }
 
    /**
-    * Prüft, ob schon eine semantische Einheit mit diesen Funktionswort
+    * Prï¿½ft, ob schon eine semantische Einheit mit diesen Funktionswort
     * existiert.
     */
    public boolean existMeaningUnit(ConstitutiveWord cw) {
@@ -544,11 +544,11 @@ public class IllocutionUnitRoots
    }
 
    /**
-    * Überprüft, ob in diesem Kapitel schon ein Funktionswort zu diesem Wort
-    * angelegt wurde. Teilwörter werden dabei nicht beachtet.
+    * ï¿½berprï¿½ft, ob in diesem Kapitel schon ein Funktionswort zu diesem Wort
+    * angelegt wurde. Teilwï¿½rter werden dabei nicht beachtet.
     * 
     * @param word
-    *        Das zu überprüfende Wort.
+    *        Das zu ï¿½berprï¿½fende Wort.
     * @return true, falls es in diesem Kapitel ein Funktionswort zu dem Wort
     *         gibt.
     */
@@ -564,7 +564,7 @@ public class IllocutionUnitRoots
    }
 
    /**
-    * Wird vom DBC benötigt
+    * Wird vom DBC benï¿½tigt
     */
    public void fillCaches(DBC_Key key) {
       for (int i = 0; i < roots.size(); i++)
@@ -572,12 +572,12 @@ public class IllocutionUnitRoots
    }
 
    /**
-    * Überprüft, ob in diesem Kapitel schon ein konstitutives Wort zu diesem
-    * Wort angelegt wurde. Dabei wird der Content des Wortes berücksichtigt, die
-    * Position ist also unwichtig. Teilwörter werden dabei nicht beachtet.
+    * ï¿½berprï¿½ft, ob in diesem Kapitel schon ein konstitutives Wort zu diesem
+    * Wort angelegt wurde. Dabei wird der Content des Wortes berï¿½cksichtigt, die
+    * Position ist also unwichtig. Teilwï¿½rter werden dabei nicht beachtet.
     * 
     * @param word
-    *        Das zu überprüfende Wort.
+    *        Das zu ï¿½berprï¿½fende Wort.
     * @return true, falls es in diesem Kapitel ein konstitutives Wort zu dem
     *         Wort gibt.
     */

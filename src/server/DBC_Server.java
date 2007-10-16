@@ -3105,7 +3105,7 @@ public class DBC_Server extends Thread {
 	 * 
 	 * @param Vector<Strings>
 	 * @return Vector<Vector<Long>>
-	 * gibt f�r jede Assigantion eines Strings die Wortklasse und Subklasse zur�ck
+	 * gibt für jede Assigantion eines Strings die Wortklasse und Subklasse zur�ck
 	 */
 	public Vector loadWordClasses(Vector contents) throws Exception 
 	{
@@ -3114,12 +3114,14 @@ public class DBC_Server extends Thread {
 		{
 			String content = (String) contents.get(i);
 			Vector assignations = loadWordListElement(content).getAssignations();
+			
 			Vector<Long> wordClasses = new Vector<Long>();
 			Vector<Long> wordSubClasses = new Vector<Long>();
+			
 			for (int j = 0; j != assignations.size(); ++j) 
 			{
 				TR_Assignation assi = (TR_Assignation) assignations.get(j);
-				wordClasses.add(assi.getWordclassesBinary());
+					wordClasses.add(assi.getWordclassesBinary());
 				if (assi.getWordsubclassAdjectivesBinary() != 0)
 					wordSubClasses.add(assi.getWordsubclassAdjectivesBinary());
 				else if (assi.getWordsubclassConnectorsBinary() != 0)

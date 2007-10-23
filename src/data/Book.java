@@ -10,16 +10,14 @@ import java.util.Vector;
 import connection.DBC_Key;
 
 /**
- * Das Buch ist eine Rahmenklasse, um den Titel, Autor u.ä. zu speichern. Die
+ * Das Buch ist eine Rahmenklasse, um den Titel, Autor u.ï¿½. zu speichern. Die
  * einzelnen Kapitel werden seperat geladen und stehen in keinem direkten
  * Zusammenhang zu dem Buch.
  * 
- * @author Volker Klöbb
+ * @author Volker Klï¿½bb
  * @see Chapter
  */
-public class Book
-      implements
-         Serializable {
+public class Book implements Serializable {
 
    /**
     * 
@@ -32,7 +30,7 @@ public class Book
    private Vector            chapters;
 
    /**
-    * Wird vom DBC benötigt
+    * Wird vom DBC benï¿½tigt
     */
    public Book(DBC_Key key, int id, String title, String author, int year) {
       key.unlock();
@@ -45,7 +43,7 @@ public class Book
    }
 
    /**
-    * Wird vom DBC benötigt
+    * Wird vom DBC benï¿½tigt
     */
    public void add(DBC_Key key, Chapter chapter) {
       key.unlock();
@@ -53,7 +51,7 @@ public class Book
    }
 
    /**
-    * Gibt alle Kapitel des Buches in einem Vektor zurück. Diese Kapitel sind
+    * Gibt alle Kapitel des Buches in einem Vektor zurï¿½ck. Diese Kapitel sind
     * aber nicht komplett, haben zum Beispiel keine Tokens. Bei Bedarfsfall muss
     * das Kapitel seperat geladen werden.
     * 
@@ -83,7 +81,7 @@ public class Book
    }
 
    /**
-    * Wird vom DBC benötigt
+    * Wird vom DBC benï¿½tigt
     */
    public void setDB_ID(DBC_Key key, int id) {
       key.unlock();

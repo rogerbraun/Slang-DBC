@@ -41,6 +41,7 @@ import data.Isotopes;
 import data.MacroSentence;
 import data.MeaningUnit;
 import data.Occurrence_DB;
+import data.Pattern;
 import data.Relation;
 import data.Renominalisation;
 import data.Renominalisations;
@@ -187,11 +188,10 @@ public class DBC_Server extends Thread {
 					ts = new Timestamp(0);
 				}
 				ts.setNanos(0);
-				book.add(key, new Chapter(key, res.getInt("id"), book
-						.getDB_ID(), res.getInt("index"), res
-						.getString("title"), ts.toString().substring(0,
-						ts.toString().length() - 2))); //dirty, aber sehe keine andere M�glichkeit, den nano-
-				//Anteil loszuwerden
+				book.add(key, new Chapter(key, res.getInt("id"), book.getDB_ID(), 
+						res.getInt("index"), res.getString("title"), 
+						ts.toString().substring(0,ts.toString().length() - 2))); 
+				//dirty, aber sehe keine andere M�glichkeit, den nano-Anteil loszuwerden
 			}
 		}
 		stmt.close();
@@ -257,6 +257,97 @@ public class DBC_Server extends Thread {
 		stmt.close();
 		connection.setAutoCommit(true);
 		return book;
+	}
+	
+	/**
+	    * Lädt alle Pattern aus der Datenbank.
+	    * 
+	    * @return Vektor<Pattern>
+	    */
+	public synchronized Vector<Pattern> loadPatterns() throws Exception {
+		Vector<Pattern> ret = new Vector<Pattern>();
+		
+		Statement stmt = connection.createStatement();
+		ResultSet res = stmt.executeQuery("SELECT * FROM pattern");
+
+		while (res.next()) {
+			ret.add(new Pattern(key, res.getInt("id"), res.getString("name"),
+					res.getString("tdType"), res.getInt("level"), res.getInt("mu"),
+					res.getInt("path")));
+		}
+		stmt.close();
+		return ret;
+	}
+	
+	 /**
+	    * Lädt alle Pattern mit tdTyp aus der Datenbank.
+	    * 
+	    * @param String tdType
+	    * @return Vektor<Pattern>
+	    */
+	public synchronized Vector<Pattern> loadPatterns(String tdType) throws Exception {
+		Vector<Pattern> ret = new Vector<Pattern>();
+
+		Statement stmt = connection.createStatement();
+		ResultSet res = stmt.executeQuery("SELECT * "
+				+ "FROM pattern WHERE tdType = " + tdType);
+
+		while (res.next()) {
+			ret.add(new Pattern(key, res.getInt("id"), res.getString("name"),
+					res.getString("tdType"), res.getInt("level"), res.getInt("mu"),
+					res.getInt("path")));
+		}
+		stmt.close();
+		return ret;
+	}
+	
+	 /**
+	    * Speichert ein Pattern in der Datenbank
+	    * 
+	    * @param DBC_Key key, Pattern pattern
+	    */
+	public synchronized void savePattern(Pattern pattern) throws Exception {
+		connection.setAutoCommit(false);
+		Statement stmt = connection.createStatement(
+				ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+
+		ResultSet res = stmt.executeQuery("SELECT * FROM pattern "
+				+ "WHERE name = '"   + pattern.getName()
+				+ "' and tdType = '" + pattern.gettdType()
+				+ "' and level = "   + pattern.getLevel()
+				+ "' and mu = "      + pattern.getMu()
+				+ "' and path = "    + pattern.getPath());
+
+		if (!res.next()) {
+			res.moveToInsertRow();
+			res.updateString("name", pattern.getName());
+			res.updateString("tdType", pattern.gettdType());
+			res.updateInt("level", pattern.getLevel());
+			res.updateInt("mu", pattern.getMu());
+			res.updateInt("path", pattern.getPath());
+			res.insertRow();
+			res.close();
+		}
+
+		res = stmt.executeQuery("SELECT * FROM pattern "
+				+ "WHERE name = '"   + pattern.getName()
+				+ "' and tdType = '" + pattern.gettdType()
+				+ "' and level = "   + pattern.getLevel()
+				+ "' and mu = "      + pattern.getMu()
+				+ "' and path = "    + pattern.getPath());
+		
+		if (res.next())
+			pattern.setDB_ID(key, res.getInt("id"));
+		else {
+			connection.rollback();
+			stmt.close();
+			connection.setAutoCommit(true);
+			throw new DBC_SaveException("Pattern " + pattern.getName()
+					+ "konnte nicht in der " + "DB gespeichert werden!");
+		}
+		connection.commit();
+		stmt.close();
+		connection.setAutoCommit(true);
 	}
 
 	private void setChapter(Chapter chapter) {

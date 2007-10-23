@@ -22,6 +22,7 @@ import data.DirectSpeech;
 import data.DirectSpeeches;
 import data.IllocutionUnitRoots;
 import data.Isotopes;
+import data.Pattern;
 import data.Relation;
 import data.Renominalisations;
 import data.TR_Assignation;
@@ -107,8 +108,7 @@ public class DBC {
     * @see Book
     * @see DBC#loadBook(int)
     */
-   public Vector loadBooks()
-         throws Exception {
+   public Vector loadBooks() throws Exception {
       Message answer = connection.call(new Message(key, "loadBooks"));
       return (Vector) answer.getArguments()[0];
    }
@@ -120,8 +120,7 @@ public class DBC {
     *        Die ID des Buches
     * @return Das Buch aus der Datenbank mit ID id
     */
-   public Book loadBook(int id)
-         throws Exception {
+   public Book loadBook(int id) throws Exception {
       Message answer = connection.call(new Message(key, "loadBook",
             new Integer(id)));
       return (Book) answer.getArguments()[0];
@@ -133,13 +132,45 @@ public class DBC {
     * @param book
     * @see DBC#loadBook(int)
     */
-   public void saveBook(DBC_Key key, Book book)
-         throws Exception {
+   public void saveBook(DBC_Key key, Book book) throws Exception {
       key.unlock();
       Book answer = (Book) connection.call(new Message(key, "saveBook", book))
             .getArguments()[0];
       book.setDB_ID(key, answer.getDB_ID());
    }
+   
+   /**
+    * Lädt alle Pattern aus der Datenbank.
+    * 
+    * @return Vektor<Pattern>
+    */
+   public Vector<Pattern> loadPatterns() throws Exception {
+	   Message answer = connection.call(new Message(key, "loadPatterns"));
+	   return (Vector<Pattern>) answer.getArguments()[0];	   
+   }
+   
+   /**
+    * Lädt alle Pattern mit tdTyp aus der Datenbank.
+    * 
+    * @param String tdType
+    * @return Vektor<Pattern>
+    */
+   public Vector<Pattern> loadPatterns(String tdType) throws Exception {
+	   Message answer = connection.call(new Message(key, "loadPatterns", tdType));
+	   return (Vector<Pattern>) answer.getArguments()[0];
+	}
+   
+   /**
+    * Speichert ein Pattern in der Datenbank
+    * 
+    * @param DBC_Key key, Pattern pattern
+    */
+	public void savePattern(DBC_Key key, Pattern pattern) throws Exception {
+		key.unlock();
+	    Pattern answer = (Pattern) connection.call(new Message(key, "savePattern", pattern))
+	            .getArguments()[0];
+	    pattern.setDB_ID(key, answer.getDB_ID());
+	}
 
    /**
     * L�dt ein Kapitel aus der Datenbank.

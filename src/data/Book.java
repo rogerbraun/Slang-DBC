@@ -19,9 +19,6 @@ import connection.DBC_Key;
  */
 public class Book implements Serializable {
 
-   /**
-    * 
-    */
    private static final long serialVersionUID = 2362353228084193549L;
    private int               id;
    private String            title;
@@ -29,8 +26,12 @@ public class Book implements Serializable {
    private int               year;
    private Vector            chapters;
 
-   /**
-    * Wird vom DBC ben�tigt
+   /** 
+    * @param key
+    * @param id
+    * @param title
+    * @param author
+    * @param year
     */
    public Book(DBC_Key key, int id, String title, String author, int year) {
       key.unlock();

@@ -15,6 +15,16 @@ public class Pattern implements Serializable
 	private int mu;
 	private int path;
 	
+	
+	/**
+	 * @param key
+	 * @param id
+	 * @param name
+	 * @param tdType
+	 * @param level
+	 * @param mu
+	 * @param path
+	 */
 	public Pattern(DBC_Key key, int id, String name, String tdType, int level, int mu, int path){
 	      key.unlock();
 	      this.id = id;

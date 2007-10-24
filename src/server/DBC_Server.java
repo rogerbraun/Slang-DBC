@@ -271,9 +271,9 @@ public class DBC_Server extends Thread {
 		ResultSet res = stmt.executeQuery("SELECT * FROM pattern");
 
 		while (res.next()) {
-			ret.add(new Pattern(key, res.getInt("id"), res.getString("name"),
-					res.getString("tdType"), res.getInt("level"), res.getInt("mu"),
-					res.getInt("path")));
+			ret.add(new Pattern(key, res.getInt("id"), res.getString("name"), 
+					res.getString("description"), res.getString("tdType"), 
+					res.getInt("level"), res.getInt("mu"), res.getInt("path")));
 		}
 		stmt.close();
 		return ret;
@@ -294,8 +294,8 @@ public class DBC_Server extends Thread {
 
 		while (res.next()) {
 			ret.add(new Pattern(key, res.getInt("id"), res.getString("name"),
-					res.getString("tdType"), res.getInt("level"), res.getInt("mu"),
-					res.getInt("path")));
+					res.getString("description"), res.getString("tdType"), 
+					res.getInt("level"), res.getInt("mu"), res.getInt("path")));
 		}
 		stmt.close();
 		return ret;
@@ -311,16 +311,27 @@ public class DBC_Server extends Thread {
 		Statement stmt = connection.createStatement(
 				ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
+		
+		System.out.println("SELECT * FROM pattern "
+				+ "WHERE name = '"        + pattern.getName()
+				+ "' and description = '" + pattern.getDescription()
+				+ "' and tdType = '"      + pattern.gettdType()
+				+ "' and level = '"        + pattern.getLevel()
+				+ "' and mu = '"           + pattern.getMu()
+				+ "' and path = '"         + pattern.getPath());
+		
 		ResultSet res = stmt.executeQuery("SELECT * FROM pattern "
-				+ "WHERE name = '"   + pattern.getName()
-				+ "' and tdType = '" + pattern.gettdType()
-				+ "' and level = "   + pattern.getLevel()
-				+ "' and mu = "      + pattern.getMu()
-				+ "' and path = "    + pattern.getPath());
+				+ "WHERE name = '"        + pattern.getName()
+				+ "' and description = '" + pattern.getDescription()
+				+ "' and tdType = '"      + pattern.gettdType()
+				+ "' and level = '"        + pattern.getLevel()
+				+ "' and mu = '"           + pattern.getMu()
+				+ "' and path = '"         + pattern.getPath());
 
 		if (!res.next()) {
 			res.moveToInsertRow();
 			res.updateString("name", pattern.getName());
+			res.updateString("description", pattern.getDescription());
 			res.updateString("tdType", pattern.gettdType());
 			res.updateInt("level", pattern.getLevel());
 			res.updateInt("mu", pattern.getMu());
@@ -330,11 +341,12 @@ public class DBC_Server extends Thread {
 		}
 
 		res = stmt.executeQuery("SELECT * FROM pattern "
-				+ "WHERE name = '"   + pattern.getName()
-				+ "' and tdType = '" + pattern.gettdType()
-				+ "' and level = "   + pattern.getLevel()
-				+ "' and mu = "      + pattern.getMu()
-				+ "' and path = "    + pattern.getPath());
+				+ "WHERE name = '"   	  + pattern.getName()
+				+ "' and description = '" + pattern.getDescription()
+				+ "' and tdType = '" 	  + pattern.gettdType()
+				+ "' and level = "   	  + pattern.getLevel()
+				+ "' and mu = "      	  + pattern.getMu()
+				+ "' and path = "    	  + pattern.getPath());
 		
 		if (res.next())
 			pattern.setDB_ID(key, res.getInt("id"));
@@ -1795,10 +1807,8 @@ public class DBC_Server extends Thread {
 			// schon in der DB vorhanden
 			if (res.next()) {
 				if (ch.hasChanged()) {
-					res.updateInt("meaning_unit", ch.getMeaningUnit()
-							.getDB_ID());
-					res.updateInt("chapter", ch.getRoot().getChapter()
-							.getDB_ID());
+					res.updateInt("meaning_unit", ch.getMeaningUnit().getDB_ID());
+					res.updateInt("chapter", ch.getRoot().getChapter().getDB_ID());
 					res.updateInt("path", ch.getPath());
 					res.updateInt("numerus_paths", ch.getNumerusPath());
 					res.updateBoolean("accepted", ch.isAccepted());
@@ -1832,7 +1842,7 @@ public class DBC_Server extends Thread {
 							+ "DB gespeichert werden!");
 			}
 			res.close();
-			// schreibe �nderung in die DB
+			// schreibe Änderung in die DB
 			connection.commit();
 		}
 		connection.setAutoCommit(true);

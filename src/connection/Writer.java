@@ -8,19 +8,19 @@ import data.Book;
 import data.Chapter;
 
 /**
- * Eine Klasse, mit der man Bücher und Kapitel erstellen und diese in die
- * Datenbank übertragen kann. <br>
+ * Eine Klasse, mit der man Bï¿½cher und Kapitel erstellen und diese in die
+ * Datenbank ï¿½bertragen kann. <br>
  * Die normale Reihenfolge ist: <br>
  * <ul>
  * <li>Writer erstellen</li>
  * <li>Buch erstellen</li>
  * <li>Kapitel erstellen</li>
- * <li>In beliebiger Folge Wörter, Satzzeichen, Zeilenumbrüche und
- * Äußerungseinheiten zu dem Kapitel hinzufügen</li>
+ * <li>In beliebiger Folge Wï¿½rter, Satzzeichen, Zeilenumbrï¿½che und
+ * ï¿½uï¿½erungseinheiten zu dem Kapitel hinzufï¿½gen</li>
  * <li>abspeichern</li>
  * </ul>
  * 
- * @author Volker Klöbb
+ * @author Volker Klï¿½bb
  */
 public class Writer {
 
@@ -45,7 +45,7 @@ public class Writer {
 
    /**
     * Legt ein neues Buch an. Existiert in der Datenbank scho ein solches Buch,
-    * wird das schon gespeicherte verwendet. Doppeleinträge sind nicht möglich.
+    * wird das schon gespeicherte verwendet. Doppeleintrï¿½ge sind nicht mï¿½glich.
     * 
     * @param title
     *        Der Titel des Buches
@@ -79,7 +79,7 @@ public class Writer {
    }
 
    /**
-    * Fügt in ein zuvor erstelltes Kapitel ein deutsches Wort ein.
+    * Fï¿½gt in ein zuvor erstelltes Kapitel ein deutsches Wort ein.
     * 
     * @param content
     *        Das Wort
@@ -92,7 +92,7 @@ public class Writer {
    }
 
    /**
-    * Fügt in ein zuvor erstelltes Kapitel ein Wort ein.
+    * Fï¿½gt in ein zuvor erstelltes Kapitel ein Wort ein.
     * 
     * @param content
     *        Das Wort
@@ -107,7 +107,7 @@ public class Writer {
    }
 
    /**
-    * Fügt ein Satzzeichen in ein zuvor erstelltes Kapitel ein.
+    * Fï¿½gt ein Satzzeichen in ein zuvor erstelltes Kapitel ein.
     * 
     * @param sign
     *        Das Satzzeichen
@@ -120,7 +120,7 @@ public class Writer {
    }
 
    /**
-    * Fügt ein Satzzeichen in ein zuvor erstelltes Kapitel ein.
+    * Fï¿½gt ein Satzzeichen in ein zuvor erstelltes Kapitel ein.
     * 
     * @param sign
     *        Das Satzzeichen
@@ -133,7 +133,7 @@ public class Writer {
    }
 
    /**
-    * Fügt einen Zeilenumbruch ein.
+    * Fï¿½gt einen Zeilenumbruch ein.
     * 
     * @param position
     *        Die Zeichenposition des Zeilenumbruches
@@ -143,19 +143,19 @@ public class Writer {
    }
 
    /**
-    * Fügt eine Äußerungseinheit in ein bestehendes Kapitel ein.
+    * Fï¿½gt eine ï¿½uï¿½erungseinheit in ein bestehendes Kapitel ein.
     * 
     * @param startPosition
-    *        Die Zeichenposition des Anfangsbuchstabens der Äußerungseinheit
+    *        Die Zeichenposition des Anfangsbuchstabens der ï¿½uï¿½erungseinheit
     * @param endPosition
-    *        Die Zeichenposition des Endbuchstabens der Äußerungseinheit
+    *        Die Zeichenposition des Endbuchstabens der ï¿½uï¿½erungseinheit
     */
    public void addIllocutionUnit(int startPosition, int endPosition) {
       chapter.addIllocutionUnit(key, startPosition, endPosition);
    }
 
    /**
-    * Setzt den Writer zurück, alle Daten gehen verloren.
+    * Setzt den Writer zurï¿½ck, alle Daten gehen verloren.
     * 
     */
    public void reset() {

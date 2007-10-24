@@ -163,13 +163,13 @@ public class DBC {
    /**
     * Speichert ein Pattern in der Datenbank
     * 
-    * @param DBC_Key key, Pattern pattern
+    * @param Pattern pattern
     */
-	public void savePattern(DBC_Key key, Pattern pattern) throws Exception {
+	public void savePattern(Pattern pattern) throws Exception {
 		key.unlock();
 	    Pattern answer = (Pattern) connection.call(new Message(key, "savePattern", pattern))
 	            .getArguments()[0];
-	    pattern.setDB_ID(key, answer.getDB_ID());
+	   pattern.updateIDs(key, answer);
 	}
 
    /**

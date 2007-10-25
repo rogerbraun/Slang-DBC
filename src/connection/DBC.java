@@ -166,10 +166,13 @@ public class DBC {
     * @param Pattern pattern
     */
 	public void savePattern(Pattern pattern) throws Exception {
-		key.unlock();
-	    Pattern answer = (Pattern) connection.call(new Message(key, "savePattern", pattern))
-	            .getArguments()[0];
-	   pattern.updateIDs(key, answer);
+		Message m_in = new Message(key, "savePattern", pattern);
+		Message m_out = connection.call(m_in);
+		System.out.println(m_out.getArguments().length);
+	    Pattern answer = (Pattern) m_out.getArguments()[0];
+	    System.out.println(answer);
+	  
+	   pattern.setDB_ID(answer.getDB_ID());
 	}
 
    /**

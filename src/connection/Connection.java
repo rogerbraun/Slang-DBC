@@ -11,7 +11,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 /**
- * @author Volker Klöbb
+ * @author Volker Klï¿½bb
  */
 class Connection {
 
@@ -26,7 +26,7 @@ class Connection {
          in = new ObjectInputStream(socket.getInputStream());
       }
       catch (NullPointerException e) {
-         System.err.println("Ströme konnten nicht geöffnet werden.");
+         System.err.println("Strï¿½me konnten nicht geï¿½ffnet werden.");
       }
    }
 
@@ -42,13 +42,12 @@ class Connection {
          // System.out.println(in.readObject());
          Message answer = (Message) in.readObject();
          if (answer.getMethod().equals("OK"))
-            return answer;
+        	return answer;
          if (answer.getMethod().equals("ERROR"))
             throw (Exception) answer.getArguments()[0];
       }
       catch (InvalidClassException e) {
-         System.err
-               .println("Versionskonflikt! Das DBC ist nicht mehr aktuell...");
+         System.err.println("Versionskonflikt! Das DBC ist nicht mehr aktuell...");
          e.printStackTrace();
       }
       catch (Exception e) {

@@ -271,7 +271,7 @@ public class DBC_Server extends Thread {
 		ResultSet res = stmt.executeQuery("SELECT * FROM pattern");
 
 		while (res.next()) {
-			ret.add(new Pattern(key, res.getInt("id"), res.getString("name"), 
+			ret.add(new Pattern(res.getInt("id"), res.getString("name"), 
 					res.getString("description"), res.getString("tdType"), 
 					res.getInt("level"), res.getInt("mu"), res.getInt("path")));
 		}
@@ -293,7 +293,7 @@ public class DBC_Server extends Thread {
 				+ "FROM pattern WHERE tdType = " + tdType);
 
 		while (res.next()) {
-			ret.add(new Pattern(key, res.getInt("id"), res.getString("name"),
+			ret.add(new Pattern(res.getInt("id"), res.getString("name"),
 					res.getString("description"), res.getString("tdType"), 
 					res.getInt("level"), res.getInt("mu"), res.getInt("path")));
 		}
@@ -316,21 +316,19 @@ public class DBC_Server extends Thread {
 		
 		// schon in der DB vorhanden
 		if (res.next()) {
-			if (pattern.hasChanged()) {
-				res.updateString("name", pattern.getName());
-				res.updateString("description", pattern.getDescription());
-				res.updateString("tdType", pattern.gettdType());
-				res.updateInt("level", pattern.getLevel());
-				res.updateInt("mu", pattern.getMu());
-				res.updateInt("path", pattern.getPath());
-				res.updateRow();
-				pattern.resetState(key);
-			} else if (pattern.isRemoved())
-				res.deleteRow();
+			System.out.println("schon in der DB vorhanden");
+			res.updateString("name", pattern.getName());
+			res.updateString("description", pattern.getDescription());
+			res.updateString("tdType", pattern.gettdType());
+			res.updateInt("level", pattern.getLevel());
+			res.updateInt("mu", pattern.getMu());
+			res.updateInt("path", pattern.getPath());
+			res.updateRow();
 		}
 		
 		// muss gespeichert werden
-		else if (!pattern.isRemoved()) {
+		else {
+			System.out.println("muss gespeichert werden");
 			res.moveToInsertRow();
 			res.updateString("name", pattern.getName());
 			res.updateString("description", pattern.getDescription());
@@ -340,28 +338,27 @@ public class DBC_Server extends Thread {
 			res.updateInt("path", pattern.getPath());
 			res.insertRow();
 			res.close();
-			pattern.resetState(key);
-
+			
 			res = stmt.executeQuery("SELECT * FROM pattern "
 					+ "WHERE name = '"        + pattern.getName()
 					+ "' and description = '" + pattern.getDescription()
 					+ "' and tdType = '"      + pattern.gettdType()
-					+ "' and level = '"        + pattern.getLevel()
-					+ "' and mu = '"           + pattern.getMu()
-					+ "' and path = '"         + pattern.getPath());
+					+ "' and level = '"       + pattern.getLevel()
+					+ "' and mu = '"          + pattern.getMu()
+					+ "' and path = '"        + pattern.getPath() + "'");
 
 			if (res.next())
-				pattern.setDB_ID(key, res.getInt("id"));
+				pattern.setDB_ID(res.getInt("id"));
 
 			else
 				throw new DBC_SaveException("Pattern " + pattern.getName()
 						+ "konnte nicht in der " + "DB gespeichert werden!");
 			
-			connection.commit();
 			res.close();
-			stmt.close();
-			connection.setAutoCommit(true);
-		}		
+			connection.commit();
+		}
+		connection.setAutoCommit(true);
+		stmt.close();
 	}
 
 	private void setChapter(Chapter chapter) {

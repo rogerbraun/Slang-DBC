@@ -1,8 +1,8 @@
 package data;
 
-import connection.DBC_Key;
+import java.io.Serializable;
 
-public class Pattern extends DB_Element
+public class Pattern implements Serializable
 {
 	/**
 	 * 
@@ -16,31 +16,6 @@ public class Pattern extends DB_Element
 	private int mu;
 	private int path;
 	
-	private Chapter chapter;
-	private int index;
-	
-	/**
-	 * @param DBC_KEY key
-	 * @param int id
-	 * @param String name
-	 * @param String description
-	 * @param String tdType
-	 * @param int level
-	 * @param int mu
-	 * @param int path
-	 */
-	public Pattern(DBC_Key key, int id, String name, String description, String tdType, int level, int mu, int path)
-	{
-		 super(id);
-	     key.unlock();
-	     this.name = name;
-	     this.description = description;
-	     this.tdType = tdType;
-	     this.level = level;
-	     this.mu = mu;
-	     this.path = path;
-	}
-	
 	/**
 	 * @param String name
 	 * @param String description
@@ -51,16 +26,36 @@ public class Pattern extends DB_Element
 	 */
 	public Pattern(String name, String description, String tdType, int level, int mu, int path)
 	{
-		 super(-1);
-	     this.name = name;
-	     this.description = description;
-	     this.tdType = tdType;
-	     this.level = level;
-	     this.mu = mu;
-	     this.path = path;
+		this.id = -1;
+		this.name = name;
+	    this.description = description;
+	    this.tdType = tdType;
+	    this.level = level;
+	    this.mu = mu;
+	    this.path = path;
 	}
 	
 	/**
+	 * @param int id
+	 * @param String name
+	 * @param String description
+	 * @param String tdType
+	 * @param int level
+	 * @param int mu
+	 * @param int path
+	 */
+	public Pattern(int id, String name, String description, String tdType, int level, int mu, int path)
+	{
+		this.id = id;
+		this.name = name;
+	    this.description = description;
+	    this.tdType = tdType;
+	    this.level = level;
+	    this.mu = mu;
+	    this.path = path;
+	}
+	
+	  /**
 	    * Die ID, die von der Datenbank vergeben wurde
 	    * 
 	    * @return die Datenbank-ID
@@ -68,6 +63,10 @@ public class Pattern extends DB_Element
 	   public int getDB_ID() {
 	      return id;
 	   }
+	   
+	   public void setDB_ID(int db_id) {
+			id = db_id;
+		}
 
 	   public String getName() {
 		   return name;
@@ -92,26 +91,4 @@ public class Pattern extends DB_Element
 	   public int getPath() {
 		   return path;
 	   }
-
-	@Override
-	public int getIndex() {
-		return index;
-	}
-	
-	public void setIndex(int index) {
-	   this.index = index;
-	   changeState(CHANGE);
-	}
-	
-	@Override
-	public boolean remove() {
-		changeState(REMOVE);
-	    return true;
-	}
-
-	@Override
-	public void setChapter(DBC_Key key, Chapter chapter) {
-		key.unlock();
-	    this.chapter = chapter;	
-	}
 }

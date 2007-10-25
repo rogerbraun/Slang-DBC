@@ -304,31 +304,33 @@ public class DBC_Server extends Thread {
 	 /**
 	    * Speichert ein Pattern in der Datenbank
 	    * 
-	    * @param DBC_Key key, Pattern pattern
+	    * @param Pattern pattern
 	    */
 	public synchronized void savePattern(Pattern pattern) throws Exception {
 		connection.setAutoCommit(false);
 		Statement stmt = connection.createStatement(
 				ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
+		ResultSet res = stmt.executeQuery("SELECT * FROM pattern "  
+				+ "WHERE id = " + pattern.getDB_ID());
 		
-		System.out.println("SELECT * FROM pattern "
-				+ "WHERE name = '"        + pattern.getName()
-				+ "' and description = '" + pattern.getDescription()
-				+ "' and tdType = '"      + pattern.gettdType()
-				+ "' and level = '"        + pattern.getLevel()
-				+ "' and mu = '"           + pattern.getMu()
-				+ "' and path = '"         + pattern.getPath());
+		// schon in der DB vorhanden
+		if (res.next()) {
+			if (pattern.hasChanged()) {
+				res.updateString("name", pattern.getName());
+				res.updateString("description", pattern.getDescription());
+				res.updateString("tdType", pattern.gettdType());
+				res.updateInt("level", pattern.getLevel());
+				res.updateInt("mu", pattern.getMu());
+				res.updateInt("path", pattern.getPath());
+				res.updateRow();
+				pattern.resetState(key);
+			} else if (pattern.isRemoved())
+				res.deleteRow();
+		}
 		
-		ResultSet res = stmt.executeQuery("SELECT * FROM pattern "
-				+ "WHERE name = '"        + pattern.getName()
-				+ "' and description = '" + pattern.getDescription()
-				+ "' and tdType = '"      + pattern.gettdType()
-				+ "' and level = '"        + pattern.getLevel()
-				+ "' and mu = '"           + pattern.getMu()
-				+ "' and path = '"         + pattern.getPath());
-
-		if (!res.next()) {
+		// muss gespeichert werden
+		else if (!pattern.isRemoved()) {
 			res.moveToInsertRow();
 			res.updateString("name", pattern.getName());
 			res.updateString("description", pattern.getDescription());
@@ -338,28 +340,28 @@ public class DBC_Server extends Thread {
 			res.updateInt("path", pattern.getPath());
 			res.insertRow();
 			res.close();
-		}
+			pattern.resetState(key);
 
-		res = stmt.executeQuery("SELECT * FROM pattern "
-				+ "WHERE name = '"   	  + pattern.getName()
-				+ "' and description = '" + pattern.getDescription()
-				+ "' and tdType = '" 	  + pattern.gettdType()
-				+ "' and level = "   	  + pattern.getLevel()
-				+ "' and mu = "      	  + pattern.getMu()
-				+ "' and path = "    	  + pattern.getPath());
-		
-		if (res.next())
-			pattern.setDB_ID(key, res.getInt("id"));
-		else {
-			connection.rollback();
+			res = stmt.executeQuery("SELECT * FROM pattern "
+					+ "WHERE name = '"        + pattern.getName()
+					+ "' and description = '" + pattern.getDescription()
+					+ "' and tdType = '"      + pattern.gettdType()
+					+ "' and level = '"        + pattern.getLevel()
+					+ "' and mu = '"           + pattern.getMu()
+					+ "' and path = '"         + pattern.getPath());
+
+			if (res.next())
+				pattern.setDB_ID(key, res.getInt("id"));
+
+			else
+				throw new DBC_SaveException("Pattern " + pattern.getName()
+						+ "konnte nicht in der " + "DB gespeichert werden!");
+			
+			connection.commit();
+			res.close();
 			stmt.close();
 			connection.setAutoCommit(true);
-			throw new DBC_SaveException("Pattern " + pattern.getName()
-					+ "konnte nicht in der " + "DB gespeichert werden!");
-		}
-		connection.commit();
-		stmt.close();
-		connection.setAutoCommit(true);
+		}		
 	}
 
 	private void setChapter(Chapter chapter) {
@@ -2882,8 +2884,7 @@ public class DBC_Server extends Thread {
 				res.close();
 				complex.resetState(key);
 
-				res = stmt
-						.executeQuery("SELECT id FROM complexes WHERE chapter = "
+				res = stmt.executeQuery("SELECT id FROM complexes WHERE chapter = "
 								+ chapter.getDB_ID()
 								+ " and type = "
 								+ complex.getComplexType()
@@ -3120,16 +3121,10 @@ public class DBC_Server extends Thread {
 
 		mask(element.getContent()), element.getLanguage()));
 
-		ResultSet res = stmt
-				.executeQuery(String
-						.format(
-
-								"SELECT id "
-										+ "FROM words "
-										+ "WHERE cont_lang_checksum = UNHEX(MD5(CONCAT('%1$s', '%2$s')))",
-
-								mask(element.getContent()), element
-										.getLanguage()));
+		ResultSet res = stmt.executeQuery(String.format("SELECT id "
+					+ "FROM words "
+					+ "WHERE cont_lang_checksum = UNHEX(MD5(CONCAT('%1$s', '%2$s')))",
+					mask(element.getContent()), element.getLanguage()));
 
 		int wordId = 0;
 		//Wort ist vorhanden
@@ -3146,12 +3141,9 @@ public class DBC_Server extends Thread {
 			int assignationId = saveAssignation((TR_Assignation) element
 					.getAssignations().get(i));
 			if (idBefore == -1) {
-				stmt.executeUpdate(String.format(
-
-				"INSERT INTO word_list_elements "
+				stmt.executeUpdate(String.format("INSERT INTO word_list_elements "
 						+ "(word_id, assignation_id) " + "VALUES(%1$d, %2$d)",
-
-				wordId, assignationId));
+						wordId, assignationId));
 			}
 		}
 		stmt.close();

@@ -272,7 +272,7 @@ public class DBC_Server extends Thread {
 
 		while (res.next()) {
 			ret.add(new Pattern(res.getInt("id"), res.getString("name"), 
-					res.getString("description"), res.getString("tdType"), 
+					res.getString("description"), res.getString("tdtype"), 
 					res.getInt("level"), res.getInt("mu"), res.getInt("path")));
 		}
 		stmt.close();
@@ -289,12 +289,13 @@ public class DBC_Server extends Thread {
 		Vector<Pattern> ret = new Vector<Pattern>();
 
 		Statement stmt = connection.createStatement();
+		
 		ResultSet res = stmt.executeQuery("SELECT * "
-				+ "FROM pattern WHERE tdType = " + tdType);
+				+ "FROM pattern WHERE tdtype = '" + tdType + "'");
 
 		while (res.next()) {
 			ret.add(new Pattern(res.getInt("id"), res.getString("name"),
-					res.getString("description"), res.getString("tdType"), 
+					res.getString("description"), res.getString("tdtype"), 
 					res.getInt("level"), res.getInt("mu"), res.getInt("path")));
 		}
 		stmt.close();
@@ -319,7 +320,7 @@ public class DBC_Server extends Thread {
 			System.out.println("schon in der DB vorhanden");
 			res.updateString("name", pattern.getName());
 			res.updateString("description", pattern.getDescription());
-			res.updateString("tdType", pattern.gettdType());
+			res.updateString("tdtype", pattern.gettdType());
 			res.updateInt("level", pattern.getLevel());
 			res.updateInt("mu", pattern.getMu());
 			res.updateInt("path", pattern.getPath());
@@ -332,7 +333,7 @@ public class DBC_Server extends Thread {
 			res.moveToInsertRow();
 			res.updateString("name", pattern.getName());
 			res.updateString("description", pattern.getDescription());
-			res.updateString("tdType", pattern.gettdType());
+			res.updateString("tdtype", pattern.gettdType());
 			res.updateInt("level", pattern.getLevel());
 			res.updateInt("mu", pattern.getMu());
 			res.updateInt("path", pattern.getPath());
@@ -342,7 +343,7 @@ public class DBC_Server extends Thread {
 			res = stmt.executeQuery("SELECT * FROM pattern "
 					+ "WHERE name = '"        + pattern.getName()
 					+ "' and description = '" + pattern.getDescription()
-					+ "' and tdType = '"      + pattern.gettdType()
+					+ "' and tdtype = '"      + pattern.gettdType()
 					+ "' and level = '"       + pattern.getLevel()
 					+ "' and mu = '"          + pattern.getMu()
 					+ "' and path = '"        + pattern.getPath() + "'");

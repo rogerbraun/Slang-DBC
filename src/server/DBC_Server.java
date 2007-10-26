@@ -1660,15 +1660,13 @@ public class DBC_Server extends Thread {
 
 			if (res.next()) {
 				if (mu.hasChanged()) {
-					res.updateInt("illocution_unit", mu.getRoot()
-							.getIllocutionUnit().getDB_ID());
+					res.updateInt("illocution_unit", mu.getRoot().getIllocutionUnit().getDB_ID());
 					if (mu.getFunctionWord() != null)
-						res.updateInt("function_word", mu.getFunctionWord()
-								.getDB_ID());
+						res.updateInt("function_word", mu.getFunctionWord().getDB_ID());
 					else
 						res.updateNull("function_word");
-					res.updateInt("constitutive_word", mu.getConstitutiveWord()
-							.getDB_ID());
+					
+					res.updateInt("constitutive_word", mu.getConstitutiveWord().getDB_ID());
 					res.updateInt("path", mu.getPath());
 					res.updateInt("numerus_paths", mu.getNumerusPath());
 					res.updateBoolean("accepted", mu.isAccepted());
@@ -1678,13 +1676,11 @@ public class DBC_Server extends Thread {
 					res.deleteRow();
 			} else if (!mu.isRemoved()) {
 				res.moveToInsertRow();
-				res.updateInt("illocution_unit", mu.getRoot()
-						.getIllocutionUnit().getDB_ID());
+				res.updateInt("illocution_unit", mu.getRoot().getIllocutionUnit().getDB_ID());
 				if (mu.getFunctionWord() != null)
-					res.updateInt("function_word", mu.getFunctionWord()
-							.getDB_ID());
-				res.updateInt("constitutive_word", mu.getConstitutiveWord()
-						.getDB_ID());
+					res.updateInt("function_word", mu.getFunctionWord().getDB_ID());
+				
+				res.updateInt("constitutive_word", mu.getConstitutiveWord().getDB_ID());
 				res.updateInt("path", mu.getPath());
 				res.updateInt("numerus_paths", mu.getNumerusPath());
 				res.updateBoolean("accepted", mu.isAccepted());
@@ -1752,13 +1748,12 @@ public class DBC_Server extends Thread {
 			// muss gespeichert werden
 			else if (!sg.isRemoved()) {
 				res.moveToInsertRow();
-				res.updateInt("illocution_unit", sg.getRoot()
-						.getIllocutionUnit().getDB_ID());
+				res.updateInt("illocution_unit", sg.getRoot().getIllocutionUnit().getDB_ID());
 				if (sg.getFunctionWord() != null)
-					res.updateInt("function_word", sg.getFunctionWord()
-							.getDB_ID());
+					res.updateInt("function_word", sg.getFunctionWord().getDB_ID());
 				else
 					res.updateNull("function_word");
+				
 				res.updateInt("meaning_unit_1", sg.getFirst().getDB_ID());
 				res.updateInt("meaning_unit_2", sg.getSecond().getDB_ID());
 				res.updateInt("path", sg.getPath());
@@ -1787,7 +1782,6 @@ public class DBC_Server extends Thread {
 		}
 		connection.setAutoCommit(true);
 		stmt.close();
-
 	}
 
 	private void saveCheckings(Vector checkings) throws Exception {
@@ -1869,8 +1863,7 @@ public class DBC_Server extends Thread {
 			if (res.next()) {
 				if (ms.hasChanged()) {
 					res.updateInt("head", ms.getHead().getDB_ID());
-					res.updateInt("chapter", ms.getHead().getChapter()
-							.getDB_ID());
+					res.updateInt("chapter", ms.getHead().getChapter().getDB_ID());
 					res.updateInt("path", ms.getPath());
 					res.updateInt("numerus_paths", ms.getNumerusPath());
 					res.updateBoolean("accepted", ms.isAccepted());
@@ -1882,13 +1875,11 @@ public class DBC_Server extends Thread {
 							+ "WHERE macro_sentence = " + ms.getDB_ID());
 					Vector dep = ms.getDependencies();
 					for (int j = 0; j < dep.size(); j++) {
-						IllocutionUnitRoot iur = (IllocutionUnitRoot) dep
-								.get(j);
+						IllocutionUnitRoot iur = (IllocutionUnitRoot) dep.get(j);
 						try {
 							res.moveToInsertRow();
 							res.updateInt("macro_sentence", ms.getDB_ID());
-							res.updateInt("depending_illocution_unit", iur
-									.getDB_ID());
+							res.updateInt("depending_illocution_unit", iur.getDB_ID());
 							res.insertRow();
 						} catch (Exception e) {
 							continue;

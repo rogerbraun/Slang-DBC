@@ -291,8 +291,10 @@ public class DBC {
    }
 
    /**
-    * Speichert die Wurzeln der �u�erungseinheiten in der Datenbank
-    * 
+    * Speichert die Wurzeln der Äußerungseinheiten in der Datenbank.
+    * Dazu gehören IUs, FunctionWords, ConstitutiveWords, 
+    * MeaningUnits, SememeGroups, Checkings, MacroSentences.
+    * @param IllocutionUnitRoots
     * @see #loadIllocutionUnitRoots(Chapter)
     */
    public void saveIllocutionUnitRoots(IllocutionUnitRoots iurs)

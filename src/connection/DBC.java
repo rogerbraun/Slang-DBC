@@ -166,18 +166,9 @@ public class DBC {
     * @param Pattern pattern
     */
 	public void savePattern(Pattern pattern) throws Exception {
-		Message m_in = new Message(key, "savePattern", pattern);
-		Message m_out = connection.call(m_in);
-		
-		Object[] arguments = m_out.getArguments();
-		System.out.println("arguments.length: " + arguments.length);
-		Pattern answer = null;
-		for (Object object : arguments) {
-			System.out.println("object: " + object);
-			answer = (Pattern) object;
-			System.out.println("answer: " + answer);
-		}
-	    pattern.setDB_ID(answer.getDB_ID());
+		Message answer = connection.call(new Message(key, "savePattern", pattern));
+		Pattern pat = (Pattern) answer.getArguments()[0];
+		pattern.setDB_ID(pat.getDB_ID());
 	}
 
    /**

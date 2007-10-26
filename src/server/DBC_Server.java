@@ -307,7 +307,7 @@ public class DBC_Server extends Thread {
 	    * 
 	    * @param Pattern pattern
 	    */
-	public synchronized void savePattern(Pattern pattern) throws Exception {
+	public synchronized Pattern savePattern(Pattern pattern) throws Exception {
 		connection.setAutoCommit(false);
 		Statement stmt = connection.createStatement(
 				ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
@@ -360,6 +360,7 @@ public class DBC_Server extends Thread {
 		}
 		connection.setAutoCommit(true);
 		stmt.close();
+		return pattern;
 	}
 
 	private void setChapter(Chapter chapter) {

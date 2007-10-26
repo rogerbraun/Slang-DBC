@@ -42,7 +42,7 @@ public class Connection extends Thread {
             System.out.println(socket.getInetAddress().getHostName()
                   + " => "
                   + input.getMethod());
-
+            
             dbc.resetCounter();
             Message output = decode(input);
 

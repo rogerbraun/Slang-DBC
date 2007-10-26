@@ -7,7 +7,10 @@ import java.io.Serializable;
 
 public class Pattern implements Serializable 
 {
-	private static final long serialVersionUID = 1L;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1444772305224415589L;
 	private int id;
 	private String name;
 	private String description;

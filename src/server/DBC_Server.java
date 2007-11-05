@@ -275,6 +275,7 @@ public class DBC_Server extends Thread {
 					res.getString("description"), res.getString("tdtype"), 
 					res.getInt("level"), res.getInt("mu"), res.getInt("path")));
 		}
+		res.close();
 		stmt.close();
 		return ret;
 	}
@@ -298,6 +299,7 @@ public class DBC_Server extends Thread {
 					res.getString("description"), res.getString("tdtype"), 
 					res.getInt("level"), res.getInt("mu"), res.getInt("path")));
 		}
+		res.close();
 		stmt.close();
 		return ret;
 	}
@@ -1214,7 +1216,7 @@ public class DBC_Server extends Thread {
 			Dialog dialog = (Dialog) ds.get(i);
 			dialogs.add(dialog);
 		}
-
+		res.close();
 		stmt.close();
 		return dialogs;
 	}

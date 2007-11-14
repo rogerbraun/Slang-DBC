@@ -282,6 +282,14 @@ public class SememeGroup extends DB_Element
    }
 
    /**
+    * gibt die sg ohne erweiterungen zurück
+    */
+   public String toWrittenString() {
+	   if(functionWord == null)
+		   return meaningUnit1 + " " + meaningUnit2;
+	   return meaningUnit1 + " " + functionWord + " " + meaningUnit2;
+   }
+   /**
     * Wird vom DBC benötigt
     */
    public void setChapter(DBC_Key key, Chapter chapter) {}

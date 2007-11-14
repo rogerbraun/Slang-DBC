@@ -242,7 +242,7 @@ public class MeaningUnit extends DB_Element
    public String toString() {
       return toString("");
    }
-
+   
    public String toString(String tab) {
       if (functionWord == null)
          return tab + "{MU CW: " + constitutiveWord + "}";
@@ -255,6 +255,14 @@ public class MeaningUnit extends DB_Element
             + "}";
    }
 
+   /**
+    * gibt die mu ohne erweiterungen zurück
+    */
+   public String toWrittenString() {
+	   if(functionWord == null)
+	   	   return constitutiveWord.toString();
+	   return functionWord.toString() + " " + constitutiveWord.toString();
+   }
    /**
     * Wird bis jetzt nicht verwendet.
     */

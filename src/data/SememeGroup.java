@@ -286,8 +286,8 @@ public class SememeGroup extends DB_Element
     */
    public String toWrittenString() {
 	   if(functionWord == null)
-		   return meaningUnit1 + " " + meaningUnit2;
-	   return meaningUnit1 + " " + functionWord + " " + meaningUnit2;
+		   return meaningUnit1.toWrittenString() + " " + meaningUnit2.toWrittenString();
+	   return meaningUnit1.toWrittenString() + " " + functionWord.toString() + " " + meaningUnit2.toWrittenString();
    }
    /**
     * Wird vom DBC benötigt

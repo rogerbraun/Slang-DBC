@@ -61,7 +61,7 @@
 
 	<target name="apidocs" depends="docs-init" description="Generate JavaDocs.">
 		<mkdir dir="${path.doc}/api"/>
-		<javadoc destdir="${path.doc}/api" sourcepathref="dbc.sourcepath" packagenames="de.uni_tuebingen.wsi.ct.slang2.dbc.*" windowtitle="DBC API">
+		<javadoc destdir="${path.doc}/api" sourcepathref="dbc.sourcepath" packagenames="*" windowtitle="DBC API">
 			<doctitle><![CDATA[<h1>${ant.project.name}</h1>]]></doctitle>
 		</javadoc>
 	</target>

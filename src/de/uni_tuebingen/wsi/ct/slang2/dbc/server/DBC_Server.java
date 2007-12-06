@@ -475,7 +475,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				 while (res.next())
 					 chapter.addWord(key,
 							 res.getInt("id"),
-							 res.getString("content"),
+							 new String(res.getBytes("content")),
 							 res.getString("language"),
 							 res.getInt("position"));
 
@@ -610,10 +610,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 							 ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);	   
 
-					 stmt.setString(1, word.getContent());
-					 stmt.setString(2, word.getLanguage());
-					 stmt.setString(3, word.getContent());
-					 stmt.setString(4, word.getLanguage());	   
+					 stmt.setBytes(1, word.getContent().getBytes());
+					 stmt.setString(2, word.getLanguage());  
 					 stmt.executeUpdate();
 					 res = stmt.getGeneratedKeys();
 
@@ -628,7 +626,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 								 ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
-						 stmt.setString(1, word.getContent());
+						 stmt.setBytes(1, word.getContent().getBytes());
 						 stmt.setString(2, word.getLanguage());
 
 						 res = stmt.executeQuery();
@@ -2293,7 +2291,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				 + "(SELECT distinct word "
 				 + "FROM function_words)");
 		 while (res.next())
-			 fwords.add(res.getString(1));
+			 fwords.add(new String(res.getBytes("content")));
 
 		 stmt.close();
 		 return fwords;
@@ -2330,7 +2328,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				 + "(SELECT distinct word "
 				 + "FROM constitutive_words)");
 		 while (res.next())
-			 cwords.add(res.getString(1));
+			 cwords.add(new String(res.getBytes("content")));
 
 		 stmt.close();
 		 return cwords;
@@ -2434,7 +2432,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		 Statement stmt = connection.createStatement();
 		 ResultSet res = stmt
 		 .executeQuery("SELECT DISTINCT "
-				 + "SUBSTRING(content, start-position+1, end-position+1) AS content "
+				 + "SUBSTRING(CAST(content AS CHAR), start-position+1, end-position+1) AS content "
 				 + "FROM constitutive_words AS cws, words, words_in_chapter AS winc "
 				 + "WHERE words.id = cws.word "
 				 + "AND words.id = winc.word "
@@ -2460,7 +2458,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		 Vector result = new Vector();
 		 Statement stmt = connection.createStatement();
 		 ResultSet res = stmt.executeQuery("SELECT DISTINCT "
-				 + "SUBSTRING(content, start-position+1, end-position+1) AS string "
+				 + "SUBSTRING(CAST(content AS CHAR), start-position+1, end-position+1) AS string "
 				 + "FROM function_words AS fws, words, words_in_chapter AS winc "
 				 + "WHERE words.id = fws.word "
 				 + "AND words.id = winc.word "
@@ -2504,7 +2502,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		 );
 
 		 while (res.next()) {
-			 String content = res.getString("content");
+			 String content = new String(res.getBytes("content"));
 			 int position = res.getInt("position");
 			 int start = res.getInt("start");
 			 int end = res.getInt("end");
@@ -2553,7 +2551,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		 );
 
 		 while (res.next()) {
-			 String content = res.getString("content");
+			 String content = new String(res.getBytes("content"));
 			 int position = res.getInt("position");
 			 int start = res.getInt("start");
 			 int end = res.getInt("end");
@@ -3531,10 +3529,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 					 continue;
 				 }
 				 
-				 stmt.setString(1, wordListElement.getContent());
-				 stmt.setString(2, wordListElement.getLanguage());
-				 stmt.setString(3, wordListElement.getContent());
-				 stmt.setString(4, wordListElement.getLanguage());	   
+				 stmt.setBytes(1, wordListElement.getContent().getBytes());
+				 stmt.setString(2, wordListElement.getLanguage());	   
 				 stmt.addBatch();
 
 				 assignations[i] = wordListElement.getAssignation();
@@ -3577,7 +3573,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 							 "SELECT id FROM words " +
 							 "WHERE content = ? AND language = ?"
 					 );
-					 stmt.setString(1, wordListElement.getContent());
+					 stmt.setBytes(1, wordListElement.getContent().getBytes());
 					 stmt.setString(2, wordListElement.getLanguage());
 					 res2 = stmt.executeQuery();
 					 
@@ -3656,7 +3652,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 					 "AND word_list_elements.word_id = words.id " +
 			 "AND words.content = ? AND language = ?");
 
-			 stmt.setString(1, content);
+			 stmt.setBytes(1, content.getBytes());
 			 stmt.setString(2, language);
 			 res = stmt.executeQuery();
 
@@ -4056,7 +4052,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 			 res = stmt.executeQuery();
 			 if(res.next()) {
-				 element = new WordListElement(res.getString("content"), res.getString("language"));
+				 element = new WordListElement(new String(res.getBytes("content")), res.getString("language"));
 				 if(res.getInt("assignation_id") != 0)
 					 element.setAssignation(loadAssignation(res.getInt("assignation_id")));
 				 element.setDB_ID(key, id);

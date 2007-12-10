@@ -879,7 +879,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	for (int i = 0; i < speeches.size(); i++) {
 	    DirectSpeech ds = (DirectSpeech) speeches.get(i);
 	    res = stmt.executeQuery("SELECT illocution_unit "
-		    + "FROM ius_FROM_direct_speeches "
+		    + "FROM ius_from_direct_speeches "
 		    + "WHERE direct_speech = "
 		    + ds.getDB_ID()
 		    + " ORDER BY illocution_unit");

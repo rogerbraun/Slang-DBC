@@ -26,6 +26,7 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Comments;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.ConstitutiveWord;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DB_Tupel;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Dialog;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DialogCosmology;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Dialogs;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DirectSpeech;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DirectSpeeches;
@@ -832,7 +833,6 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	public synchronized DirectSpeeches loadDirectSpeeches(Integer chapterID)
 			throws Exception {
 
-		System.out.println("***********saveDirectSpeeches********");
 		Chapter chapter = getChapter(chapterID.intValue());
 
 		DirectSpeeches directSpeeches = new DirectSpeeches();
@@ -1096,10 +1096,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 	public synchronized Dialogs saveDialogs(Integer chapterID, Dialogs dialogs)
 			throws Exception {
-
-		System.out.println("******* SAVE *******");
 		Chapter chapter = getChapter(chapterID.intValue());
-		Vector ds = dialogs.getAllDialogs(key);
+		Vector<Dialog> ds = dialogs.getAllDialogs(key);
 		dialogs.setChapter(key, chapter);
 
 		connection.setAutoCommit(false);
@@ -1125,14 +1123,106 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 					d.resetState(key);
 					res.close();
 
-					res = stmt
-							.executeQuery("SELECT * FROM run_up WHERE dialog = "
-									+ d.getDB_ID());
+					res = stmt.executeQuery("SELECT * FROM cosmologies WHERE dialog = " + d.getDB_ID());
+					int j = 0;
+					while (res.next()) 
+					{
+						if (d.getCosmologies().size() != j ) {
+							res.updateInt("start", d.getCosmologies().get(j).getStartIndex());
+							res.updateInt("end", d.getCosmologies().get(j).getEndIndex());
+							res.updateString("description", d.getCosmologies().get(j).getDescription());
+							res.updateRow();
+							++j;
+						} else
+							res.deleteRow();
+					}
+					res.close();
+
+				} else if (d.isRemoved()) {
+					res.deleteRow();
+				}
+			}
+
+			else if (!d.isRemoved() && d.getDB_ID() == -1) {
+				res.moveToInsertRow();
+				res.updateInt("chapter", chapter.getDB_ID());
+				res.updateInt("index", d.getIndex());
+				res.updateInt("depth", d.getDepth());
+				res.updateInt("start", d.getDialogStart().getDB_ID());
+				res.updateInt("end", d.getDialogEnd().getDB_ID());
+				res.updateBoolean("accepted", d.isAccepted());
+				res.insertRow();
+				res.close();
+				d.resetState(key);
+
+				res = stmt.executeQuery("SELECT id "
+						+ "FROM dialogs WHERE chapter = " + chapter.getDB_ID()
+						+ " and `index` = " + d.getIndex() + " and depth = "
+						+ d.getDepth());
+
+				if (res.next())
+					d.setDB_ID(key, res.getInt("id"));
+				else
+					throw new DBC_SaveException("Dialog " + d
+							+ "konnte nicht angelegt werden");
+				res.close();
+
+				for (int j=0; j != d.getCosmologies().size(); ++j) {
+					res = stmt.executeQuery("SELECT * FROM cosmologies");
+					res.moveToInsertRow();
+					res.updateInt("dialog", d.getDB_ID());
+					res.updateInt("start", d.getCosmologies().get(j).getStartIndex());
+					res.updateInt("end", d.getCosmologies().get(j).getEndIndex());
+					res.updateString("description", d.getCosmologies().get(j).getDescription());
+					res.insertRow();
+					res.close();
+				}
+			}
+			res.close();
+			connection.commit();
+		}
+		connection.setAutoCommit(true);
+		stmt.close();
+
+		saveSpeakerChanges(dialogs);
+
+		return dialogs;
+	}
+	
+	/*public synchronized Dialogs saveDialogs(Integer chapterID, Dialogs dialogs)
+			throws Exception 
+	{
+		Chapter chapter = getChapter(chapterID.intValue());
+		Vector<Dialog> ds = dialogs.getAllDialogs(key);
+		dialogs.setChapter(key, chapter);
+
+		connection.setAutoCommit(false);
+		Statement stmt = connection.createStatement(
+				ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+		ResultSet res;
+
+		for (int i = 0; i < ds.size(); i++) {
+			Dialog d = (Dialog) ds.get(i);
+
+			res = stmt.executeQuery("SELECT * " + "FROM dialogs "
+					+ "WHERE id = " + d.getDB_ID());
+
+			if (res.next() && d.getDB_ID() != -1) {
+				if (d.hasChanged()) {
+					res.updateInt("chapter", chapter.getDB_ID());
+					res.updateInt("index", d.getIndex());
+					res.updateInt("depth", d.getDepth());
+					res.updateInt("start", d.getDialogStart().getDB_ID());
+					res.updateInt("end", d.getDialogEnd().getDB_ID());
+					res.updateBoolean("accepted", d.isAccepted());
+					res.updateRow();
+					d.resetState(key);
+					res.close();
+
+					res = stmt.executeQuery("SELECT * FROM run_up WHERE dialog = " + d.getDB_ID());
 					if (res.next()) {
 						if (d.hasRunUp()) {
-							res
-									.updateInt("start", d.getRunUpStart()
-											.getDB_ID());
+							res.updateInt("start", d.getRunUpStart().getDB_ID());
 							res.updateInt("end", d.getRunUpEnd().getDB_ID());
 							res.updateRow();
 						} else
@@ -1140,13 +1230,10 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 					}
 					res.close();
 
-					res = stmt
-							.executeQuery("SELECT * FROM follow_up WHERE dialog = "
-									+ d.getDB_ID());
+					res = stmt.executeQuery("SELECT * FROM follow_up WHERE dialog = " + d.getDB_ID());
 					if (res.next()) {
 						if (d.hasFollowUp()) {
-							res.updateInt("start", d.getFollowUpStart()
-									.getDB_ID());
+							res.updateInt("start", d.getFollowUpStart().getDB_ID());
 							res.updateInt("end", d.getFollowUpEnd().getDB_ID());
 							res.updateRow();
 						} else
@@ -1211,7 +1298,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		saveSpeakerChanges(dialogs);
 
 		return dialogs;
-	}
+	}*/
 
 	private void saveSpeakerChanges(Dialogs dialogs) throws Exception {
 		Vector scs = dialogs.getAllSpeakerChanges(key);
@@ -1240,8 +1327,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 					Vector words = sc.getWords();
 					Vector existingWords = new Vector();
-					res = stmt
-							.executeQuery("SELECT * FROM words_in_speaker_change "
+					res = stmt.executeQuery("SELECT * FROM words_in_speaker_change "
 									+ "WHERE speaker_change = " + sc.getDB_ID());
 
 					// l�sche die W�rter, die nicht mehr im Sprecherwechsel vorkommen
@@ -1308,7 +1394,79 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		stmt.close();
 	}
 
-	public synchronized Dialogs loadDialogs(Integer chapterID) throws Exception {
+	public synchronized Dialogs loadDialogs(Integer chapterID) throws Exception 
+	{
+		Chapter chapter = getChapter(chapterID.intValue());
+
+		Dialogs dialogs = new Dialogs();
+		Vector<Dialog> ds = new Vector<Dialog>();
+		Statement stmt = connection.createStatement();
+		ResultSet res;
+
+		// Grunddaten der Dialoge einlesen.
+		res = stmt.executeQuery("SELECT id, `index`, depth, start, end, accepted "
+						+ "FROM dialogs WHERE chapter = "
+						+ chapter.getDB_ID()
+						+ " ORDER BY `index`");
+
+		while (res.next()) {
+			Dialog dialog = new Dialog(key, res.getInt("id"), chapter, res
+					.getInt("index"), res.getInt("depth"), res
+					.getBoolean("accepted"));
+			dialog.setDialogStart(chapter.getIllocutionUnitWithID(res
+					.getInt("start")));
+			dialog.setDialogEnd(chapter.getIllocutionUnitWithID(res
+					.getInt("end")));
+			ds.add(dialog);
+		}
+
+		for (int i = 0; i < ds.size(); i++) {
+			Dialog dialog = (Dialog) ds.get(i);
+			
+			res = stmt.executeQuery("SELECT start, end, description "
+					+ "FROM cosmologies WHERE dialog = " + dialog.getDB_ID());
+
+			while (res.next()) {
+				DialogCosmology cosmol = new DialogCosmology(dialog, 
+										res.getInt("start"), 
+										res.getInt("end"), 
+										res.getString("description") );
+				dialog.addCosmology(cosmol);
+			}
+		}
+
+		for (int i = 0; i < ds.size(); i++) {
+			Dialog dialog = (Dialog) ds.get(i);
+			res = stmt.executeQuery("SELECT * "
+					+ "FROM speaker_changes WHERE dialog = "
+					+ dialog.getDB_ID());
+
+			if (res.next()) {
+				SpeakerChange sc = new SpeakerChange(key, res.getInt("id"),
+						dialog, res.getInt("speaker_change"), res
+								.getInt("index"), res.getBoolean("accepted"));
+
+				res = stmt
+						.executeQuery("SELECT word FROM words_in_speaker_change "
+								+ "WHERE speaker_change = " + sc.getDB_ID());
+				while (res.next()) {
+					Word w = chapter.getWordWithID(res.getInt("word"));
+					sc.addWord(w);
+				}
+				sc.resetState(key);
+			}
+		}
+
+		for (int i = 0; i < ds.size(); i++) {
+			Dialog dialog = (Dialog) ds.get(i);
+			dialogs.add(dialog);
+		}
+
+		stmt.close();
+		return dialogs;
+	}
+	
+	/*public synchronized Dialogs loadDialogs(Integer chapterID) throws Exception {
 		Chapter chapter = getChapter(chapterID.intValue());
 
 		Dialogs dialogs = new Dialogs();
@@ -1391,8 +1549,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 		stmt.close();
 		return dialogs;
-	}
-
+	}*/
+	
 	public synchronized IllocutionUnitRoots loadIllocutionUnitRoots(
 			Integer chapterID) throws Exception {
 		Chapter chapter = getChapter(chapterID.intValue());
@@ -2748,12 +2906,15 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		case Comments.CLASS_CODE_DIALOG:
 			subquery = "SELECT id FROM dialogs WHERE chapter = " + ChapterID;
 			break;
-		case Comments.CLASS_CODE_DIALOG_FOLLOWUP:
+		case Comments.CLASS_CODE_DIALOG_COSMOLOGIES:
+			subquery = "SELECT id FROM dialogs WHERE chapter = " + ChapterID;
+			break;
+		/*case Comments.CLASS_CODE_DIALOG_FOLLOWUP:
 			subquery = "SELECT id FROM dialogs WHERE chapter = " + ChapterID;
 			break;
 		case Comments.CLASS_CODE_DIALOG_RUNUP:
 			subquery = "SELECT id FROM dialogs WHERE chapter = " + ChapterID;
-			break;
+			break;*/
 		default:
 			subquery = "";
 			break;

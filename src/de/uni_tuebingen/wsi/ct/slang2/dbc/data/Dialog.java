@@ -35,8 +35,9 @@ public class Dialog extends DB_Element
    private transient IllocutionUnit dialogEnd;
    private int                      dialogStartIndex;
    private int                      dialogEndIndex;
-   private DialogRunUp              runUp;
-   private DialogFollowUp           followUp;
+   //private DialogRunUp              runUp;
+   //private DialogFollowUp           followUp;
+   private Vector<DialogCosmology>	cosmologies;
    private Vector                   speakerChanges;
    private Vector                   allSpeakerChanges;
 
@@ -53,11 +54,11 @@ public class Dialog extends DB_Element
     *        Der Akzeptiert-Status des Dialogs.
     */
    public Dialog(DBC_Key key,
-         int id,
-         Chapter chapter,
-         int index,
-         int depth,
-         boolean accepted) {
+		   		 int id,
+		   		 Chapter chapter,
+		   		 int index,
+		   		 int depth,
+		   		 boolean accepted) {
       super(id);
       key.unlock();
       this.chapter = chapter;
@@ -65,8 +66,9 @@ public class Dialog extends DB_Element
       this.depth = depth;
       this.accepted = accepted;
       speakerChanges = new Vector();
-      runUp = new DialogRunUp(this);
-      followUp = new DialogFollowUp(this);
+      //runUp = new DialogRunUp(this);
+      //followUp = new DialogFollowUp(this);
+      cosmologies = new Vector<DialogCosmology>();
       allSpeakerChanges = new Vector();
    }
 
@@ -88,8 +90,9 @@ public class Dialog extends DB_Element
       this.index = index;
       this.depth = depth;
       this.accepted = accepted;
-      runUp = new DialogRunUp(this);
-      followUp = new DialogFollowUp(this);
+      //runUp = new DialogRunUp(this);
+      //followUp = new DialogFollowUp(this);
+      cosmologies = new Vector<DialogCosmology>();
       speakerChanges = new Vector();
       allSpeakerChanges = new Vector();
    }
@@ -116,8 +119,9 @@ public class Dialog extends DB_Element
       dialogStart = dialog.dialogStart;
       dialogEnd = dialog.dialogEnd;
 
-      runUp = dialog.runUp;
-      followUp = dialog.followUp;
+      //runUp = dialog.runUp;
+      //followUp = dialog.followUp;
+      cosmologies = dialog.cosmologies;
    }
 
    public SpeakerChange addSpeakerChange(Vector words,
@@ -261,12 +265,12 @@ public class Dialog extends DB_Element
     * 
     * @return Vector mit Tokens
     */
-   public Vector getRunUpTokens() {
+  /* public Vector getRunUpTokens() {
       if (hasRunUp())
          return chapter.getTokenSequence(runUp.getFirstToken(), runUp
                .getLastToken());
       return null;
-   }
+   }*/
 
    /**
     * Gibt die Indizies der Tokens zur�ck, die in dem Vorfeld von diesem
@@ -274,12 +278,12 @@ public class Dialog extends DB_Element
     * 
     * @return int-Array mit Token-Indizies.
     */
-   public int[] getRunUpTokenIndices() {
+   /*public int[] getRunUpTokenIndices() {
       if (hasRunUp())
          return chapter.getIndexSequence(runUp.getFirstToken(), runUp
                .getLastToken());
       return null;
-   }
+   }*/
 
    /**
     * Gibt alle Tokens in einem Vektor zur�ck, die in dem Nachfeld des Dialog
@@ -287,12 +291,12 @@ public class Dialog extends DB_Element
     * 
     * @return Vector mit Tokens
     */
-   public Vector getFollowUpTokens() {
+   /*public Vector getFollowUpTokens() {
       if (hasFollowUp())
          return chapter.getTokenSequence(followUp.getFirstToken(), followUp
                .getLastToken());
       return null;
-   }
+   }*/
 
    /**
     * Gibt die absoluten Positionen der Tokens zur�ck, die in dem Nachfeld von
@@ -300,12 +304,12 @@ public class Dialog extends DB_Element
     * 
     * @return int-Array mit absoluten Token-Positionen.
     */
-   public int[] getFollowUpTokenIndicies() {
+   /*public int[] getFollowUpTokenIndicies() {
       if (hasFollowUp())
          return chapter.getIndexSequence(followUp.getFirstToken(), followUp
                .getLastToken());
       return null;
-   }
+   }*/
 
    /**
     * F�llt den Dialog neu. Der alte Dialog wird dabei ersetzt. Wichtig ist
@@ -341,7 +345,7 @@ public class Dialog extends DB_Element
     *        ein Array mit den absoluten Position, die dieses Vorfeld
     *        repr�sentieren.
     */
-   public void setRunUpTokens(int[] positions) {
+   /*public void setRunUpTokens(int[] positions) {
       if (positions.length == 1) {
          setRunUpStart(positions[0]);
          setRunUpEnd(positions[0]);
@@ -353,7 +357,7 @@ public class Dialog extends DB_Element
       else
          clearRunUp();
       changeState(CHANGE);
-   }
+   }*/
 
    /**
     * F�llt das Nachfeld neu. Das alte Nachfeld wird dabei ersetzt. Wichtig
@@ -365,7 +369,7 @@ public class Dialog extends DB_Element
     *        ein Array mit den absoluten Position, die dieses Nachfeld
     *        repr�sentieren.
     */
-   public void setFollowUpTokens(int[] positions) {
+   /*public void setFollowUpTokens(int[] positions) {
       if (positions.length == 1) {
          setFollowUpStart(positions[0]);
          setFollowUpEnd(positions[0]);
@@ -377,7 +381,7 @@ public class Dialog extends DB_Element
       else
          clearFollowUp();
       changeState(CHANGE);
-   }
+   }*/
 
    /**
     * Setzt den Start von diesem Dialog neu. Es Wird als Start die
@@ -461,6 +465,14 @@ public class Dialog extends DB_Element
       changeState(CHANGE);
    }
 
+   public void addCosmology(DialogCosmology cosmol) {
+	   cosmologies.add(cosmol);
+   }
+   
+   public Vector<DialogCosmology> getCosmologies(){
+	   return cosmologies;
+   }
+   
    /**
     * Setzt die Startposition des Vorfelds. Als Vorfeldstart wird allerdings die
     * entsprechende �u�erungseinheit gew�hlt, die diesen Index beinhaltet.
@@ -468,10 +480,10 @@ public class Dialog extends DB_Element
     * @param index
     *        die Startposition auf Tokenbasis
     */
-   public void setRunUpStart(int index) {
+   /*public void setRunUpStart(int index) {
       runUp.setStart(chapter.getIllocutionUnit(chapter.getTokenAtIndex(index)));
       changeState(CHANGE);
-   }
+   }*/
 
    /**
     * Setzt den Start des Vorfeldes
@@ -480,10 +492,10 @@ public class Dialog extends DB_Element
     *        Die �u�erungseinheit, die den Start des Vorfeldes darstellen
     *        soll.
     */
-   public void setRunUpStart(IllocutionUnit iu) {
+   /*public void setRunUpStart(IllocutionUnit iu) {
       runUp.setStart(iu);
       changeState(CHANGE);
-   }
+   }*/
 
    /**
     * Setzt den Start des Vorfeldes. Intern wird aber die entsprechende
@@ -491,10 +503,10 @@ public class Dialog extends DB_Element
     * 
     * @param token
     */
-   public void setRunUpStart(Token token) {
+   /*public void setRunUpStart(Token token) {
       runUp.setStart(token.getIllocutionUnit());
       changeState(CHANGE);
-   }
+   }*/
 
    /**
     * Setzt die Endposition des Vorfelds. Als Ende wird die �u�erungseinheit
@@ -503,10 +515,10 @@ public class Dialog extends DB_Element
     * @param index
     *        die Endposition als Index eines Tokens
     */
-   public void setRunUpEnd(int index) {
+   /*public void setRunUpEnd(int index) {
       runUp.setEnd(chapter.getIllocutionUnit(chapter.getTokenAtIndex(index)));
       changeState(CHANGE);
-   }
+   }*/
 
    /**
     * Setzt das Ende des Vorfelds.
@@ -515,10 +527,10 @@ public class Dialog extends DB_Element
     *        Die �u�erungseinheit, die das Ende des Vorfelds darstellen
     *        soll.
     */
-   public void setRunUpEnd(IllocutionUnit iu) {
+   /*public void setRunUpEnd(IllocutionUnit iu) {
       runUp.setEnd(iu);
       changeState(CHANGE);
-   }
+   }*/
 
    /**
     * Setzt das Ende des Vorfelds. Entscheidend ist aber die
@@ -526,10 +538,10 @@ public class Dialog extends DB_Element
     * 
     * @param token
     */
-   public void setRunUpEnd(Token token) {
+   /*public void setRunUpEnd(Token token) {
       runUp.setEnd(token.getIllocutionUnit());
       changeState(CHANGE);
-   }
+   }*/
 
    /**
     * Setzt die Startposition des Nachfelds. Intern wird aber die
@@ -538,11 +550,11 @@ public class Dialog extends DB_Element
     * @param index
     *        die Startposition als Tokenindex
     */
-   public void setFollowUpStart(int index) {
+   /*public void setFollowUpStart(int index) {
       followUp.setStart(chapter.getIllocutionUnit(chapter
             .getTokenAtIndex(index)));
       changeState(CHANGE);
-   }
+   }*/
 
    /**
     * Setzt den Start des Nachfelds.
@@ -551,10 +563,10 @@ public class Dialog extends DB_Element
     *        Die �u�erungseinheit, die den neuen Start des Nachfelds bilden
     *        soll.
     */
-   public void setFollowUpStart(IllocutionUnit iu) {
+   /*public void setFollowUpStart(IllocutionUnit iu) {
       followUp.setStart(iu);
       changeState(CHANGE);
-   }
+   }*/
 
    /**
     * Setzt den Start des Nachfelds. Intern wird aber die �u�erungseinheit
@@ -562,10 +574,10 @@ public class Dialog extends DB_Element
     * 
     * @param token
     */
-   public void setFollowUpStart(Token token) {
+   /*public void setFollowUpStart(Token token) {
       followUp.setStart(token.getIllocutionUnit());
       changeState(CHANGE);
-   }
+   }*/
 
    /**
     * Setzt die Endposition des Nachfelds. Als Ende wird die
@@ -574,11 +586,11 @@ public class Dialog extends DB_Element
     * @param index
     *        die Endposition als tokenindex
     */
-   public void setFollowUpEnd(int index) {
+   /*public void setFollowUpEnd(int index) {
       followUp
             .setEnd(chapter.getIllocutionUnit(chapter.getTokenAtIndex(index)));
       changeState(CHANGE);
-   }
+   }*/
 
    /**
     * Setzt das Ende des Nachfelds.
@@ -587,10 +599,10 @@ public class Dialog extends DB_Element
     *        Die �u�erungseinheit, die das neue Ende des Nachfelds bilden
     *        soll.
     */
-   public void setFollowUpEnd(IllocutionUnit iu) {
+   /*public void setFollowUpEnd(IllocutionUnit iu) {
       followUp.setEnd(iu);
       changeState(CHANGE);
-   }
+   }*/
 
    /**
     * Setzt das Ende des Nachfelds. Intern wird dabei die �u�erungseinheit
@@ -598,10 +610,10 @@ public class Dialog extends DB_Element
     * 
     * @param token
     */
-   public void setFollowUpEnd(Token token) {
+   /*public void setFollowUpEnd(Token token) {
       followUp.setEnd(token.getIllocutionUnit());
       changeState(CHANGE);
-   }
+   }*/
 
    /**
     * Pr�ft, ob dieser Dialog die Zeichenposition abdeckt.
@@ -633,13 +645,13 @@ public class Dialog extends DB_Element
     * @param token
     *        der zu pr�fende Token
     */
-   public boolean containsRunUpToken(Token token) {
+   /*public boolean containsRunUpToken(Token token) {
       if (runUp.getStart() == null || runUp.getEnd() == null)
          return false;
       return token != null
             && runUp.getStart().compare(token) >= 0
             && runUp.getEnd().compare(token) <= 0;
-   }
+   }*/
 
    /**
     * Pr�ft, ob der Token in dem Nachfeld vorkommt.
@@ -647,13 +659,13 @@ public class Dialog extends DB_Element
     * @param token
     *        der zu pr�fende Token
     */
-   public boolean containsFollowUpToken(Token token) {
+   /*public boolean containsFollowUpToken(Token token) {
       if (followUp.getStart() == null || followUp.getEnd() == null)
          return false;
       return token != null
             && followUp.getStart().compare(token) >= 0
             && followUp.getEnd().compare(token) <= 0;
-   }
+   }*/
 
    /**
     * Pr�ft, ob der Token in dem Dialog oder in dem Vorfeld oder in dem
@@ -663,9 +675,9 @@ public class Dialog extends DB_Element
     *        der zu pr�fende Token
     */
    public boolean containsToken(Token token) {
-      return containsDialogToken(token)
-            || containsRunUpToken(token)
-            || containsFollowUpToken(token);
+      return containsDialogToken(token);
+           // || containsRunUpToken(token)
+           // || containsFollowUpToken(token);
    }
 
    /**
@@ -676,9 +688,9 @@ public class Dialog extends DB_Element
     *        die zu pr�fende �u�erungseinheit
     */
    public boolean containsIllocutionUnit(IllocutionUnit iu) {
-      return containsDialogIllocutionUnit(iu)
-            || containsRunUpIllocutionUnit(iu)
-            || containsFollowUpIllocutionUnit(iu);
+      return containsDialogIllocutionUnit(iu);
+            //|| containsRunUpIllocutionUnit(iu)
+            //|| containsFollowUpIllocutionUnit(iu);
    }
 
    /**
@@ -711,13 +723,13 @@ public class Dialog extends DB_Element
     * @param iu
     *        die zu pr�fende �u�erungseinheit
     */
-   public boolean containsRunUpIllocutionUnit(IllocutionUnit iu) {
+   /*public boolean containsRunUpIllocutionUnit(IllocutionUnit iu) {
       if (runUp.getStart() == null || runUp.getEnd() == null)
          return false;
       return iu != null
             && runUp.getStart().compare(iu) >= 0
             && runUp.getEnd().compare(iu) <= 0;
-   }
+   }*/
 
    /**
     * Pr�ft, ob diese �u�erungseinheit in dem Nachfeld vorkommt.
@@ -725,13 +737,13 @@ public class Dialog extends DB_Element
     * @param iu
     *        die zu pr�fende �u�erungseinheit
     */
-   public boolean containsFollowUpIllocutionUnit(IllocutionUnit iu) {
+   /*public boolean containsFollowUpIllocutionUnit(IllocutionUnit iu) {
       if (followUp.getStart() == null || followUp.getEnd() == null)
          return false;
       return iu != null
             && followUp.getStart().compare(iu) >= 0
             && followUp.getEnd().compare(iu) <= 0;
-   }
+   }*/
 
    /**
     * Die letzte �u�erungseinheit des Dialogs
@@ -759,18 +771,18 @@ public class Dialog extends DB_Element
     * Alle IUs des Vorfelds in einem Vektor. Null, wenn der Dialog kein Vorfeld
     * hat.
     */
-   public Vector getFollowUpIllocutionUnits() {
+   /*public Vector getFollowUpIllocutionUnits() {
       if (hasFollowUp())
          return chapter.getIllocutionUnitsFromIndex(followUp.getStartIndex(),
                followUp.getEndIndex());
       return null;
-   }
+   }*/
 
    public Vector getIllocutionUnits() {
       Vector res = new Vector();
-      res.addAll(getRunUpIllocutionUnits());
+      //res.addAll(getRunUpIllocutionUnits());
       res.addAll(getDialogIllocutionUnits());
-      res.addAll(getFollowUpIllocutionUnits());
+      //res.addAll(getFollowUpIllocutionUnits());
       return res;
    }
 
@@ -778,64 +790,64 @@ public class Dialog extends DB_Element
     * Alle IUs des Nachfelds in einem Vektor. Null, wenn der Dialog kein
     * Nachfeld hat.
     */
-   public Vector getRunUpIllocutionUnits() {
+   /*public Vector getRunUpIllocutionUnits() {
       if (hasRunUp())
          return chapter.getIllocutionUnitsFromIndex(runUp.getStartIndex(),
                runUp.getEndIndex());
       return null;
-   }
+   }*/
 
    /**
     * Die letzte �u�erungseinheit des Nachfelds
     */
-   public IllocutionUnit getFollowUpEnd() {
+   /*public IllocutionUnit getFollowUpEnd() {
       if (hasFollowUp())
          return followUp.getEnd();
       return null;
-   }
+   }*/
 
    /**
     * Die erste �u�erungseinheit des Nachfelds
     */
-   public IllocutionUnit getFollowUpStart() {
+   /*public IllocutionUnit getFollowUpStart() {
       if (hasFollowUp())
          return followUp.getStart();
       return null;
-   }
+   }*/
 
    /**
     * Die letzte �u�erungseinheit des Vorfelds
     */
-   public IllocutionUnit getRunUpEnd() {
+   /*public IllocutionUnit getRunUpEnd() {
       if (hasRunUp())
          return runUp.getEnd();
       return null;
-   }
+   }*/
 
    /**
     * Die erste �u�erungseinheit des Vorfelds
     */
-   public IllocutionUnit getRunUpStart() {
+   /*public IllocutionUnit getRunUpStart() {
       if (hasRunUp())
          return runUp.getStart();
       return null;
-   }
+   }*/
 
    /**
     * Gibt das Vorfeld des Dialogs zur�ck. Hilfreich f�r die Speicherung von
     * Kommentaren.
     */
-   public DialogRunUp getDialogRunUp() {
+   /*public DialogRunUp getDialogRunUp() {
       return runUp;
-   }
+   }*/
 
    /**
     * Gibt das Nachfeld des Dialogs zur�ck. Hilfreich f�r die Speicherung
     * von Kommentaren.
     */
-   public DialogFollowUp getDialogFollowUp() {
+   /*public DialogFollowUp getDialogFollowUp() {
       return followUp;
-   }
+   }*/
 
    /**
     * Setzt den Dialog zur�ck
@@ -850,25 +862,25 @@ public class Dialog extends DB_Element
     * Setzt das Vorfeld zur�ck
     * 
     */
-   public void clearRunUp() {
+   /*public void clearRunUp() {
       runUp.clear();
-   }
+   }*/
 
    /**
     * Setzt das Nachfeld zur�ck
     * 
     */
-   public void clearFollowUp() {
+   /*public void clearFollowUp() {
       followUp.clear();
-   }
+   }*/
 
    public boolean equals(Object o) {
       if (o instanceof Dialog) {
          Dialog test = (Dialog) o;
          return dialogStart.equals(test.dialogStart)
-               && dialogEnd.equals(test.dialogEnd)
-               && runUp.equals(test.runUp)
-               && followUp.equals(test.followUp);
+               && dialogEnd.equals(test.dialogEnd);
+               //&& runUp.equals(test.runUp)
+               //&& followUp.equals(test.followUp);
       }
       return false;
    }
@@ -876,22 +888,22 @@ public class Dialog extends DB_Element
    /**
     * Pr�ft, ob schon ein Vorfeld zu diesem Dialog angegeben wurde.
     */
-   public boolean isRunUpSet() {
+   /*public boolean isRunUpSet() {
       return runUp.getStart() != null && runUp.getEnd() != null;
-   }
+   }*/
 
    /**
     * Pr�ft, ob schon ein Nachfeld zu diesem Dialog angegeben wurde.
     * 
     */
-   public boolean isFollowUpSet() {
+   /*public boolean isFollowUpSet() {
       return followUp.getStart() != null && followUp.getEnd() != null;
-   }
+   }*/
 
    /**
     * Gibt den Dialog als String zur�ck (Testausgabe)
     */
-   public String toString() {
+   /*public String toString() {
       StringBuffer sb = new StringBuffer();
       sb.append("\nDialog " + getDB_ID() + " / " + index + ":");
 
@@ -909,7 +921,7 @@ public class Dialog extends DB_Element
                + chapter.getIllocutionUnitsFromPositions(followUp.getStart()
                      .getStartPosition(), followUp.getEnd().getEndPosition()));
       return sb.toString();
-   }
+   }*/
 
    public boolean remove() {
       changeState(REMOVE);
@@ -921,8 +933,8 @@ public class Dialog extends DB_Element
       this.chapter = chapter;
       dialogStart = chapter.getIllocutionUnitAtIndex(dialogStartIndex);
       dialogEnd = chapter.getIllocutionUnitAtIndex(dialogEndIndex);
-      runUp.setChapter(key, chapter);
-      followUp.setChapter(key, chapter);
+      //runUp.setChapter(key, chapter);
+      //followUp.setChapter(key, chapter);
 
       for (int i = 0; i < allSpeakerChanges.size(); i++) {
          SpeakerChange sc = (SpeakerChange) allSpeakerChanges.get(i);
@@ -934,13 +946,13 @@ public class Dialog extends DB_Element
       return Comments.CLASS_CODE_DIALOG;
    }
 
-   public boolean hasRunUp() {
+   /*public boolean hasRunUp() {
       return runUp.getStart() != null && runUp.getEnd() != null;
    }
 
    public boolean hasFollowUp() {
       return followUp.getStart() != null && followUp.getEnd() != null;
-   }
+   }*/
 
    public void updateIDs(DBC_Key key, Dialog d) {
       super.updateIDs(key, d);

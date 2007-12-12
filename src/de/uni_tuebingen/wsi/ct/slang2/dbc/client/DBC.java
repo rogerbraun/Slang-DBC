@@ -777,8 +777,9 @@ public class DBC implements DBC_KeyAcceptor {
 	public void loadDialogComments(Comments comments, Chapter chapter)
 	throws Exception {
 		comments.add(loadComments(chapter, Comments.CLASS_CODE_DIALOG));
-		comments.add(loadComments(chapter, Comments.CLASS_CODE_DIALOG_FOLLOWUP));
-		comments.add(loadComments(chapter, Comments.CLASS_CODE_DIALOG_RUNUP));
+		comments.add(loadComments(chapter, Comments.CLASS_CODE_DIALOG_COSMOLOGIES));
+		//comments.add(loadComments(chapter, Comments.CLASS_CODE_DIALOG_FOLLOWUP));
+		//comments.add(loadComments(chapter, Comments.CLASS_CODE_DIALOG_RUNUP));
 	}
 
 	private Comments loadComments(Chapter chapter, int ownerClassCode)

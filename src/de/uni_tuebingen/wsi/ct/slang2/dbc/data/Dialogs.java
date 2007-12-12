@@ -18,10 +18,7 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
  */
 public class Dialogs implements Serializable {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = -6104818456049790298L;
 	private Vector<Dialog> dialogs;
 	private Vector<Dialog> deletedDialogs;
 

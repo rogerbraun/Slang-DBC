@@ -768,8 +768,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				if (res.next())
 					iu.setDB_ID(key, res.getInt(1));
 				else {
-					logger
-							.severe("Fehler beim Speichern einer Äußerungseinheit => Rollback");
+					logger.severe("Fehler beim Speichern einer Äußerungseinheit => Rollback");
 					connection.rollback();
 					throw new DBC_SaveException("Äußerungseinheit " + iu
 							+ " konnte nicht in der "
@@ -777,8 +776,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				}
 
 				if (!res.isLast()) {
-					logger
-							.warning("Doppelte Einträge in der illocution_units Tabelle gefunden");
+					logger.warning("Doppelte Einträge in der illocution_units Tabelle gefunden");
 				}
 
 				//		System.out.print('+');
@@ -868,9 +866,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			DirectSpeech ds = (DirectSpeech) speeches.get(i);
 			int id = ds.getPossibleQuestionID();
 			if (id > 0)
-				ds
-						.setPossibleQuestion(directSpeeches
-								.getDirectSpeechWithID(id));
+				ds.setPossibleQuestion(directSpeeches.getDirectSpeechWithID(id));
 		}
 
 		res.close();
@@ -908,7 +904,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 			//lösche alle ius_FROM_direct_speeches Einträge aus oldDss die bereits in der Datenbank gespeichert
 			res = stmt.executeQuery("SELECT * "
-					+ "FROM ius_FROM_direct_speeches "
+					+ "FROM ius_from_direct_speeches "
 					+ "WHERE direct_speech = " + ds.getDB_ID());
 
 			if (res.next())
@@ -932,8 +928,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				res.updateBoolean("accepted", ds.isAccepted());
 
 				if (ds.getPossibleQuestionID() > 0)
-					res.updateInt("possible_question", ds
-							.getPossibleQuestionID());
+					res.updateInt("possible_question", ds.getPossibleQuestionID());
 				else
 					res.updateNull("possible_question");
 
@@ -954,8 +949,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 				res.close();
 
-				res = stmt
-						.executeQuery("SELECT * FROM ius_FROM_direct_speeches");
+				res = stmt.executeQuery("SELECT * FROM ius_from_direct_speeches");
 				Vector ius = ds.getIllocutionUnits();
 
 				for (int j = 0; j < ius.size(); j++) {

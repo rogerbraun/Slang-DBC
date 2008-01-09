@@ -100,7 +100,7 @@ public class CompleteAnalyse
       }
       dbc.saveIllocutionUnitRoots(roots);
       dbc.saveDirectSpeeches(chapter, directSpeeches, directSpeeches);
-      dbc.saveDialogs(chapter, dialogs);
+      dbc.saveDialogs(chapter, dialogs, dialogs);
       dbc.saveIsotopes(isotopes);
       dbc.saveComplexes(complexes);
       dbc.saveThemas(chapter, themas);

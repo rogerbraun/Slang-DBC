@@ -902,7 +902,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			if (res.next())
 				res.deleteRow();
 
-			//lösche alle ius_FROM_direct_speeches Einträge aus oldDss die bereits in der Datenbank gespeichert
+			//lösche alle ius_FROM_direct_speeches Einträge aus oldDss die bereits in der Datenbank gespeichert sind
 			res = stmt.executeQuery("SELECT * "
 					+ "FROM ius_from_direct_speeches "
 					+ "WHERE direct_speech = " + ds.getDB_ID());
@@ -1088,56 +1088,69 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	}
 	 */
 
-	public synchronized Dialogs saveDialogs(Integer chapterID, Dialogs dialogs)
-			throws Exception {
+	public synchronized Dialogs saveDialogs(Integer chapterID, Dialogs oldDialogs, Dialogs newDialogs )
+	throws Exception 
+	{
 		Chapter chapter = getChapter(chapterID.intValue());
-		Vector<Dialog> ds = dialogs.getAllDialogs(key);
-		dialogs.setChapter(key, chapter);
-
+		Vector<Dialog> newDs = newDialogs.getAllDialogs(key);
+		System.out.println("size: " + newDialogs.size());
+		Vector<Dialog> oldDs = oldDialogs.getAllDialogs(key);
+		
+		newDialogs.setChapter(key, chapter);
+		oldDialogs.setChapter(key, chapter);
+		
 		connection.setAutoCommit(false);
-		Statement stmt = connection.createStatement(
-				ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+		Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+
 		ResultSet res;
+		
+		//lösche alle Dialoge (oldDs) die bereits in der Datenbank gespeichert sind
+		for (int i = 0; i < oldDs.size(); i++) {
+			Dialog ds = (Dialog) oldDs.get(i);
 
-		for (int i = 0; i < ds.size(); i++) {
-			Dialog d = (Dialog) ds.get(i);
+			res = stmt.executeQuery("SELECT * " + "FROM dialogs " + "WHERE id = " + ds.getDB_ID());
 
+			if (res.next())
+				res.deleteRow();
+		}
+		
+		//speichert alle neuen Dialoge (newDs) in der Datenbank
+		for (int i = 0; i < newDs.size(); i++) 
+		{
+			Dialog d = (Dialog) newDs.get(i);
+		
 			res = stmt.executeQuery("SELECT * " + "FROM dialogs "
 					+ "WHERE id = " + d.getDB_ID());
-
-			if (res.next() && d.getDB_ID() != -1) {
-				if (d.hasChanged()) {
-					res.updateInt("chapter", chapter.getDB_ID());
-					res.updateInt("index", d.getIndex());
-					res.updateInt("depth", d.getDepth());
-					res.updateInt("start", d.getDialogStart().getDB_ID());
-					res.updateInt("end", d.getDialogEnd().getDB_ID());
-					res.updateBoolean("accepted", d.isAccepted());
-					res.updateRow();
-					d.resetState(key);
-					res.close();
-
-					res = stmt.executeQuery("SELECT * FROM cosmologies WHERE dialog = " + d.getDB_ID());
-					int j = 0;
-					while (res.next()) 
-					{
-						if (d.getCosmologies().size() != j ) {
-							res.updateInt("start", d.getCosmologies().get(j).getStartIndex());
-							res.updateInt("end", d.getCosmologies().get(j).getEndIndex());
-							res.updateString("description", d.getCosmologies().get(j).getDescription());
-							res.updateRow();
-							++j;
-						} else
-							res.deleteRow();
-					}
-					res.close();
-
-				} else if (d.isRemoved()) {
-					res.deleteRow();
+		
+			if (res.next() && d.getDB_ID() != -1) 
+			{
+				res.updateInt("chapter", chapter.getDB_ID());
+				res.updateInt("index", d.getIndex());
+				res.updateInt("depth", d.getDepth());
+				res.updateInt("start", d.getDialogStart().getDB_ID());
+				res.updateInt("end", d.getDialogEnd().getDB_ID());
+				res.updateBoolean("accepted", d.isAccepted());
+				res.updateRow();
+				d.resetState(key);
+				res.close();
+	
+				res = stmt.executeQuery("SELECT * FROM cosmologies WHERE dialog = " + d.getDB_ID());
+				int j = 0;
+				while (res.next()) 
+				{
+					if (d.getCosmologies().size() != j ) {
+						res.updateInt("start", d.getCosmologies().get(j).getStartIndex());
+						res.updateInt("end", d.getCosmologies().get(j).getEndIndex());
+						res.updateString("description", d.getCosmologies().get(j).getDescription());
+						res.updateRow();
+						++j;
+					} else
+						res.deleteRow();
 				}
+				res.close();
 			}
-
-			else if (!d.isRemoved() && d.getDB_ID() == -1) {
+			else if (d.getDB_ID() == -1) 
+			{
 				res.moveToInsertRow();
 				res.updateInt("chapter", chapter.getDB_ID());
 				res.updateInt("index", d.getIndex());
@@ -1148,19 +1161,19 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				res.insertRow();
 				res.close();
 				d.resetState(key);
-
+		
 				res = stmt.executeQuery("SELECT id "
 						+ "FROM dialogs WHERE chapter = " + chapter.getDB_ID()
 						+ " and `index` = " + d.getIndex() + " and depth = "
 						+ d.getDepth());
-
+		
 				if (res.next())
 					d.setDB_ID(key, res.getInt("id"));
 				else
 					throw new DBC_SaveException("Dialog " + d
 							+ "konnte nicht angelegt werden");
 				res.close();
-
+		
 				for (int j=0; j != d.getCosmologies().size(); ++j) {
 					res = stmt.executeQuery("SELECT * FROM cosmologies");
 					res.moveToInsertRow();
@@ -1177,10 +1190,10 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		}
 		connection.setAutoCommit(true);
 		stmt.close();
-
-		saveSpeakerChanges(dialogs);
-
-		return dialogs;
+		
+		//saveSpeakerChanges(dialogs);
+		
+		return newDialogs;
 	}
 	
 	/*public synchronized Dialogs saveDialogs(Integer chapterID, Dialogs dialogs)
@@ -1404,13 +1417,10 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 						+ " ORDER BY `index`");
 
 		while (res.next()) {
-			Dialog dialog = new Dialog(key, res.getInt("id"), chapter, res
-					.getInt("index"), res.getInt("depth"), res
-					.getBoolean("accepted"));
-			dialog.setDialogStart(chapter.getIllocutionUnitWithID(res
-					.getInt("start")));
-			dialog.setDialogEnd(chapter.getIllocutionUnitWithID(res
-					.getInt("end")));
+			Dialog dialog = new Dialog(key, res.getInt("id"), chapter, res.getInt("index"), 
+					res.getInt("depth"), res.getBoolean("accepted"));
+			dialog.setDialogStart(chapter.getIllocutionUnitWithID(res.getInt("start")));
+			dialog.setDialogEnd(chapter.getIllocutionUnitWithID(res.getInt("end")));
 			ds.add(dialog);
 		}
 
@@ -1437,11 +1447,9 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 			if (res.next()) {
 				SpeakerChange sc = new SpeakerChange(key, res.getInt("id"),
-						dialog, res.getInt("speaker_change"), res
-								.getInt("index"), res.getBoolean("accepted"));
+						dialog, res.getInt("speaker_change"), res.getInt("index"), res.getBoolean("accepted"));
 
-				res = stmt
-						.executeQuery("SELECT word FROM words_in_speaker_change "
+				res = stmt.executeQuery("SELECT word FROM words_in_speaker_change "
 								+ "WHERE speaker_change = " + sc.getDB_ID());
 				while (res.next()) {
 					Word w = chapter.getWordWithID(res.getInt("word"));

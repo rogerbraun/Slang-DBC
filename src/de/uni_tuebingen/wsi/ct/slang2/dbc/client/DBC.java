@@ -282,17 +282,23 @@ public class DBC implements DBC_KeyAcceptor {
 				"saveDirectSpeeches", new Integer(chapter.getDB_ID()),
 				newdirectSpeeches, olddirectSpeeches)).getArguments()[0];
 		newdirectSpeeches.updateIDs(key, answer);
-		newdirectSpeeches.updateIDs(key, answer);
 	}
 
-	public void saveDialogs(Chapter chapter, Dialogs dialogs)
+	/*public void saveDialogs(Chapter chapter, Dialogs dialogs)
 	throws Exception {
 		Dialogs answer = (Dialogs) connection.call(new Message(key,
 				"saveDialogs", new Integer(chapter.getDB_ID()), dialogs))
 				.getArguments()[0];
 		dialogs.updateIDs(key, answer);
+	}*/
+	
+	public void saveDialogs(Chapter chapter, Dialogs oldDialogs, Dialogs newDialogs )
+	throws Exception {
+		Dialogs answer = (Dialogs) connection.call(new Message(key,
+				"saveDialogs", new Integer(chapter.getDB_ID()), oldDialogs, newDialogs)).getArguments()[0];
+		newDialogs.updateIDs(key, answer);
 	}
-
+	
 	/**
 	 * L�dt alle Dialoge des Kapitels aus der Datenbank.
 	 * 

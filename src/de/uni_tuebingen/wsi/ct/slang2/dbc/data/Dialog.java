@@ -465,7 +465,7 @@ public class Dialog extends DB_Element
       changeState(CHANGE);
    }
 
-   public void addCosmology(DialogCosmology cosmol) {
+   public void setCosmology(DialogCosmology cosmol) {
 	   cosmologies.add(cosmol);
    }
    

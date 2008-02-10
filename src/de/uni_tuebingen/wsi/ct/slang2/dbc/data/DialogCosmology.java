@@ -2,6 +2,7 @@ package de.uni_tuebingen.wsi.ct.slang2.dbc.data;
 
 import java.io.Serializable;
 
+
 /**
  * DialogCosmologies ersetzt und vereinfacht DialogRunUp und DialogFollowUp.
  * Es werden nur der Start- und Endindex eines Eintrags, der zugehörige Dialog
@@ -10,10 +11,6 @@ import java.io.Serializable;
  */
 public class DialogCosmology implements Serializable, CommentOwner 
 {
-
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 6534135368830250747L;
 	private Dialog dialog;
 	private int startIndex;
@@ -27,6 +24,10 @@ public class DialogCosmology implements Serializable, CommentOwner
 		this.description = desc;
 	}
 		
+	public void setDialog(Dialog dialog) {
+		this.dialog = dialog;
+	}
+	
 	public void setStartIndex(int start) {
 		this.startIndex = start;
 	}
@@ -37,6 +38,10 @@ public class DialogCosmology implements Serializable, CommentOwner
 	
 	public void setDescription(String desc) {
 		this.description = desc;
+	}
+	
+	public Dialog getDialog() {
+		return this.dialog;
 	}
 	
 	public int getStartIndex() {

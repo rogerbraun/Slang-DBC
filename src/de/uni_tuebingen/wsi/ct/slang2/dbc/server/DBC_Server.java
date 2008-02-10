@@ -1093,7 +1093,6 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	{
 		Chapter chapter = getChapter(chapterID.intValue());
 		Vector<Dialog> newDs = newDialogs.getAllDialogs(key);
-		System.out.println("size: " + newDialogs.size());
 		Vector<Dialog> oldDs = oldDialogs.getAllDialogs(key);
 		
 		newDialogs.setChapter(key, chapter);
@@ -1107,7 +1106,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		//lösche alle Dialoge (oldDs) die bereits in der Datenbank gespeichert sind
 		for (int i = 0; i < oldDs.size(); i++) {
 			Dialog ds = (Dialog) oldDs.get(i);
-
+			
+			System.out.println("oldCosmol size" + ds.getCosmologies().size());
 			res = stmt.executeQuery("SELECT * " + "FROM dialogs " + "WHERE id = " + ds.getDB_ID());
 
 			if (res.next())
@@ -1118,12 +1118,13 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		for (int i = 0; i < newDs.size(); i++) 
 		{
 			Dialog d = (Dialog) newDs.get(i);
-		
+
 			res = stmt.executeQuery("SELECT * " + "FROM dialogs "
 					+ "WHERE id = " + d.getDB_ID());
 		
 			if (res.next() && d.getDB_ID() != -1) 
 			{
+				System.out.println("-----UPDATE--------");
 				res.updateInt("chapter", chapter.getDB_ID());
 				res.updateInt("index", d.getIndex());
 				res.updateInt("depth", d.getDepth());
@@ -1138,7 +1139,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				int j = 0;
 				while (res.next()) 
 				{
-					if (d.getCosmologies().size() != j ) {
+					if (d.getCosmologies().size() != j ) 
+					{
 						res.updateInt("start", d.getCosmologies().get(j).getStartIndex());
 						res.updateInt("end", d.getCosmologies().get(j).getEndIndex());
 						res.updateString("description", d.getCosmologies().get(j).getDescription());
@@ -1151,6 +1153,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			}
 			else if (d.getDB_ID() == -1) 
 			{
+				System.out.println("--------------NEW------------");
 				res.moveToInsertRow();
 				res.updateInt("chapter", chapter.getDB_ID());
 				res.updateInt("index", d.getIndex());
@@ -1174,13 +1177,18 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 							+ "konnte nicht angelegt werden");
 				res.close();
 		
-				for (int j=0; j != d.getCosmologies().size(); ++j) {
+				System.out.println("Größe der Cosmologie des aktuellen Dialogs " + d.getCosmologies().size());
+
+				for (int j=0; j != d.getCosmologies().size(); ++j) 
+				{
+					DialogCosmology cosmol = d.getCosmologies().get(j);
+					System.out.println("aktuelle Cosmologie " + cosmol.getDescription());
 					res = stmt.executeQuery("SELECT * FROM cosmologies");
 					res.moveToInsertRow();
 					res.updateInt("dialog", d.getDB_ID());
-					res.updateInt("start", d.getCosmologies().get(j).getStartIndex());
-					res.updateInt("end", d.getCosmologies().get(j).getEndIndex());
-					res.updateString("description", d.getCosmologies().get(j).getDescription());
+					res.updateInt("start", cosmol.getStartIndex());
+					res.updateInt("end", cosmol.getEndIndex());
+					res.updateString("description", cosmol.getDescription());
 					res.insertRow();
 					res.close();
 				}
@@ -1416,16 +1424,18 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 						+ chapter.getDB_ID()
 						+ " ORDER BY `index`");
 
-		while (res.next()) {
+		while (res.next()) 
+		{
 			Dialog dialog = new Dialog(key, res.getInt("id"), chapter, res.getInt("index"), 
-					res.getInt("depth"), res.getBoolean("accepted"));
+									   res.getInt("depth"), res.getBoolean("accepted"));
 			dialog.setDialogStart(chapter.getIllocutionUnitWithID(res.getInt("start")));
 			dialog.setDialogEnd(chapter.getIllocutionUnitWithID(res.getInt("end")));
 			ds.add(dialog);
 		}
 
-		for (int i = 0; i < ds.size(); i++) {
-			Dialog dialog = (Dialog) ds.get(i);
+		for (int i = 0; i < ds.size(); i++) 
+		{
+			Dialog dialog = (Dialog)ds.get(i);
 			
 			res = stmt.executeQuery("SELECT start, end, description "
 					+ "FROM cosmologies WHERE dialog = " + dialog.getDB_ID());
@@ -1435,7 +1445,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 										res.getInt("start"), 
 										res.getInt("end"), 
 										res.getString("description") );
-				dialog.addCosmology(cosmol);
+				dialog.setCosmology(cosmol);
+				System.out.println("------Description------" + cosmol.getDescription());
 			}
 		}
 

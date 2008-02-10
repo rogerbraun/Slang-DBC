@@ -538,7 +538,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 			stmt = connection.prepareStatement(
 
-			"SELECT * FROM chapters WHERE book = ? AND index = ?",
+			"SELECT * FROM chapters WHERE book = ? AND `index` = ?",
 
 			ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
@@ -1623,16 +1623,31 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			if (res.next()) {
 				assignation = new TR_Assignation().new TR_Assignation_DB();
 				assignation.setCasesBinary(res.getBytes("tr_case"));
-				assignation.setConjugationsBinary(res
-						.getBytes("tr_conjugation"));
-				assignation.setDeterminationsBinary(res
-						.getBytes("tr_determination"));
+				assignation.setConjugationsBinary(res.getBytes("tr_conjugation"));
+				assignation.setDeterminationsBinary(res.getBytes("tr_determination"));
 				assignation.setDiathesesBinary(res.getBytes("tr_diathese"));
 				assignation.setNumeriBinary(res.getBytes("tr_numerus"));
 				assignation.setPersonsBinary(res.getBytes("tr_person"));
 				assignation.setTemporaBinary(res.getBytes("tr_tempus"));
 				assignation.setWordclassesBinary(res.getBytes("tr_wordclass"));
-				//TODO: add other columns
+				assignation.setTypesBinary(res.getBytes("tr_type"));
+				assignation.setGeneraBinary(res.getBytes("tr_genus"));
+				
+				assignation.setDescription(res.getString("description"));
+				assignation.setEtymol(res.getString("etymol"));
+				
+				assignation.setWordsubclassesAdjectiveBinary(res.getBytes("tr_subclass_adjective"));
+				assignation.setWordsubclassesConnectorBinary(res.getBytes("tr_subclass_connector"));
+				assignation.setWordsubclassesVerbBinary(res.getBytes("tr_subclass_verb"));
+				assignation.setWordsubclassesPrepositionBinary(res.getBytes("tr_subclass_preposition"));
+				assignation.setWordsubclassesPronounBinary(res.getBytes("tr_subclass_pronoun"));
+	//			assignation.setWordsubclassesSignBinary(res.getBytes("tr_subclass_sign"));
+				
+				assignation.setWortarten1Binary(res.getBytes("tr_wortart1"));
+				assignation.setWortarten2Binary(res.getBytes("tr_wortart2"));
+				assignation.setWortarten3Binary(res.getBytes("tr_wortart3"));
+				assignation.setWortarten4Binary(res.getBytes("tr_wortart4"));
+				
 				assignation.setDB_ID(key, res.getInt("id"));
 				assignation.resetState(key);
 			}
@@ -3825,30 +3840,30 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 					//		    res.updateLong("tr_wortart4", assignation[i].getWortarten4Binary());
 					res.updateBytes("tr_type", assignation.getTypesBinary());
 					res.updateBytes("tr_genus", assignation.getGeneraBinary());
-					res
-							.updateBytes("tr_numerus", assignation
-									.getNumeriBinary());
-					res.updateBytes("tr_determination", assignation
-							.getDeterminationsBinary());
-					res
-							.updateBytes("tr_numerus", assignation
-									.getNumeriBinary());
+					res.updateBytes("tr_numerus", assignation.getNumeriBinary());
+					res.updateBytes("tr_determination", assignation.getDeterminationsBinary());
 					res.updateBytes("tr_case", assignation.getCasesBinary());
-					res
-							.updateBytes("tr_person", assignation
-									.getPersonsBinary());
-					res.updateBytes("tr_conjugation", assignation
-							.getConjugationsBinary());
-					res
-							.updateBytes("tr_tempus", assignation
-									.getTemporaBinary());
-					res.updateBytes("tr_diathese", assignation
-							.getDiathesesBinary());
-					res.updateBytes("tr_wordclass", assignation
-							.getWordclassesBinary());
-					res.updateString("description", assignation
-							.getDescription());
+					res.updateBytes("tr_person", assignation.getPersonsBinary());
+					res.updateBytes("tr_conjugation", assignation.getConjugationsBinary());
+					res.updateBytes("tr_tempus", assignation.getTemporaBinary());
+					res.updateBytes("tr_diathese", assignation.getDiathesesBinary());
+					res.updateBytes("tr_wordclass", assignation.getWordclassesBinary());
+					res.updateString("description", assignation.getDescription());
 					res.updateString("etymol", assignation.getEtymol());
+					
+					res.updateBytes("tr_subclass_adjective", assignation.getWordsubclassesAdjectiveBinary());
+					res.updateBytes("tr_subclass_connector", assignation.getWordsubclassesConnectorBinary());
+					res.updateBytes("tr_subclass_verb", assignation.getWordsubclassesVerbBinary());
+					res.updateBytes("tr_subclass_preposition", assignation.getWordsubclassesPrepositionBinary());
+					res.updateBytes("tr_subclass_pronoun", assignation.getWordsubclassesPronounBinary());
+	//				res.updateBytes("tr_subclass_sign", assignation.getWordsubclassesSignBinary());
+					
+					res.updateBytes("tr_wortart1", assignation.getWortarten1Binary());
+					res.updateBytes("tr_wortart2", assignation.getWortarten2Binary());
+					res.updateBytes("tr_wortart3", assignation.getWortarten3Binary());
+					res.updateBytes("tr_wortart4", assignation.getWortarten4Binary());
+					
+					
 					if (res.isFirst()) {
 						res.updateRow();
 					} else {

@@ -37,6 +37,7 @@ public class DirectSpeech extends DB_Element
    private DirectSpeech      possibleQuestion;
    private int               possibleQuestionID;
    private Vector            possibleResponse;
+   private Vector<DialogSpeaker> speakers;
 
    /**
     * Wird vom DBC ben�tigt.
@@ -47,7 +48,8 @@ public class DirectSpeech extends DB_Element
          int index,
          int depth,
          boolean accepted,
-         int possibleQuestionID) {
+         int possibleQuestionID) 
+   {
       super(id);
       key.unlock();
       this.chapter = chapter;
@@ -58,6 +60,7 @@ public class DirectSpeech extends DB_Element
 
       illocutionUnitsIndicies = new Vector();
       possibleResponse = new Vector();
+      speakers = new Vector<DialogSpeaker>();
    }
 
    /**
@@ -82,6 +85,7 @@ public class DirectSpeech extends DB_Element
 
       illocutionUnitsIndicies = new Vector();
       possibleResponse = new Vector();
+      speakers = new Vector<DialogSpeaker>();
    }
 
    /**
@@ -484,6 +488,14 @@ public class DirectSpeech extends DB_Element
          possibleQuestionID = -1;
       }
       changeState(CHANGE);
+   }
+   
+   public void setSpeaker(DialogSpeaker speaker) {
+	   speakers.add(speaker);
+   }
+   
+   public Vector<DialogSpeaker> getSpeakers(){
+	   return speakers;
    }
 
 }

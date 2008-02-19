@@ -13,20 +13,20 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
 public class DialogSpeaker extends DB_Element implements Serializable, Cloneable, CommentOwner
 {
 	private Chapter chapter;
-	private Vector<Integer> rows;
+	private int row;
 	private int index;
 		
 	public DialogSpeaker() {
-		this.rows = new Vector<Integer>();
+		this.row = -1;
 		this.index = -1;
 	}
 	
 	public void addRowIndex(int row) {
-		this.rows.add(row);
+		this.row = row;
 	}
 	
-	public Vector<Integer> getRowIndizes() {
-		return rows;
+	public Integer getRowIndex() {
+		return row;
 	}
 	
 	public void setIndex(int index) {

@@ -21,9 +21,8 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
  */
 
 
-public class TR_Assignation extends DB_Element
-implements
-Serializable {
+public class TR_Assignation extends DB_Element implements Serializable
+{
 
     //Intern werden die Bestimmungen jeder Kategorie in einer Variablen gespeichert, deren Wert als binäre Folge
     //interpretiert wird. Das erlaubt auch die Zuweisung mehrerer Bestimmungen innerhalb einer Kategorie. Auf diese Variablen kann von aussen

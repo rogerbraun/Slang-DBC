@@ -20,11 +20,9 @@ public class Dialog extends DB_Element
       implements
          Serializable,
          Cloneable,
-         CommentOwner {
+         CommentOwner 
+{
 
-   /**
-    * 
-    */
    private static final long        serialVersionUID = -8279514791427660970L;
 
    private transient Chapter        chapter;
@@ -58,7 +56,8 @@ public class Dialog extends DB_Element
 		   		 Chapter chapter,
 		   		 int index,
 		   		 int depth,
-		   		 boolean accepted) {
+		   		 boolean accepted) 
+   {
       super(id);
       key.unlock();
       this.chapter = chapter;

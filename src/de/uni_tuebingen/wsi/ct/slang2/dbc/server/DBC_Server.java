@@ -961,7 +961,6 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				res.close();
 			}
 		}
-
 		connection.commit();
 		connection.setAutoCommit(true);
 		stmt.close();
@@ -1308,12 +1307,72 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		return dialogs;
 	}*/
 
-	public synchronized DialogSpeaker saveSpeakers(Integer chapterID, int index, int start, int end)
+	public synchronized ArrayList<DialogSpeaker> saveSpeakers(Integer chapterID, ArrayList<DialogSpeaker> oldSpeakers, ArrayList<DialogSpeaker> newSpeakers)
 	throws Exception 
 	{
-		return null;
+		Chapter chapter = getChapter(chapterID.intValue());
+		ArrayList<DialogSpeaker> speakers = new ArrayList<DialogSpeaker>();
+//		for (int i=0; i != speakers.size(); ++i)
+//		{
+//			speakers.get(i).setChapter(key, chapter);
+//		}
 		
+		connection.setAutoCommit(false);
+		Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+
+		ResultSet res;
+		
+		for (int i = 0; i < oldSpeakers.size(); i++) {
+			DialogSpeaker speaker = (DialogSpeaker) oldSpeakers.get(i);
+			
+			res = stmt.executeQuery("SELECT * " + "FROM speakers " + "WHERE id = " + speaker.getDB_ID());
+
+			if (res.next()) {
+				res.deleteRow();
+			}
+		}
+		
+		
+		for (int i = 0; i < newSpeakers.size(); i++) 
+		{
+			DialogSpeaker speaker = (DialogSpeaker) newSpeakers.get(i);
+
+			res = stmt.executeQuery("SELECT * " + "FROM speakers "
+					+ "WHERE id = " + speaker.getDB_ID());
+
+			if (speaker.getDB_ID() == -1) 
+			{
+				res.moveToInsertRow();
+				res.updateInt("chapter", chapter.getDB_ID());
+				res.updateInt("speaker", speaker.getIndex());
+				res.updateInt("location", speaker.getRowIndex());
+			}
+
+			res.insertRow();
+			res.close();
+			speaker.resetState(key);
+			
+			res = stmt.executeQuery("SELECT id "
+					+ "FROM speakers WHERE chapter = "
+					+ chapter.getDB_ID() + " and `speaker` = "
+					+ speaker.getIndex() + " and location = " + speaker.getRowIndex());
+
+			if (res.next())
+				speaker.setDB_ID(key, res.getInt("id"));
+			else
+				throw new DBC_SaveException("Direkte Rede " + speaker
+						+ "konnte nicht angelegt werden");
+
+			res.close();
+		}
+		connection.commit();
+		connection.setAutoCommit(true);
+		stmt.close();
+
+		return speakers;
 	}
+	
+	
 	private void saveSpeakerChanges(Dialogs dialogs) throws Exception {
 		Vector scs = dialogs.getAllSpeakerChanges(key);
 		// Kapitel muss nicht gesetzt werden, da dies schon durch saveDialogs
@@ -1562,6 +1621,31 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		stmt.close();
 		return dialogs;
 	}*/
+	
+	public synchronized ArrayList<DialogSpeaker> loadSpeakers (Integer chapterID) throws Exception 
+	{
+		Chapter chapter = getChapter(chapterID.intValue());
+
+		ArrayList<DialogSpeaker> speakers = new ArrayList<DialogSpeaker>();
+		
+		Statement stmt = connection.createStatement();
+		ResultSet res;
+
+		// Grunddaten der Dialoge einlesen.
+		res = stmt.executeQuery("SELECT id, `speaker`, location "
+						+ "FROM speakers WHERE chapter = "
+						+ chapter.getDB_ID());
+						
+		while (res.next()) 
+		{
+			DialogSpeaker speaker = new DialogSpeaker(key, res.getInt("id"), chapter, res.getInt("speaker"), 
+									   res.getInt("location"));
+			speakers.add(speaker);
+		}
+		res.close();
+		stmt.close();
+		return speakers;
+	}
 	
 	public synchronized IllocutionUnitRoots loadIllocutionUnitRoots(
 			Integer chapterID) throws Exception {

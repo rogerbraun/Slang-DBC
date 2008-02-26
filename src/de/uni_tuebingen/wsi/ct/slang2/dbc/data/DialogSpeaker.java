@@ -1,7 +1,6 @@
 package de.uni_tuebingen.wsi.ct.slang2.dbc.data;
 
 import java.io.Serializable;
-import java.util.Vector;
 
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
 
@@ -16,9 +15,35 @@ public class DialogSpeaker extends DB_Element implements Serializable, Cloneable
 	private int row;
 	private int index;
 		
-	public DialogSpeaker() {
+	public DialogSpeaker() 
+	{
 		this.row = -1;
 		this.index = -1;
+	}
+	
+	/**
+	 * 
+	 * @param key
+	 * @param id
+	 * @param chapter
+	 * @param index
+	 * @param row
+	 */
+	public DialogSpeaker(DBC_Key key, int id, Chapter chapter, int index, int row) 
+	{
+		super(id);
+		key.unlock();
+		this.chapter = chapter;
+		this.row = row;
+		this.index = index;
+	}
+	
+	public DialogSpeaker(Chapter chapter, int index, int row)
+	{
+		super(-1);
+		this.chapter = chapter;
+		this.row = row;
+		this.index = index;
 	}
 	
 	public void addRowIndex(int row) {

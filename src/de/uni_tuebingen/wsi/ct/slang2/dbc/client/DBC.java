@@ -17,6 +17,7 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Comments;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DB_Element;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DB_Tupel;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Dialog;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DialogSpeaker;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Dialogs;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DirectSpeech;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DirectSpeeches;
@@ -315,6 +316,25 @@ public class DBC implements DBC_KeyAcceptor {
 		return ds;
 	}
 
+	public void saveSpeakers(Chapter chapter, ArrayList<DialogSpeaker> oldSpeakers, ArrayList<DialogSpeaker> speakers)
+	throws Exception {
+		ArrayList<DialogSpeaker> answer = (ArrayList<DialogSpeaker>) connection.call(new Message(key,
+				"saveSpeakers", new Integer(chapter.getDB_ID()), oldSpeakers, speakers)).getArguments()[0];
+		//speaker.updateIDs(key, answer);
+	}
+	
+	public ArrayList<DialogSpeaker> loadSpeakers(Chapter chapter)
+	throws Exception {
+		Message answer = connection.call(new Message(key, "loadSpeakers", new Integer(chapter.getDB_ID())));
+		ArrayList<DialogSpeaker> speakers = (ArrayList<DialogSpeaker>) answer.getArguments()[0];
+		for (int i=0; i != speakers.size(); ++i)
+		{
+			DialogSpeaker speaker = speakers.get(i);
+			speaker.setChapter(key, chapter);
+		}
+		return speakers;
+	}
+	
 	/**
 	 * L�dt eine Unterart der �u�erungseinheit, der Sememegruppen, Semantische
 	 * Einheiten und isolierte Funktionsw�rter usw. untergeordnet sind.

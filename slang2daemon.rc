@@ -1,0 +1,4 @@
+#required on hosea
+#LD_LIBRARY_PATH=/afs/informatik.uni-tuebingen.de/i386_fbsd52/jdk-1.5.0/jdk1.5.0//jre/lib/i386/client:/afs/informatik.uni-tuebingen.de/i386_fbsd52/jdk-1.5.0/jdk1.5.0//jre/lib/i386:${LD_LIBRARY_PATH}
+#JAVA_HOME=/afs/informatik.uni-tuebingen.de/i386_fbsd52/jdk-1.5.0/jdk1.5.0/
+#CVSROOT=/afs/wsi/ct/share/cvsrepos

@@ -48,7 +48,7 @@ public class Chapter
    private String            title;
    private Vector            tokens;
    private Vector            paragraphs;
-   private Vector            illocutionUnits;
+   private Vector<IllocutionUnit>            illocutionUnits;
    private String            content;
    private Hashtable         wordCache;
 
@@ -507,12 +507,12 @@ public class Chapter
    }
 
    /**
-    * Gibt den Token an dieser Zeichenposition zurÃ¼ck
+    * Gibt den Token an dieser Zeichenposition zurück
     * 
     * @param position
     *        die Zeichenposition
-    * @return den Token, falls an dieser Stelle einer steht. Bei ungÃ¼ltiger
-    *         Position oder einem Leerzeichen wird null zurÃ¼ckgegeben.
+    * @return den Token, falls an dieser Stelle einer steht. Bei ungültiger
+    *         Position oder einem Leerzeichen wird <code>null</code> zurükgegeben.
     */
    public Token getTokenAtPosition(int position) {
       int start = 0;
@@ -805,7 +805,7 @@ public class Chapter
     * Alle Ã„uÃŸerungseinheiten dieses Kapitels in einem Vektor.
     * 
     */
-   public Vector getIllocutionUnits() {
+   public Vector<IllocutionUnit> getIllocutionUnits() {
       return illocutionUnits;
    }
 

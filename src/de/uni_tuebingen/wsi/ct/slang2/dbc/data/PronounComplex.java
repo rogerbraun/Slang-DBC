@@ -10,7 +10,7 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
  * @author christoph
  *
  */
-public class PronounComplex extends DB_Element implements ChapterElement {
+public class PronounComplex extends DB_Element implements ChapterElementContainer, Cloneable {
 
     /**
      * 
@@ -84,8 +84,10 @@ public class PronounComplex extends DB_Element implements ChapterElement {
 	}
 
 	for (ConstitutiveWord constitutiveWord : deictica) {
-	    this.deictica.add(constitutiveWord);
-	    constitutiveWord.setPronounComplex(this);
+	    if( ! this.deictica.contains(constitutiveWord) ) { // Should duplicates throw an exception ?
+		this.deictica.add(constitutiveWord);
+		constitutiveWord.setPronounComplex(this);
+	    }
 	}
 
 	if(this.chapter == null && this.deictica.size() != 0)
@@ -114,12 +116,14 @@ public class PronounComplex extends DB_Element implements ChapterElement {
     /**
      * Remove the nomen form this Complex
      */
-    public void removeNomen() {
-	if(this.nomen != null)
-	    this.nomen.setPronounComplex(null);
+    public boolean removeNomen() {
+	if(this.nomen == null)
+	    return false;
+	this.nomen.setPronounComplex(null);
 	this.nomen = null;
 	if(deictica.size() == 0)
 	    this.chapter = null;
+	return true;
     }
 
     /**
@@ -194,38 +198,31 @@ public class PronounComplex extends DB_Element implements ChapterElement {
      * @see java.lang.Object#toString()
      */
     public String toString() {
-	return "Complex(`" + nomen + "'," + deictica + ")";
+	return "«" + nomen + "»+" + deictica;
     }
+    
+    public Object clone() {
+	Object theClone = null;
+	try {
+	    theClone = super.clone();
+	}
+	catch(CloneNotSupportedException e) {
+	}
+	return theClone;
+    }
+
 
     /* (non-Javadoc)
-     * @see de.uni_tuebingen.wsi.ct.slang2.dbc.share.data.ChapterElement#getEndPosition()
+     * @see de.uni_tuebingen.wsi.ct.slang2.dbc.data.ChapterElementContainer#getChapterElements()
      */
-    public int getEndPosition() {
-	int endPos = 0;
-	for (ConstitutiveWord iterable_element : this.getDeictica()) {
-	    if(iterable_element.getEndPosition() > endPos)
-		endPos = iterable_element.getEndPosition();
-	}
-	if(this.getNomen() != null && this.getNomen().getEndPosition() > endPos)
-	    endPos = this.getNomen().getEndPosition();
-
-	return endPos;
+    public ChapterElement[] getChapterElements() {
+	ChapterElement[] ret = new ChapterElement[ deictica.size() + (nomen!=null ? 1 : 0) ];
+	System.arraycopy(deictica.toArray(), 0, ret, 0, deictica.size());
+	if(nomen!=null)
+	    ret[ret.length-1] = nomen;
+	return ret;
     }
 
-    /* (non-Javadoc)
-     * @see de.uni_tuebingen.wsi.ct.slang2.dbc.share.data.ChapterElement#getStartPosition()
-     */
-    public int getStartPosition() {
-	int startPos = Integer.MAX_VALUE;
-	for (ConstitutiveWord iterable_element : this.getDeictica()) {
-	    if(iterable_element.getStartPosition() < startPos)
-		startPos = iterable_element.getStartPosition();
-	}
-	if(this.getNomen() != null && this.getNomen().getStartPosition() < startPos)
-	    startPos = this.getNomen().getStartPosition();
-
-	return startPos;
-    }
 
     /**
      * This class is used by the DBC to serialize just the DB_Element.getDB_ID() instead of the referenced DB_Element Objects
@@ -263,5 +260,4 @@ public class PronounComplex extends DB_Element implements ChapterElement {
 	}
 
     }
-
 }

@@ -102,6 +102,8 @@ public class ChapterElementListModel<E extends ChapterElement>
 	}
 
 	public void clear() {
+	    	if(this.elements.size() == 0)
+	    	    return;
 		int index1 = this.elements.size()-1;
 		this.elements.clear();
 		this.fireIntervalRemoved(this, 0, index1);

@@ -149,10 +149,10 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @see Book
 	 * @see DBC#loadBook(int)
 	 */
-	public Vector loadBooks()
+	public Vector<Book> loadBooks()
 	throws Exception {
 		Message answer = connection.call(new Message(key, "loadBooks"));
-		return (Vector) answer.getArguments()[0];
+		return (Vector<Book>) answer.getArguments()[0];
 	}
 
 	/**

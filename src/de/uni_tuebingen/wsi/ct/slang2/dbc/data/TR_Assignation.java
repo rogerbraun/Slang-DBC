@@ -21,8 +21,9 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
  */
 
 
-public class TR_Assignation extends DB_Element implements Serializable
-{
+public class TR_Assignation extends DB_Element
+implements
+Serializable {
 
     //Intern werden die Bestimmungen jeder Kategorie in einer Variablen gespeichert, deren Wert als binäre Folge
     //interpretiert wird. Das erlaubt auch die Zuweisung mehrerer Bestimmungen innerhalb einer Kategorie. Auf diese Variablen kann von aussen
@@ -473,7 +474,7 @@ public class TR_Assignation extends DB_Element implements Serializable
 	if(cases == null)
 	    return;
 	for (int i = 0; i < cases.length; i++) {
-	    this.ca = setBit(this.ca, cases[i].ordinal()+1);
+	    this.ca = setBit(this.ca, cases[i].ordinal());
 	}
 	this.changeState(CHANGE);
     }
@@ -527,7 +528,7 @@ public class TR_Assignation extends DB_Element implements Serializable
 	if(conjugations == null)
 	    return;
 	for (int i = 0; i < conjugations.length; i++) {
-	    this.co = setBit(this.co, conjugations[i].ordinal()+1);
+	    this.co = setBit(this.co, conjugations[i].ordinal());
 	}
 	this.changeState(CHANGE);
     }
@@ -579,7 +580,7 @@ public class TR_Assignation extends DB_Element implements Serializable
 	if(determinations == null)
 	    return;
 	for (int i = 0; i < determinations.length; i++) {
-	    this.de = setBit(this.de, determinations[i].ordinal()+1);
+	    this.de = setBit(this.de, determinations[i].ordinal());
 	}
 	this.changeState(CHANGE);
     }
@@ -632,7 +633,7 @@ public class TR_Assignation extends DB_Element implements Serializable
 	if(diatheses == null)
 	    return;
 	for (int i = 0; i < diatheses.length; i++) {
-	    this.di = setBit(this.di, diatheses[i].ordinal()+1);
+	    this.di = setBit(this.di, diatheses[i].ordinal());
 	}
 	this.changeState(CHANGE);
     }
@@ -684,7 +685,7 @@ public class TR_Assignation extends DB_Element implements Serializable
 	if(genera == null)
 	    return;
 	for (int i = 0; i < genera.length; i++) {
-	    this.g = setBit(this.g, genera[i].ordinal()+1);
+	    this.g = setBit(this.g, genera[i].ordinal());
 	}
 	this.changeState(CHANGE);
     }
@@ -736,7 +737,7 @@ public class TR_Assignation extends DB_Element implements Serializable
 	if(numeri == null)
 	    return;
 	for (int i = 0; i < numeri.length; i++) {
-	    this.n = setBit(this.n, numeri[i].ordinal()+1);
+	    this.n = setBit(this.n, numeri[i].ordinal());
 	}
 	this.changeState(CHANGE);
     }
@@ -789,7 +790,7 @@ public class TR_Assignation extends DB_Element implements Serializable
 	if(persons == null)
 	    return;
 	for (int i = 0; i < persons.length; i++) {
-	    this.p = setBit(this.p, persons[i].ordinal()+1);
+	    this.p = setBit(this.p, persons[i].ordinal());
 	}
 	this.changeState(CHANGE);
     }
@@ -842,7 +843,7 @@ public class TR_Assignation extends DB_Element implements Serializable
 	if(tempora == null)
 	    return;
 	for (int i = 0; i < tempora.length; i++) {
-	    this.te = setBit(this.te, tempora[i].ordinal()+1);
+	    this.te = setBit(this.te, tempora[i].ordinal());
 	}
 	this.changeState(CHANGE);
     }
@@ -894,7 +895,7 @@ public class TR_Assignation extends DB_Element implements Serializable
 	if(types == null)
 	    return;
 	for (int i = 0; i < types.length; i++) {
-	    this.ty = setBit(this.ty, types[i].ordinal()+1);
+	    this.ty = setBit(this.ty, types[i].ordinal());
 	}
 	this.changeState(CHANGE);
     }
@@ -946,7 +947,7 @@ public class TR_Assignation extends DB_Element implements Serializable
 	if(wordclasses == null)
 	    return;
 	for (int i = 0; i < wordclasses.length; i++) {
-	    this.wc = setBit(this.wc, wordclasses[i].ordinal()+1);
+	    this.wc = setBit(this.wc, wordclasses[i].ordinal());
 	}
 	this.changeState(CHANGE);
     }
@@ -998,7 +999,7 @@ public class TR_Assignation extends DB_Element implements Serializable
 	if(WordsubclassesAdjective == null)
 	    return;
 	for (int i = 0; i < WordsubclassesAdjective.length; i++) {
-	    this.wsa = setBit(this.wsa, WordsubclassesAdjective[i].ordinal()+1);
+	    this.wsa = setBit(this.wsa, WordsubclassesAdjective[i].ordinal());
 	}
 	this.changeState(CHANGE);
     }
@@ -1050,7 +1051,7 @@ public class TR_Assignation extends DB_Element implements Serializable
 	if(WordsubclassesConnector == null)
 	    return;
 	for (int i = 0; i < WordsubclassesConnector.length; i++) {
-	    this.wsc = setBit(this.wsc, WordsubclassesConnector[i].ordinal()+1);
+	    this.wsc = setBit(this.wsc, WordsubclassesConnector[i].ordinal());
 	}
 	this.changeState(CHANGE);
     }
@@ -1102,7 +1103,7 @@ public class TR_Assignation extends DB_Element implements Serializable
 	if(WordsubclassesPreposition == null)
 	    return;
 	for (int i = 0; i < WordsubclassesPreposition.length; i++) {
-	    this.wspre = setBit(this.wspre, WordsubclassesPreposition[i].ordinal()+1);
+	    this.wspre = setBit(this.wspre, WordsubclassesPreposition[i].ordinal());
 	}
 	this.changeState(CHANGE);
     }
@@ -1154,7 +1155,7 @@ public class TR_Assignation extends DB_Element implements Serializable
 	if(WordsubclassesPronoun == null)
 	    return;
 	for (int i = 0; i < WordsubclassesPronoun.length; i++) {
-	    this.wspro = setBit(this.wspro, WordsubclassesPronoun[i].ordinal()+1);
+	    this.wspro = setBit(this.wspro, WordsubclassesPronoun[i].ordinal());
 	}
 	this.changeState(CHANGE);
     }
@@ -1206,7 +1207,7 @@ public class TR_Assignation extends DB_Element implements Serializable
 	if(WordsubclassesSign == null)
 	    return;
 	for (int i = 0; i < WordsubclassesSign.length; i++) {
-	    this.wss = setBit(this.wss, WordsubclassesSign[i].ordinal()+1);
+	    this.wss = setBit(this.wss, WordsubclassesSign[i].ordinal());
 	}
 	this.changeState(CHANGE);
     }
@@ -1258,7 +1259,7 @@ public class TR_Assignation extends DB_Element implements Serializable
 	if(WordsubclassesVerb == null)
 	    return;
 	for (int i = 0; i < WordsubclassesVerb.length; i++) {
-	    this.wsv = setBit(this.wsv, WordsubclassesVerb[i].ordinal()+1);
+	    this.wsv = setBit(this.wsv, WordsubclassesVerb[i].ordinal());
 	}
 	this.changeState(CHANGE);
     }
@@ -1310,7 +1311,7 @@ public class TR_Assignation extends DB_Element implements Serializable
 	if(Wortarten1 == null)
 	    return;
 	for (int i = 0; i < Wortarten1.length; i++) {
-	    this.wa1 = setBit(this.wa1, Wortarten1[i].ordinal()+1);
+	    this.wa1 = setBit(this.wa1, Wortarten1[i].ordinal());
 	}
 	this.changeState(CHANGE);
     }
@@ -1362,7 +1363,7 @@ public class TR_Assignation extends DB_Element implements Serializable
 	if(Wortarten2 == null)
 	    return;
 	for (int i = 0; i < Wortarten2.length; i++) {
-	    this.wa2 = setBit(this.wa2, Wortarten2[i].ordinal()+1);
+	    this.wa2 = setBit(this.wa2, Wortarten2[i].ordinal());
 	}
 	this.changeState(CHANGE);
     }
@@ -1414,7 +1415,7 @@ public class TR_Assignation extends DB_Element implements Serializable
 	if(Wortarten3 == null)
 	    return;
 	for (int i = 0; i < Wortarten3.length; i++) {
-	    this.wa3 = setBit(this.wa3, Wortarten3[i].ordinal()+1);
+	    this.wa3 = setBit(this.wa3, Wortarten3[i].ordinal());
 	}
 	this.changeState(CHANGE);
     }
@@ -1466,7 +1467,7 @@ public class TR_Assignation extends DB_Element implements Serializable
 	if(Wortarten4 == null)
 	    return;
 	for (int i = 0; i < Wortarten4.length; i++) {
-	    this.wa4 = setBit(this.wa4, Wortarten4[i].ordinal()+1);
+	    this.wa4 = setBit(this.wa4, Wortarten4[i].ordinal());
 	}
 	this.changeState(CHANGE);
     }

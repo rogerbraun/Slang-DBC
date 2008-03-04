@@ -19,7 +19,7 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.share.exceptions.WordNotInIllocutionUn
  */
 public class FunctionWord extends DB_Element
       implements
-         IllocutionUnitElement {
+         IllocutionUnitElement, ChapterElement {
 
    /**
     * 
@@ -353,5 +353,9 @@ public class FunctionWord extends DB_Element
    public void setAssignation(TR_Assignation assignation) {
 	   this.assignation = assignation;
    }
+
+    public Chapter getChapter() {
+        return this.root.getChapter();
+    }
 
 }

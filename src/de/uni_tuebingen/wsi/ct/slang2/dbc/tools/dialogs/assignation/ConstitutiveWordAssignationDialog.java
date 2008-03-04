@@ -1,174 +1,96 @@
 package de.uni_tuebingen.wsi.ct.slang2.dbc.tools.dialogs.assignation;
 
 
-import java.awt.BorderLayout;
-import java.awt.GridLayout;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dialog;
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Vector;
 
-import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.ConstitutiveWord;
-import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation;
-import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation.Case;
-import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation.Wordclass;
 
-public class ConstitutiveWordAssignationDialog extends JDialog implements ActionListener {
+public class ConstitutiveWordAssignationDialog {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	JOptionPane             optionPane;
-	JPanel SelectionPane;
-	JList cb_case, cb_genus, cb_person, cb_determination, cb_proform, cb_numerus;
 
-	private ConstitutiveWord element;
-	private JList cb_wordclass;
+	private static Vector<Saveable> saveables = new Vector<Saveable>();
 
-	public ConstitutiveWordAssignationDialog(ConstitutiveWord element) {
-		super(new JFrame(), true);
-		
-		this.element = element;    
+	public static void show(
+		Component parent,
+		ConstitutiveWord cw,
+		String title)
+	{
+	    final JDialog dlg;
 
-		JPanel mainPanel = new JPanel();
-
-		if(element.getAssignation() != null)
-			SelectionPane = createAssignationPane(element.getAssignation());
-		else {
-			SelectionPane = new JPanel(new BorderLayout());
-			JButton jb = new JButton("Add Assignation");
-			jb.setActionCommand("add_assignation");
-			jb.addActionListener(this);
-			SelectionPane.add(jb);
+	    while (true) {
+		if (parent instanceof Dialog) {
+		    dlg = new JDialog((Dialog) parent, title, true);
+		    break;
+		} else if (parent instanceof Frame) {
+		    dlg = new JDialog((Frame) parent, title, true);
+		    break;
 		}
-		mainPanel.add(SelectionPane);
+		parent = parent.getParent();
+	    }
+	    final Container cp = dlg.getContentPane();
+	    cp.setLayout(new BoxLayout(cp, BoxLayout.PAGE_AXIS));
+	    
+	    // The property tabs
+	    final JTabbedPane tp = new JTabbedPane();
+	    
+	    AssignationPane ap = new AssignationPane(cw.getAssignation(), AssignationPane.SubsetVariant.CW );
+	    saveables.add(ap);
+	    tp.addTab("Assignation", ap);
+	    
+	    tp.addTab("Pfade", new JPanel());
 
-		JButton sa = new JButton("Save Assignation");
-		sa.setActionCommand("save_assignation");
-		sa.addActionListener(this);
-		mainPanel.add(sa);
+	    cp.add(tp);
+	    
+	    // The buttons
+	    JPanel buttons = new JPanel();
+	    buttons.setLayout(new BoxLayout(buttons, BoxLayout.LINE_AXIS));
+	    
+	    JButton sa = new JButton("OK");
+	    sa.addActionListener( new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    save();
+		    dlg.dispose();
+		}
+	    });
+	    buttons.add(sa);
 
-		JButton exit = new JButton("Close");
-		exit.setActionCommand("exit");
-		exit.addActionListener(this);
-		mainPanel.add(exit);
+	    JButton exit = new JButton("CANCEL");
+	    exit.addActionListener( new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    dlg.dispose();
+		}
+	    });
+	    buttons.add(exit);
+	    cp.add(buttons);
 
-		setTitle("Edit Constitutive Word");
-		setContentPane(mainPanel);
-		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        
-		pack();
-		setVisible(true);
+	    dlg.pack();
+	    try {
+		// This was added in a fairly recent version of Java, so may throw:
+		dlg.setLocationRelativeTo(parent);
+	    } catch (Exception e) { } // just ignore
+	    dlg.setVisible(true);
 	}
+	
 
-	private JPanel createAssignationPane( TR_Assignation assignation ) {
-
-		JPanel mainret = new JPanel(new BorderLayout());
-
-		JPanel ret = new JPanel(new GridLayout(0, 2));
-		ret.setBorder(BorderFactory.createTitledBorder("TR_Attributes"));
-
-
-		JPanel JP_numerus = new JPanel();
-		JP_numerus.setBorder(BorderFactory.createTitledBorder("Numerus"));
-		JPanel JP_genus = new JPanel();
-		JP_genus.setBorder(BorderFactory.createTitledBorder("Genus"));
-//		JPanel JP_proform = new JPanel();
-//		JP_proform.setBorder(BorderFactory.createTitledBorder("Proform"));
-		JPanel JP_person = new JPanel();
-		JP_person.setBorder(BorderFactory.createTitledBorder("Person"));
-		JPanel JP_determination = new JPanel();
-		JP_determination.setBorder(BorderFactory.createTitledBorder("Determination"));
-
-
-		// kasus
-		cb_case = new JList(Case.values());
-		cb_case.setVisibleRowCount(5);
-		for(Case c : assignation.getCases())
-			cb_case.setSelectedValue(c, false);
-		JScrollPane JP_cases = new JScrollPane(cb_case);
-		JP_cases.setBorder(BorderFactory.createTitledBorder("Kasus"));
-
-		// wordclass
-		cb_wordclass = new JList(Wordclass.values());
-		cb_wordclass.setVisibleRowCount(5);
-		for(Wordclass c : assignation.getWordclasses())
-			cb_wordclass.setSelectedValue(c, false);
-		JScrollPane JP_wordclass = new JScrollPane(cb_wordclass);
-		JP_wordclass.setBorder(BorderFactory.createTitledBorder("Wordclass"));
-
-//		// numerus
-//		cb_numerus = new CheckBoxList();
-//		cb_numerus.setListData(Numerus.values());
-//		for(Numerus c : assignation.getNumeri())
-//		cb_numerus.setSelectedValue(c, false);
-//		JP_numerus.add(cb_numerus);
-
-//		// genus
-//		cb_genus = new CheckBoxList();
-//		cb_genus.setListData(Genus.values());
-//		for(Genus c : assignation.getGenera())
-//		cb_genus.setSelectedValue(c, false);
-//		JP_genus.add(cb_genus);
-
-//		// person
-//		cb_person = new CheckBoxList();
-//		cb_person.setListData(Person.values());
-//		for(Person c : assignation.getPersons())
-//		cb_person.setSelectedValue(c, false);
-//		JP_person.add(cb_person);
-
-//		// determination
-//		cb_determination = new CheckBoxList();
-//		cb_determination.setListData(Determination.values());
-//		for(Determination c : assignation.getDeterminations())
-//		cb_determination.setSelectedValue(c, false);
-//		JP_determination.add(cb_determination);
-
-		//TODO
-//		cb_proform = new JComboBox(Proform.values());
-//		cb_proform.setSelectedItem(deicticon.getProform());
-//		JP_proform.add(cb_proform);
-
-		ret.add(JP_cases);
-		ret.add(JP_numerus);
-		ret.add(JP_genus);
-//		ret.add(JP_proform);
-		ret.add(JP_person);
-		ret.add(JP_determination);
-		ret.add(JP_wordclass);
-
-		mainret.add(ret, BorderLayout.NORTH);
-
-		return mainret;
-
-	}
-
-	protected void save() {
-		if(element.getAssignation() != null) {
-			element.getAssignation().setCases((Case[]) cb_case.getSelectedValues());
-		}
-	}
-
-	public void actionPerformed(ActionEvent e) {
-		if ("add_assignation".equals(e.getActionCommand())) {
-			element.setAssignation(new TR_Assignation());
-			SelectionPane.removeAll();
-			SelectionPane.add(createAssignationPane(element.getAssignation()));
-		}
-		else if ("save_assignation".equals(e.getActionCommand())) {
-			save();
-		}
-		else if ("exit".equals(e.getActionCommand())) {
-			dispose();
+	final static void save() {
+		for (Saveable s : saveables) {
+		    s.save();
 		}
 	}
 

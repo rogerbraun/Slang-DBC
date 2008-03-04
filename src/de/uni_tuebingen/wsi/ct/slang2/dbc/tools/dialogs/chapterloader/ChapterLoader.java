@@ -71,7 +71,7 @@ public class ChapterLoader extends JComponent
    private JDialog           dialog;
    private int               bookID;
    private int               chapterID;
-   private Vector            books;
+   private Vector<Book>            books;
    private JList             bookList;
    private JList             chapterList;
    private JButton           loadButton;
@@ -148,7 +148,7 @@ public class ChapterLoader extends JComponent
       c.gridy = 0;
       contentPane.add(sp1, c);
 
-      chapterList = new JList(new Vector());
+      chapterList = new JList();
       chapterList.addListSelectionListener(this);
       chapterList.setCellRenderer(new CellRenderer());
       chapterList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -250,7 +250,8 @@ public class ChapterLoader extends JComponent
          dialog.dispose();
       }
       else if (e.getSource() == copyButton) {
-         try {
+	  DBC dbc = null;
+	  try {
             CompleteAnalyse ca = new CompleteAnalyse(server, chapterID);
             ca.resetIDs();
             ca.save(server, true);
@@ -258,11 +259,10 @@ public class ChapterLoader extends JComponent
             bookList.clearSelection();
             chapterList.clearSelection();
 
-            DBC dbc = new DBC(server);
+            dbc = new DBC(server);
             books = dbc.loadBooks();
-            dbc.close();
             bookList.setListData(books);
-            chapterList.setListData(new Vector());
+            chapterList.setListData(new Vector<Object>());
 
             bookID = -1;
             chapterID = -1;
@@ -270,25 +270,32 @@ public class ChapterLoader extends JComponent
          catch (Exception e1) {
             e1.printStackTrace();
          }
+         finally {
+             if(dbc != null)
+       	  dbc.close();
+         }
       }
       else if (e.getSource() == deleteButton) {
-          try {
-             JOptionPane jop = new JOptionPane();
-             int userDecision= jop.showConfirmDialog(this,"Are you sure you want to delete this chapter?","Warning",JOptionPane.YES_NO_OPTION);
+	  DBC dbc = null;
+	  try {
+             int userDecision= JOptionPane.showConfirmDialog(this,"Are you sure you want to delete this chapter?","Warning",JOptionPane.YES_NO_OPTION);
         	 if(userDecision==0){
-	        	 DBC dbc = new DBC(server);
+        	     dbc = new DBC(server);
 	             dbc.deleteChapter(chapterID);
 	             chapterList.clearSelection();
 
 	             books = dbc.loadBooks();
-	             dbc.close();
 	             bookList.setListData(books);
-	             chapterList.setListData(new Vector());
+	             chapterList.setListData(new Vector<Object>());
 	             
         	 }
           }
           catch (Exception e1) {
              e1.printStackTrace();
+          }
+          finally {
+              if(dbc != null)
+        	  dbc.close();
           }
        }
       else if (e.getSource() == importButton) {

@@ -3887,7 +3887,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		    res.updateBytes("tr_subclass_adjective", assignation.getWordsubclassesAdjectiveBinary());
 		    res.updateBytes("tr_subclass_preposition", assignation.getWordsubclassesPrepositionBinary());
 		    res.updateBytes("tr_subclass_pronoun", assignation.getWordsubclassesPronounBinary());
-		    res.updateBytes("tr_subclass_sign", assignation.getWordsubclassesSignBinary());
+		    //res.updateBytes("tr_subclass_sign", assignation.getWordsubclassesSignBinary());
 					
 		    res.updateString("description", assignation.getDescription());
 		    res.updateString("etymol", assignation.getEtymol());

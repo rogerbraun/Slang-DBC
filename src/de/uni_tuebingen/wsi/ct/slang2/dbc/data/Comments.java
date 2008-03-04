@@ -28,8 +28,8 @@ public class Comments
    public static final int   CLASS_CODE_ILLOCUTION_UNIT = 1;
    public static final int   CLASS_CODE_DIRECT_SPEECH   = 2;
    public static final int   CLASS_CODE_DIALOG          = 3;
-   //public static final int   CLASS_CODE_DIALOG_RUNUP    = 4;
-   //public static final int   CLASS_CODE_DIALOG_FOLLOWUP = 5;
+   public static final int   CLASS_CODE_DIALOG_RUNUP    = 4;
+   public static final int   CLASS_CODE_DIALOG_FOLLOWUP = 5;
    public static final int   CLASS_CODE_DIALOG_COSMOLOGIES = 4;
    public static final int   CLASS_CODE_DIALOG_SPEAKERS = 5;
 

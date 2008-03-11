@@ -52,11 +52,11 @@
 	</target>
 
 	<target name="docs-init">
-		<mkdir dir="${path.doc}"/>
+		<mkdir dir="${path.doc}/api"/>
 	</target>
 
 	<target name="docs-clean">
-		<delete dir="${path.doc}"/>
+		<delete dir="${path.doc}/api"/>
 	</target>
 
 	<target name="apidocs" depends="docs-init" description="Generate JavaDocs.">

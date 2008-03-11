@@ -73,7 +73,6 @@ public class DialogSpeaker extends DB_Element implements Serializable, Cloneable
 	     return true;
 	}
 
-	@Override
 	public void setChapter(DBC_Key key, Chapter chapter) {
 		key.unlock();
 	    this.chapter = chapter;

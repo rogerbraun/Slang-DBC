@@ -199,7 +199,7 @@ public class Chapter
    }
 
    /**
-    * Wird vom DBC benötigt
+    * Keine Ahnung was das soll! Der Index wird in der Tabelle gespeichert und wohl zum Unterscheiden der Kapitel benutzt.
     */
    public void calculateIndicies(DBC_Key key) {
       key.unlock();

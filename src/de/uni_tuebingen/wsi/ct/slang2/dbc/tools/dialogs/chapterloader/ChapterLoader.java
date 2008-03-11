@@ -35,6 +35,7 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Book;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Chapter;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.CompleteAnalyse;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.exceptions.DBC_ConnectionException;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.tools.dialogs.ExceptionDialog;
 
 /**
  * Ein Dialog, um Kapitel aus der Datenbank zu laden. <br>
@@ -252,28 +253,29 @@ public class ChapterLoader extends JComponent
       else if (e.getSource() == copyButton) {
 	  DBC dbc = null;
 	  try {
-            CompleteAnalyse ca = new CompleteAnalyse(server, chapterID);
-            ca.resetIDs();
-            ca.save(server, true);
+	      //TODO: Das Laden ist überflüssig! Das Kopieren sollte der Server Seite überlassen werden.
+	      CompleteAnalyse ca = new CompleteAnalyse(server, chapterID);
+	      ca.resetIDs();
+	      ca.save(server, true);
 
-            bookList.clearSelection();
-            chapterList.clearSelection();
+	      // refreh list
+	      bookList.clearSelection();
+	      chapterList.clearSelection();
+	      dbc = new DBC(server);
+	      books = dbc.loadBooks();
+	      bookList.setListData(books);
+	      chapterList.setListData(new Vector<Object>());
 
-            dbc = new DBC(server);
-            books = dbc.loadBooks();
-            bookList.setListData(books);
-            chapterList.setListData(new Vector<Object>());
-
-            bookID = -1;
-            chapterID = -1;
-         }
-         catch (Exception e1) {
-            e1.printStackTrace();
-         }
-         finally {
-             if(dbc != null)
-       	  dbc.close();
-         }
+	      bookID = -1;
+	      chapterID = -1;
+	  }
+	  catch (Exception e1) {
+	      ExceptionDialog.show(new JFrame(), e1, "Copy Failed", "");
+	  }
+	  finally {
+	      if(dbc != null)
+		  dbc.close();
+	  }
       }
       else if (e.getSource() == deleteButton) {
 	  DBC dbc = null;

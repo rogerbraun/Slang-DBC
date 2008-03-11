@@ -114,7 +114,7 @@ public class Connection implements Runnable {
 		   }
 		   else {
 			   connection_status = STATUS_CLOSE;
-			   return new Message(DBC_Server.key, "ERROR", new Exception("Did not sent a 'hello' message: closing connection"));
+			   return new Message(DBC_Server.key, "ERROR", new Exception("Client did not sent a 'hello' message: closing connection"));
 		   }		   
 	   }
 	   if ( connection_status == STATUS_CONNECTED ) {
@@ -140,14 +140,6 @@ public class Connection implements Runnable {
 			   // After an exception at the 'hello' message no further calls are accepted
 			   if(input.getMethod().equals("hello")) {
 				   connection_status = STATUS_CLOSE;
-			   }
-			   if(Slang2Server.logger != null) {
-				   StackTraceElement elements[] = e.getCause().getStackTrace();
-				   for (StackTraceElement element : elements) {
-					   Slang2Server.logger.warning(element.getFileName() + ":" + 
-							   element.getLineNumber() + " ==> " +
-							   element.getMethodName()+"()");
-				   }
 			   }
 			   return new Message(DBC_Server.key, "ERROR", e.getCause());
 		   }

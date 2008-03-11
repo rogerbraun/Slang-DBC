@@ -6,14 +6,13 @@ package de.uni_tuebingen.wsi.ct.slang2.dbc.data;
 
 import java.util.Vector;
 
-
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.exceptions.WordNotInIllocutionUnitException;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.tools.pathselector.PathSelector;
 
 
 /**
- * Eine semantische Einheit, die aus einem semantisch konstitutiven Wort und
+ * Eine semantische Einheit, die aus genau einem semantisch konstitutiven Wort und
  * eventuell einem Funktionswort besteht. Dabei können auch Teilworte
  * berücksicht werden.
  * 
@@ -35,24 +34,40 @@ public class MeaningUnit extends DB_Element
    private int 				  numerusPath;
    private boolean            accepted;
 
+
    /**
-    * Wird vom DBC benötigt
-    */
-   public MeaningUnit(DBC_Key key,
-         IllocutionUnitRoot root,
+ * @param key
+ * @param root
+ * @param id
+ * @param functionWord
+ * @param constitutiveWord
+ * @param path
+ * @param accepted
+ */
+public MeaningUnit(DBC_Key key,
+         IllocutionUnitRoot root, /* should be dropped in favor of getting the root from constitutiveWord.getRoot() */
          int id,
          FunctionWord functionWord,
          ConstitutiveWord constitutiveWord,
          int path,
          boolean accepted) {
       super(id);
-      key.unlock();
+        
+      if(key == null || root == null || constitutiveWord == null)
+	  throw new NullPointerException();
+      
+      if( ! root.equals(constitutiveWord.getRoot()))
+	  throw new IllegalArgumentException();
+      
+      if( functionWord != null && ! root.equals(functionWord.getRoot()))
+	  throw new IllegalArgumentException();
+      
       this.root = root;
       this.functionWord = functionWord;
       this.constitutiveWord = constitutiveWord;
       this.path = path;
       this.accepted = accepted;
-      sememeGroups = new Vector();
+      sememeGroups = new Vector<SememeGroup>();
 
       if (functionWord != null) {
          functionWord.setMeaningUnit(key, this);

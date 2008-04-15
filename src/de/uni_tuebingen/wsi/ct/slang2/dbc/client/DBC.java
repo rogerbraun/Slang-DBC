@@ -287,7 +287,7 @@ public class DBC implements DBC_KeyAcceptor {
 		DirectSpeeches answer = (DirectSpeeches) connection.call(new Message(key,
 				"saveDirectSpeeches", new Integer(chapter.getDB_ID()),
 				newdirectSpeeches, olddirectSpeeches)).getArguments()[0];
-		newdirectSpeeches.updateIDs(key, answer);
+		//newdirectSpeeches.updateIDs(key, answer);
 	}
 
 	/*public void saveDialogs(Chapter chapter, Dialogs dialogs)

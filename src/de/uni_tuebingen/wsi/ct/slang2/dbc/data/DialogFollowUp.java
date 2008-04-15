@@ -1,5 +1,5 @@
-/*
- * Erstellt: 19.01.2005
+//
+// Erstellt: 19.01.2005
  
 
 package de.uni_tuebingen.wsi.ct.slang2.dbc.data;
@@ -9,17 +9,17 @@ import java.io.Serializable;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
 
 
-*//**
+/**
  * @author Volker Klöbb
- *//*
+ */
 public class DialogFollowUp
       implements
          Serializable,
          CommentOwner {
 
-   *//**
+   /**
     * 
-    *//*
+    */
    private static final long        serialVersionUID = -1906402865196649411L;
 
    private Dialog                   dialog;
@@ -114,4 +114,4 @@ public class DialogFollowUp
    public int getClassCode() {
       return Comments.CLASS_CODE_DIALOG_FOLLOWUP;
    }
-}*/
+}

@@ -977,7 +977,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 	    //lösche alle ius_FROM_direct_speeches Einträge aus oldDss die bereits in der Datenbank gespeichert
 	    res = stmt.executeQuery("SELECT * "
-		    + "FROM ius_FROM_direct_speeches "
+		    + "FROM ius_from_direct_speeches "
 		    + "WHERE direct_speech = "
 		    + ds.getDB_ID());
 
@@ -1031,7 +1031,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 		res.close();
 
-		res = stmt.executeQuery("SELECT * FROM ius_FROM_direct_speeches");
+		res = stmt.executeQuery("SELECT * FROM ius_from_direct_speeches");
 		Vector ius = ds.getIllocutionUnits();
 
 		for (int j = 0; j < ius.size(); j++) 
@@ -1187,7 +1187,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 		ResultSet res;
 		
-		//lösche alle Dialoge (oldDs) die bereits in der Datenbank gespeichert sind
+		// lösche alle Dialoge (oldDs) die bereits in der Datenbank gespeichert sind
 		for (int i = 0; i < oldDs.size(); i++) {
 			Dialog ds = (Dialog) oldDs.get(i);
 			
@@ -1197,7 +1197,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				res.deleteRow();
 		}
 		
-		//speichert alle neuen Dialoge (newDs) in der Datenbank
+		// speichert alle neuen Dialoge (newDs) in der Datenbank
 		for (int i = 0; i < newDs.size(); i++) 
 		{
 			Dialog d = (Dialog) newDs.get(i);
@@ -1607,13 +1607,14 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			res = stmt.executeQuery("SELECT start, end, description "
 					+ "FROM cosmologies WHERE dialog = " + dialog.getDB_ID());
 
-			while (res.next()) {
-//				DialogCosmology cosmol = new DialogCosmology(dialog, 
-//										res.getInt("start"), 
-//										res.getInt("end"), 
-//										res.getString("description") );
-//				dialog.setCosmology(cosmol);
-//				logger.info("------Description------" + cosmol.getDescription());
+			while (res.next()) 
+			{
+				DialogCosmology cosmol = new DialogCosmology(dialog, 
+				res.getInt("start"), 
+				res.getInt("end"), 
+				res.getString("description") );
+				dialog.setCosmology(cosmol);
+				logger.info("------Description------" + cosmol.getDescription());
 			}
 		}
 

@@ -32,6 +32,7 @@ public class Comments
    public static final int   CLASS_CODE_DIALOG_FOLLOWUP = 5;
    public static final int   CLASS_CODE_DIALOG_COSMOLOGIES = 4;
    public static final int   CLASS_CODE_DIALOG_SPEAKERS = 5;
+   public static final int   CLASS_CODE_DIALOG_Faces = 6;
 
    /**
     * 

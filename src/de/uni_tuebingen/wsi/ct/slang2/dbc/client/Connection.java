@@ -20,7 +20,7 @@ class Connection {
    private ObjectOutputStream out;
    private ObjectInputStream  in;
 
-   Connection(Socket socket) throws IOException {     
+   Connection(Socket socket) throws IOException {
       if(socket != null) {
     	  try {
     	      this.out = new ObjectOutputStream(socket.getOutputStream());

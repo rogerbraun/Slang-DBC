@@ -1768,50 +1768,49 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
     private TR_Assignation loadAssignation(int id) throws SQLException
     {
-	PreparedStatement stmt = null;
-	ResultSet res = null;
-	TR_Assignation_DB assignation = null;
-	try {
-	    stmt = connection.prepareStatement(
-
-		    "SELECT * FROM assignations WHERE id = ?"
-	    );
-	    stmt.setInt(1, id);
-	    res = stmt.executeQuery();
-	    if(res.next()) {
-		assignation = new TR_Assignation().new TR_Assignation_DB();
-		assignation.setCasesBinary( res.getBytes("tr_case"));
-		assignation.setConjugationsBinary(res.getBytes("tr_conjugation"));
-		assignation.setDeterminationsBinary(res.getBytes("tr_determination"));
-		assignation.setDiathesesBinary(res.getBytes("tr_diathese"));
-		assignation.setNumeriBinary(res.getBytes("tr_numerus"));
-		assignation.setPersonsBinary(res.getBytes("tr_person"));
-		assignation.setTemporaBinary(res.getBytes("tr_tempus"));
-		assignation.setWordclassesBinary(res.getBytes("tr_wordclass"));
-		//TODO: add other columns
-		assignation.setDB_ID(key, res.getInt("id"));
-		assignation.resetState(key);
-	    }
-	}
-
-	catch ( SQLException e ) {
-	    logger.severe(e.getLocalizedMessage());
-	    throw e;
-	}
-	finally {
-	    try
-	    {
-		if (res  != null)
-		    res.close();
-		if (stmt  != null)
-		    stmt.close();
-	    }
-	    catch (SQLException e)
-	    {
-		logger.warning(e.getLocalizedMessage());
-	    }
-	}
-	return assignation;
+		PreparedStatement stmt = null;
+		ResultSet res = null;
+		TR_Assignation_DB assignation = null;
+		try 
+		{
+		    stmt = connection.prepareStatement("SELECT * FROM assignations WHERE id = ?");
+		    stmt.setInt(1, id);
+		    res = stmt.executeQuery();
+		    if(res.next()) 
+		    {
+				assignation = new TR_Assignation().new TR_Assignation_DB();
+				assignation.setCasesBinary( res.getBytes("tr_case"));
+				assignation.setConjugationsBinary(res.getBytes("tr_conjugation"));
+				assignation.setDeterminationsBinary(res.getBytes("tr_determination"));
+				assignation.setDiathesesBinary(res.getBytes("tr_diathese"));
+				assignation.setNumeriBinary(res.getBytes("tr_numerus"));
+				assignation.setPersonsBinary(res.getBytes("tr_person"));
+				assignation.setTemporaBinary(res.getBytes("tr_tempus"));
+				assignation.setWordclassesBinary(res.getBytes("tr_wordclass"));
+				//TODO: add other columns
+				assignation.setDB_ID(key, res.getInt("id"));
+				assignation.resetState(key);
+		    }
+		}
+		catch ( SQLException e ) {
+			logger.severe(e.getLocalizedMessage());
+		    throw e;
+		}
+		finally 
+		{
+		    try
+		    {
+				if (res  != null)
+				    res.close();
+				if (stmt  != null)
+				    stmt.close();
+		    }
+		    catch (SQLException e)
+		    {
+		    	logger.warning(e.getLocalizedMessage());
+		    }
+		}
+		return assignation;
     }
 
     private Vector<ConstitutiveWord> loadConstitutiveWords(Chapter chapter, Vector<IllocutionUnitRoot> roots) throws Exception

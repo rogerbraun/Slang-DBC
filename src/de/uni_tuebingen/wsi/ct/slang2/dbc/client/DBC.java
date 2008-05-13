@@ -7,6 +7,7 @@ package de.uni_tuebingen.wsi.ct.slang2.dbc.client;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Vector;
@@ -27,6 +28,7 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Pattern;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.PronounComplex;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Relation;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Renominalisations;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Thema_DB;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Word;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.WordListElement;
@@ -1181,7 +1183,7 @@ public class DBC implements DBC_KeyAcceptor {
 		boolean answer = (Boolean)connection.call(new Message(key,"isEdited",c,category)).getArguments()[0];
 		return answer;
 	}
-
+	
 	public void setKey(DBC_Key key) {
 	    DBC.key = key;
 	}

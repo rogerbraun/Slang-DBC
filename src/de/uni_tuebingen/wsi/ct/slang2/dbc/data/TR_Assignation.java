@@ -759,9 +759,10 @@ Serializable {
      * @return All Numeri that have been set
      */
     public Numerus[] getNumeri() {
-	if( this.n == null )
+    Enum<?>[] ea = filterConstants(Numerus.values(), this.n);
+    if( this.n == null || ea == null )
 	    return new Numerus[0];
-	Enum<?>[] ea = filterConstants(Numerus.values(), this.n);
+	//Enum<?>[] ea = filterConstants(Numerus.values(), this.n);
 	Numerus[] ret = new Numerus[ea.length];
 	System.arraycopy(ea, 0, ret, 0, ea.length);
 	return ret;
@@ -1518,7 +1519,10 @@ Serializable {
 	Enum<?>[] ret = new Enum[bs.cardinality()];
 	int j=0;
 	for(int i=bs.nextSetBit(0); i>=0; i=bs.nextSetBit(i+1), j++) {
-	    ret[j] = enums[i];
+	    if(i > enums.length)
+	    	return null;
+	    else
+	    	ret[j] = enums[i];
 	}
 	return ret;
     }

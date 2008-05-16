@@ -256,7 +256,7 @@ public class DBC implements DBC_KeyAcceptor {
 	throws Exception {
 		Message answer = connection.call(new Message(key, "deleteChapter", new Integer(id)));
 	}
-
+	
 	/**
 	 * L�dt alle Direkten Reden aus der Datenbank, die zu diesem Kapitel
 	 * gespeichert wurden.
@@ -1054,7 +1054,18 @@ public class DBC implements DBC_KeyAcceptor {
 		}
 	}
 
+/*	public void saveWordListElement(WordListElement element) throws Exception {
+		//key.unlock();
+		WordListElement[] answer = (WordListElement[]) connection.call(new Message(key, "saveWordListElement", (Object) element))
+		.getArguments()[0];
 
+		for(int i = 0; i != answer.length; i++){
+			element[i].updateIDs(key, answer[i]);
+			if(element[i].getAssignation() != null)
+				element[i].getAssignation().updateIDs(key, answer[i].getAssignation());
+		}
+	}
+*/
 	/**
 	 * Load from DB all WordListElements with word = <code>content</code>
 	 * @param content
@@ -1097,6 +1108,15 @@ public class DBC implements DBC_KeyAcceptor {
 		return answer;
 	}
 
+	/**
+	 * Load from DB WordListElement with assignation id = assigID
+	 * @param AssigID
+	 * @return
+	 */
+	public WordListElement loadWordListElementWithAssigID(int assigID) throws Exception {
+		return (WordListElement) connection.call(new Message(key, "loadWordListElementWithAssigID", assigID)) .getArguments()[0];
+	}
+	
 //	public WordListElement loadWordListElement(TR_Assignation assignation)
 //	throws Exception {
 //		//key.unlock();

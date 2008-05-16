@@ -886,7 +886,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	    stmt.execute("delete FROM chapters WHERE id = "+chapterID);
 	}
     }
-
+    
 	/**
 	 * L�dt alle Direkten Reden aus der Datenbank, die zu diesem Kapitel
 	 * gespeichert wurden.
@@ -4085,7 +4085,90 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 //  return element;
 //  }
 
-    /**
+    public WordListElement loadWordListElement(Integer id) throws SQLException {
+	PreparedStatement stmt = null;
+	ResultSet res = null;
+	WordListElement element = null;
+	
+	try {
+	
+	    stmt = connection.prepareStatement("SELECT * FROM word_list_elements, words WHERE word_list_elements.id = ? AND word_list_elements.word_id = words.id");
+	    stmt.setInt(1, id);
+	
+	    res = stmt.executeQuery();
+	    if(res.next()) {
+		try {
+		    element = new WordListElement(new String(res.getBytes("content"), "ISO-8859-1"), res.getString("language"));
+		} catch (UnsupportedEncodingException e) {
+		    logger.warning(e.getMessage());
+		}
+		if(res.getInt("assignation_id") != 0)
+		    element.setAssignation(loadAssignation(res.getInt("assignation_id")));
+		element.setDB_ID(key, id);
+		element.resetState(key);
+	    }
+	}
+	catch ( SQLException e ) {
+	    logger.severe(e.getLocalizedMessage());
+	    throw e;
+	}
+	finally {
+	    try
+	    {
+		if (res  != null)
+		    res.close();
+		if (stmt  != null)
+		    stmt.close();
+	    }
+	    catch (SQLException e)
+	    {
+		logger.warning(e.getLocalizedMessage());
+	    }
+	}
+	return element;
+	}
+
+    public WordListElement loadWordListElementWithAssigID(Integer assigID) throws SQLException {
+    	PreparedStatement stmt = null;
+    	ResultSet res = null;
+    	WordListElement element = null;
+    	
+    	try {
+    	
+    	    stmt = connection.prepareStatement("SELECT * FROM word_list_elements, words WHERE assignation_id = " + assigID);
+    	    res = stmt.executeQuery();
+    	    if(res.next()) {
+    		try {
+    		    element = new WordListElement(new String(res.getBytes("content"), "ISO-8859-1"), res.getString("language"));
+    		} catch (UnsupportedEncodingException e) {
+    		    logger.warning(e.getMessage());
+    		}
+
+    		element.resetState(key);
+    	    }
+    	}
+    	catch ( SQLException e ) {
+    	    logger.severe(e.getLocalizedMessage());
+    	    throw e;
+    	}
+    	finally {
+    	    try
+    	    {
+    		if (res  != null)
+    		    res.close();
+    		if (stmt  != null)
+    		    stmt.close();
+    	    }
+    	    catch (SQLException e)
+    	    {
+    		logger.warning(e.getLocalizedMessage());
+    	    }
+    	}
+    	return element;
+    	}
+    
+    
+	/**
      * Inserts, updates or removes <code>assignations</code> in the Database dependent on their state.
      * @param assignations
      * @return assignations with updates DB_IDs
@@ -4319,64 +4402,6 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 	return resultSet;
     }
-
-    public WordListElement loadWordListElement(Integer id) throws SQLException {
-	PreparedStatement stmt = null;
-	ResultSet res = null;
-	WordListElement element = null;
-
-	try {
-
-	    stmt = connection.prepareStatement("SELECT * FROM word_list_elements, words WHERE word_list_elements.id = ? AND word_list_elements.word_id = words.id");
-	    stmt.setInt(1, id);
-
-	    res = stmt.executeQuery();
-	    if(res.next()) {
-		try {
-		    element = new WordListElement(new String(res.getBytes("content"), "ISO-8859-1"), res.getString("language"));
-		} catch (UnsupportedEncodingException e) {
-		    logger.warning(e.getMessage());
-		}
-		if(res.getInt("assignation_id") != 0)
-		    element.setAssignation(loadAssignation(res.getInt("assignation_id")));
-		element.setDB_ID(key, id);
-		element.resetState(key);
-	    }
-	}
-	catch ( SQLException e ) {
-	    logger.severe(e.getLocalizedMessage());
-	    throw e;
-	}
-	finally {
-	    try
-	    {
-		if (res  != null)
-		    res.close();
-		if (stmt  != null)
-		    stmt.close();
-	    }
-	    catch (SQLException e)
-	    {
-		logger.warning(e.getLocalizedMessage());
-	    }
-	}
-	return element;
-    }
-
-//  public Vector loadRelations(Vector assignations) throws SQLException
-//  {
-//  if(assignations == null) {
-//  throw new NullPointerException("");
-//  }
-//  Vector resultSet = new Vector<Relation>();
-
-//  for(int i = 0; i != assignations.size(); i++) {
-//  TR_Assignation assignation = (TR_Assignation)assignations.get(i);
-//  resultSet.addAll(loadRelations(assignation));
-//  }
-
-//  return resultSet;
-//  }
 
     public boolean isEdited(Chapter c, int category) throws SQLException{
 	Vector resultSet = new Vector();

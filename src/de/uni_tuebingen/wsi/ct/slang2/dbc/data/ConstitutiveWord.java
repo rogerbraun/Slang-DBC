@@ -256,6 +256,17 @@ public class ConstitutiveWord extends DB_Element
       this.assignation = assignation;
       changeState(CHANGE);
    }
+
+   /**
+    * Setzt die Assignation mit der DB-ID db_id.
+    * @param assignation
+    * @param db_id
+    */
+   public void setAssignation(TR_Assignation assignation, int db_id){
+	      this.assignation = assignation;
+	      this.assignation.setDB_ID(db_id);
+	      changeState(CHANGE);
+   }
    
    public TR_Assignation getAssignation() {
       return assignation;

@@ -1,5 +1,6 @@
 package de.uni_tuebingen.wsi.ct.slang2.dbc.data;
 
+import de.uni_tuebingen.wsi.ct.slang2.dbc.client.DBC;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
 
 
@@ -39,6 +40,18 @@ public class WordListElement extends DB_Element
 	
 	public void setAssignation(TR_Assignation assignation) {
 		this.assignation = assignation;
+		changeState(CHANGE);
+	}
+	
+	/**
+	 * Setzt die Assignation mit der DB-ID db_id.
+	 * @param assignation
+	 * @param db_id
+	 */
+	public void setAssignation(TR_Assignation assignation, int db_id){
+	    this.assignation = assignation;
+	    this.assignation.setDB_ID(db_id);
+	    changeState(CHANGE);
 	}
 	
 	public boolean remove() {

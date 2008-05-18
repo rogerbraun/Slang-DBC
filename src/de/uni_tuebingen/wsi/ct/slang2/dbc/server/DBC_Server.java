@@ -4129,42 +4129,9 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	}
 
     public WordListElement loadWordListElementWithAssigID(Integer assigID) throws SQLException {
-    	PreparedStatement stmt = null;
-    	ResultSet res = null;
-    	WordListElement element = null;
+    //TODO: soll das WordListElement mit der Assignation ID assigID zurückgeben
     	
-    	try {
-    	
-    	    stmt = connection.prepareStatement("SELECT * FROM word_list_elements, words WHERE assignation_id = " + assigID);
-    	    res = stmt.executeQuery();
-    	    if(res.next()) {
-    		try {
-    		    element = new WordListElement(new String(res.getBytes("content"), "ISO-8859-1"), res.getString("language"));
-    		} catch (UnsupportedEncodingException e) {
-    		    logger.warning(e.getMessage());
-    		}
-
-    		element.resetState(key);
-    	    }
-    	}
-    	catch ( SQLException e ) {
-    	    logger.severe(e.getLocalizedMessage());
-    	    throw e;
-    	}
-    	finally {
-    	    try
-    	    {
-    		if (res  != null)
-    		    res.close();
-    		if (stmt  != null)
-    		    stmt.close();
-    	    }
-    	    catch (SQLException e)
-    	    {
-    		logger.warning(e.getLocalizedMessage());
-    	    }
-    	}
-    	return element;
+    	return (new WordListElement("blabla"));
     	}
     
     

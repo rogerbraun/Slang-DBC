@@ -1099,6 +1099,15 @@ public class DBC implements DBC_KeyAcceptor {
 		return (WordListElement) connection.call(new Message(key, "loadWordListElement", new Integer(id))).getArguments()[0];
 	}
 
+	/**
+	 * Load from DB WordListElement with assignation id = assigID
+	 * @param AssigID
+	 * @return
+	 */
+	public WordListElement loadWordListElementWithAssigID(int assigID) throws Exception {
+		return (WordListElement) connection.call(new Message(key, "loadWordListElementWithAssigID", assigID)).getArguments()[0];
+	}
+
 	public Vector loadWordClasses(Vector contents)
 	throws Exception {
 		//key.unlock();
@@ -1107,23 +1116,6 @@ public class DBC implements DBC_KeyAcceptor {
 		.getArguments()[0];
 		return answer;
 	}
-
-	/**
-	 * Load from DB WordListElement with assignation id = assigID
-	 * @param AssigID
-	 * @return
-	 */
-	public WordListElement loadWordListElementWithAssigID(int assigID) throws Exception {
-		return (WordListElement) connection.call(new Message(key, "loadWordListElementWithAssigID", assigID)) .getArguments()[0];
-	}
-	
-//	public WordListElement loadWordListElement(TR_Assignation assignation)
-//	throws Exception {
-//		//key.unlock();
-//		WordListElement answer = (WordListElement) connection.call(new Message(key, "loadWordListElement", assignation))
-//		.getArguments()[0];
-//		return answer;
-//	}
 
 	public void saveRelations(Relation ... relations) throws Exception {
 		// get all complexes that have changed as DB Version

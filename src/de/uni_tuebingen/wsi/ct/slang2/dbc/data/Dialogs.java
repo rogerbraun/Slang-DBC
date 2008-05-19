@@ -133,10 +133,12 @@ public class Dialogs implements Serializable {
 		return res;
 	}
 
-	public Vector getAllSpeakerChanges(DBC_Key key) {
+	public Vector getAllSpeakerChanges(DBC_Key key) 
+	{
 		key.unlock();
 		Vector res = new Vector();
-		for (int i = 0; i < dialogs.size(); i++) {
+		for (int i = 0; i < dialogs.size(); i++) 
+		{
 			Dialog d = (Dialog) dialogs.get(i);
 			res.addAll(d.getAllSpeakerChanges(key));
 		}

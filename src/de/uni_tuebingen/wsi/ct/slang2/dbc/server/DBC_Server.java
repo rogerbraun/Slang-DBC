@@ -18,6 +18,8 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.sun.corba.se.impl.ior.WireObjectKeyTemplate;
+
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Book;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Chapter;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.ChapterEditingTester;
@@ -3970,17 +3972,17 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	    elements = new WordListElement[rows];
 
 	    int i=0;
-	    while( res.next() ) {
-
-		elements[i] = new WordListElement(content, language);
-
-		if(res.getInt("assignation_id") > 0 ) {
-		    elements[i].setAssignation(loadAssignation(res.getInt("assignation_id")));
-		}
-		
-		elements[i].setDB_ID(key, res.getInt("id"));
-		elements[i].resetState(key);
-		i++;
+	    while( res.next() ) 
+	    {
+	    	elements[i] = new WordListElement(content, language);
+			
+	    	if(res.getInt("assignation_id") > 0 ) {
+			    elements[i].setAssignation(loadAssignation(res.getInt("assignation_id")));
+			}
+			
+	    	elements[i].setDB_ID(key, res.getInt("id"));
+			elements[i].resetState(key);
+			i++;
 	    }
 	    
 	    stmt.close();
@@ -4141,11 +4143,93 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	return element;
 	}
 
-    public WordListElement loadWordListElementWithAssigID(Integer assigID) throws SQLException {
-    //TODO: soll das WordListElement mit der Assignation ID assigID zurückgeben
-    	
-    	return (new WordListElement("blabla"));
+//    /**
+//     * 
+//     * @param assigID
+//     * @return WordListElement[] oder null
+//     * @throws SQLException
+//     */
+//    public WordListElement[] loadWordListElementWithAssigID(Integer assigID) throws SQLException 
+//    {
+//    	PreparedStatement stmt = null;
+//    	ResultSet res = null;
+//    	WordListElement[] elements = null;
+//
+//    	//TODO: soll das WordListElement mit der Assignation ID assigID zurückgeben
+//    	try 
+//    	{
+//    		stmt = connection.prepareStatement("SELECT * FROM word_list_elements WHERE word_list_elements.assignation_id = " + assigID);
+//    		res = stmt.executeQuery();
+//    		
+//    		while (res.next()) 
+//    		{
+//    			// zu word_id passenden content laden
+//    			int word_id = res.getInt("word_id");
+//    			stmt = connection.prepareStatement("SELECT content FROM words WHERE id = " + word_id);
+//        		res = stmt.executeQuery();
+//        		String content = null;
+//        		while (res.next()) {
+//        			content = res.getString("content");
+//        		}
+//    			
+//        		if (content != null) {
+//        			elements = loadWordListElement(content);
+//    			}
+//    		}
+//    	}
+//    	catch ( SQLException e ) {
+//    		e.printStackTrace();
+//    	}
+//    	return elements;
+//    }
+    
+    /**
+     * 
+     * @param assigID
+     * @return WordListElement[] oder null
+     * @throws SQLException
+     */
+    public WordListElement loadWordListElementWithAssigID(Integer assigID) throws SQLException 
+    {
+    	PreparedStatement stmt = null;
+    	ResultSet res = null;
+    	WordListElement element = null;
+
+    	//TODO: soll das WordListElement mit der Assignation ID assigID zurückgeben
+    	try 
+    	{
+    		stmt = connection.prepareStatement("SELECT * FROM word_list_elements WHERE word_list_elements.assignation_id = " + assigID);
+    		res = stmt.executeQuery();
+    		
+    		while (res.next()) 
+    		{
+    			// id wird geladen
+    			int id = res.getInt("id");
+  
+    			// assigantion wird geladen
+    			TR_Assignation assignation = loadAssignation(assigID);
+     			
+    			// zu word_id passenden content laden
+    			int word_id = res.getInt("word_id");
+    			stmt = connection.prepareStatement("SELECT content FROM words WHERE id = " + word_id);
+        		res = stmt.executeQuery();
+        		String content = null;
+        		if (res.next()) {
+        			content = res.getString("content");
+        		}
+        		
+        		// wordListElement wird erstellt
+        		element = new WordListElement(content);
+    			element.setAssignation(assignation);
+    			element.setDB_ID(key, id);
+    			element.resetState(key);
+    		}
     	}
+    	catch ( SQLException e ) {
+    		e.printStackTrace();
+    	}
+    	return element;
+    }
     
     
 	/**

@@ -50,7 +50,6 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Renominalisation;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Renominalisations;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.SememeGroup;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Sign;
-import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DialogSpeakerChange;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Thema_DB;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Token;

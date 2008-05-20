@@ -9,7 +9,7 @@ import java.io.Serializable;
  * und die Description gespeichert. Description kann einen der drei Werte 
  * Vorfeld, Bruecke oder Nachfeld beinhalten.
  */
-public class DialogCosmology implements Serializable, CommentOwner 
+public class DialogCosmology implements Serializable
 {
 	private static final long serialVersionUID = 6534135368830250747L;
 	private Dialog dialog;
@@ -78,13 +78,5 @@ public class DialogCosmology implements Serializable, CommentOwner
 	
 	public String getDescription() {
 		return description;
-	}
-
-	public int getClassCode() {
-		return Comments.CLASS_CODE_DIALOG_COSMOLOGIES;
-	}
-
-	public int getDB_ID() {
-		return dialog.getDB_ID();
 	}
 }

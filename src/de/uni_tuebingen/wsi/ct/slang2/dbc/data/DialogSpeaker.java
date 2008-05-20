@@ -52,7 +52,7 @@ public class DialogSpeaker extends DB_Element implements Serializable, Cloneable
 		this.value = value;
 	}
 	
-	public void addIUIndex(int iuIndex) {
+	public void setIUIndex(int iuIndex) {
 		this.iuIndex = iuIndex;
 	}
 	
@@ -60,7 +60,7 @@ public class DialogSpeaker extends DB_Element implements Serializable, Cloneable
 		return iuIndex;
 	}
 	
-	public void setValue(int value) {
+	public void setIndex(int value) {
 		this.value = value;
 	}
 	

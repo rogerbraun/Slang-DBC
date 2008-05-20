@@ -12,13 +12,13 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
 public class DialogSpeakerChange extends DB_Element implements Serializable, Cloneable, CommentOwner
 {
 	private Chapter chapter;
-	private int row;
-	private int index;
+	private int iuIndex;
+	private String description;
 		
 	public DialogSpeakerChange() 
 	{
-		this.row = -1;
-		this.index = -1;
+		this.iuIndex = -1;
+		this.description = "";
 	}
 	
 	/**
@@ -26,41 +26,46 @@ public class DialogSpeakerChange extends DB_Element implements Serializable, Clo
 	 * @param key
 	 * @param id
 	 * @param chapter
-	 * @param index
-	 * @param row
+	 * @param description
+	 * @param iuIndex
 	 */
-	public DialogSpeakerChange(DBC_Key key, int id, Chapter chapter, int index, int row) 
+	public DialogSpeakerChange(DBC_Key key, int id, Chapter chapter, String description, int iuIndex) 
 	{
 		super(id);
 		key.unlock();
 		this.chapter = chapter;
-		this.row = row;
-		this.index = index;
+		this.iuIndex = iuIndex;
+		this.description = description;
 	}
 	
-	public DialogSpeakerChange(Chapter chapter, int index, int row)
+	public DialogSpeakerChange(Chapter chapter, String description, int iuIndex)
 	{
 		super(-1);
 		this.chapter = chapter;
-		this.row = row;
-		this.index = index;
+		this.iuIndex = iuIndex;
+		this.description = description;
 	}
 	
-	public void addRowIndex(int row) {
-		this.row = row;
+	public void setIUIndex(int iuindex) {
+		this.iuIndex = iuindex;
 	}
 	
-	public Integer getRowIndex() {
-		return row;
+	public Integer getIUIndex() {
+		return iuIndex;
 	}
 	
-	public void setIndex(int index) {
-		this.index = index;
+	public void setDescription(String description) {
+		this.description = description;
+	}
+	
+	public String getDescription ()
+	{
+		return description;
 	}
 	
 	@Override
 	public int getIndex() {
-		return this.index;
+		return -1;
 	}
 
 	public int getClassCode() {

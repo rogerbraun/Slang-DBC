@@ -1447,7 +1447,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				res.moveToInsertRow();
 				res.updateInt("chapter", chapter.getDB_ID());
 				res.updateInt("speaker", speaker.getIndex());
-				res.updateInt("location", speaker.getRowIndex());
+				res.updateInt("location", speaker.getIUIndex());
 			}
 
 			res.insertRow();
@@ -1457,7 +1457,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			res = stmt.executeQuery("SELECT id "
 					+ "FROM speakers WHERE chapter = "
 					+ chapter.getDB_ID() + " and `speaker` = "
-					+ speaker.getIndex() + " and location = " + speaker.getRowIndex());
+					+ speaker.getIndex() + " and location = " + speaker.getIUIndex());
 
 			if (res.next())
 				speaker.setDB_ID(key, res.getInt("id"));
@@ -1474,119 +1474,119 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		return speakers;
 	}
     
-    private void saveSpeakerChanges(Dialogs dialogs) throws Exception 
-    {
-		Vector scs = dialogs.getAllSpeakerChanges(key);
-		// Kapitel muss nicht gesetzt werden, da dies schon durch saveDialogs
-		// erledigt wurde;
-	
-		connection.setAutoCommit(false);
-		Statement stmt = connection
-		.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
-			ResultSet.CONCUR_UPDATABLE);
-		ResultSet res;
-	
-		for (int i = 0; i < scs.size(); i++) 
-		{
-		    DialogSpeakerChange sc = (DialogSpeakerChange) scs.get(i);
-	
-		    res = stmt.executeQuery("SELECT * "
-			    + "FROM speaker_changes "
-			    + "WHERE id = "
-			    + sc.getDB_ID());
-	
-		    if (res.next() && sc.getDB_ID() != -1) 
-		    {
-				if (sc.hasChanged()) 
-				{
-				    res.updateInt("dialog", sc.getDialog().getDB_ID());
-				    res.updateInt("speaker_change", sc.getSpeakerChange());
-				    res.updateInt("index", sc.getIndex());
-				    res.updateBoolean("accepted", sc.isAccepted());
-				    res.updateRow();
-				    sc.resetState(key);
-		
-				    Vector words = sc.getWords();
-				    Vector existingWords = new Vector();
-				    res = stmt.executeQuery("SELECT * FROM words_in_speaker_change "
-					    + "WHERE speaker_change = "
-					    + sc.getDB_ID());
-		
-				    // l�sche die W�rter, die nicht mehr im Sprecherwechsel vorkommen
-				    while (res.next()) 
-				    {
-						int wordID = res.getInt("word");
-						Word w = (Word) getElement(wordID, words);
-						if (w == null) {
-						    res.deleteRow();
-						}
-						else {
-						    existingWords.add(w);
-						}
-				    }
-		
-				    for (int j = 0; j < words.size(); j++) 
-				    {
-						Word w = (Word) words.get(j);
-						if (!existingWords.contains(w)) 
-						{
-						    res.moveToInsertRow();
-						    res.updateInt("speaker_change", sc.getDB_ID());
-						    res.updateInt("word", w.getDB_ID());
-						    res.insertRow();
-						}
-				    }
-				}
-				else if (sc.isRemoved()) {
-				    res.deleteRow();
-				}
-		    }
-	
-		    else if (!sc.isRemoved() && sc.getDB_ID() == -1) 
-		    {
-				res.moveToInsertRow();
-				res.updateInt("dialog", sc.getDialog().getDB_ID());
-				res.updateInt("speaker_change", sc.getSpeakerChange());
-				res.updateInt("index", sc.getIndex());
-				res.updateBoolean("accepted", sc.isAccepted());
-				res.insertRow();
-				res.close();
-				sc.resetState(key);
-		
-				res = stmt.executeQuery("SELECT id "
-					+ "FROM speaker_changes WHERE dialog = "
-					+ sc.getDialog().getDB_ID()
-					+ " and `index` = "
-					+ sc.getIndex());
-		
-				if (res.next()) {
-				    sc.setDB_ID(key, res.getInt("id"));
-				}
-				else 
-				{
-				    throw new DBC_SaveException("Sprecherwechsel "
-					    + sc
-					    + "konnte nicht angelegt werden");
-				}
-		
-				res.close();
-				res = stmt.executeQuery("SELECT * FROM words_in_speaker_change");
-				Vector words = sc.getWords();
-				for (int j = 0; j < words.size(); j++) 
-				{
-				    Word w = (Word) words.get(j);
-				    res.moveToInsertRow();
-				    res.updateInt("speaker_change", sc.getDB_ID());
-				    res.updateInt("word", w.getDB_ID());
-				    res.insertRow();
-				}
-		    }
-		    res.close();
-		    connection.commit();
-		}
-		connection.setAutoCommit(true);
-		stmt.close();
-    }
+//    private void saveSpeakerChanges(Dialogs dialogs) throws Exception 
+//    {
+//		Vector scs = dialogs.getAllSpeakerChanges(key);
+//		// Kapitel muss nicht gesetzt werden, da dies schon durch saveDialogs
+//		// erledigt wurde;
+//	
+//		connection.setAutoCommit(false);
+//		Statement stmt = connection
+//		.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+//			ResultSet.CONCUR_UPDATABLE);
+//		ResultSet res;
+//	
+//		for (int i = 0; i < scs.size(); i++) 
+//		{
+//		    DialogSpeakerChange sc = (DialogSpeakerChange) scs.get(i);
+//	
+//		    res = stmt.executeQuery("SELECT * "
+//			    + "FROM speaker_changes "
+//			    + "WHERE id = "
+//			    + sc.getDB_ID());
+//	
+//		    if (res.next() && sc.getDB_ID() != -1) 
+//		    {
+//				if (sc.hasChanged()) 
+//				{
+//				    res.updateInt("dialog", sc.getDialog().getDB_ID());
+//				    res.updateInt("speaker_change", sc.getSpeakerChange());
+//				    res.updateInt("index", sc.getIndex());
+//				    res.updateBoolean("accepted", sc.isAccepted());
+//				    res.updateRow();
+//				    sc.resetState(key);
+//		
+//				    Vector words = sc.getWords();
+//				    Vector existingWords = new Vector();
+//				    res = stmt.executeQuery("SELECT * FROM words_in_speaker_change "
+//					    + "WHERE speaker_change = "
+//					    + sc.getDB_ID());
+//		
+//				    // l�sche die W�rter, die nicht mehr im Sprecherwechsel vorkommen
+//				    while (res.next()) 
+//				    {
+//						int wordID = res.getInt("word");
+//						Word w = (Word) getElement(wordID, words);
+//						if (w == null) {
+//						    res.deleteRow();
+//						}
+//						else {
+//						    existingWords.add(w);
+//						}
+//				    }
+//		
+//				    for (int j = 0; j < words.size(); j++) 
+//				    {
+//						Word w = (Word) words.get(j);
+//						if (!existingWords.contains(w)) 
+//						{
+//						    res.moveToInsertRow();
+//						    res.updateInt("speaker_change", sc.getDB_ID());
+//						    res.updateInt("word", w.getDB_ID());
+//						    res.insertRow();
+//						}
+//				    }
+//				}
+//				else if (sc.isRemoved()) {
+//				    res.deleteRow();
+//				}
+//		    }
+//	
+//		    else if (!sc.isRemoved() && sc.getDB_ID() == -1) 
+//		    {
+//				res.moveToInsertRow();
+//				res.updateInt("dialog", sc.getDialog().getDB_ID());
+//				res.updateInt("speaker_change", sc.getSpeakerChange());
+//				res.updateInt("index", sc.getIndex());
+//				res.updateBoolean("accepted", sc.isAccepted());
+//				res.insertRow();
+//				res.close();
+//				sc.resetState(key);
+//		
+//				res = stmt.executeQuery("SELECT id "
+//					+ "FROM speaker_changes WHERE dialog = "
+//					+ sc.getDialog().getDB_ID()
+//					+ " and `index` = "
+//					+ sc.getIndex());
+//		
+//				if (res.next()) {
+//				    sc.setDB_ID(key, res.getInt("id"));
+//				}
+//				else 
+//				{
+//				    throw new DBC_SaveException("Sprecherwechsel "
+//					    + sc
+//					    + "konnte nicht angelegt werden");
+//				}
+//		
+//				res.close();
+//				res = stmt.executeQuery("SELECT * FROM words_in_speaker_change");
+//				Vector words = sc.getWords();
+//				for (int j = 0; j < words.size(); j++) 
+//				{
+//				    Word w = (Word) words.get(j);
+//				    res.moveToInsertRow();
+//				    res.updateInt("speaker_change", sc.getDB_ID());
+//				    res.updateInt("word", w.getDB_ID());
+//				    res.insertRow();
+//				}
+//		    }
+//		    res.close();
+//		    connection.commit();
+//		}
+//		connection.setAutoCommit(true);
+//		stmt.close();
+//    }
 
 	public synchronized Dialogs loadDialogs(Integer chapterID) throws Exception 
 	{
@@ -1630,25 +1630,25 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			}
 		}
 
-		for (int i = 0; i < ds.size(); i++) {
-			Dialog dialog = (Dialog) ds.get(i);
-			res = stmt.executeQuery("SELECT * "
-					+ "FROM speaker_changes WHERE dialog = "
-					+ dialog.getDB_ID());
-
-			if (res.next()) {
-				DialogSpeakerChange sc = new DialogSpeakerChange(key, res.getInt("id"),
-						dialog, res.getInt("speaker_change"), res.getInt("index"), res.getBoolean("accepted"));
-
-				res = stmt.executeQuery("SELECT word FROM words_in_speaker_change "
-								+ "WHERE speaker_change = " + sc.getDB_ID());
-				while (res.next()) {
-					Word w = chapter.getWordWithID(res.getInt("word"));
-					sc.addWord(w);
-				}
-				sc.resetState(key);
-			}
-		}
+//		for (int i = 0; i < ds.size(); i++) {
+//			Dialog dialog = (Dialog) ds.get(i);
+//			res = stmt.executeQuery("SELECT * "
+//					+ "FROM speaker_changes WHERE dialog = "
+//					+ dialog.getDB_ID());
+//
+//			if (res.next()) {
+//				DialogSpeakerChange sc = new DialogSpeakerChange(key, res.getInt("id"),
+//						dialog, res.getInt("speaker_change"), res.getInt("index"), res.getBoolean("accepted"));
+//
+//				res = stmt.executeQuery("SELECT word FROM words_in_speaker_change "
+//								+ "WHERE speaker_change = " + sc.getDB_ID());
+//				while (res.next()) {
+//					Word w = chapter.getWordWithID(res.getInt("word"));
+//					sc.addWord(w);
+//				}
+//				sc.resetState(key);
+//			}
+//		}
 
 		for (int i = 0; i < ds.size(); i++) {
 			Dialog dialog = (Dialog) ds.get(i);

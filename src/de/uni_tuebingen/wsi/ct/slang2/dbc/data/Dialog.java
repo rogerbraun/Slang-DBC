@@ -123,28 +123,28 @@ public class Dialog extends DB_Element
       cosmologies = dialog.cosmologies;
    }
 
-   public DialogSpeakerChange addSpeakerChange(Vector words,
+   public OldDialogSpeakerChange addSpeakerChange(Vector words,
          int speakerChange,
          int index) {
-      DialogSpeakerChange sc = new DialogSpeakerChange(this, speakerChange, index);
+      OldDialogSpeakerChange sc = new OldDialogSpeakerChange(this, speakerChange, index);
       sc.addWords(words);
       speakerChanges.add(sc);
       allSpeakerChanges.add(sc);
       return sc;
    }
 
-   public DialogSpeakerChange getSpeakerChangeAtIndex(int index) {
+   public OldDialogSpeakerChange getSpeakerChangeAtIndex(int index) {
       for (int i = 0; i < speakerChanges.size(); i++) {
-         DialogSpeakerChange sc = (DialogSpeakerChange) speakerChanges.get(i);
+         OldDialogSpeakerChange sc = (OldDialogSpeakerChange) speakerChanges.get(i);
          if (sc.getIndex() == index)
             return sc;
       }
       return null;
    }
 
-   public DialogSpeakerChange getSpeakerChangeAtPosition(int position) {
+   public OldDialogSpeakerChange getSpeakerChangeAtPosition(int position) {
       for (int i = 0; i < speakerChanges.size(); i++) {
-         DialogSpeakerChange sc = (DialogSpeakerChange) speakerChanges.get(i);
+         OldDialogSpeakerChange sc = (OldDialogSpeakerChange) speakerChanges.get(i);
          if (sc.containsPosition(position))
             return sc;
       }
@@ -160,17 +160,17 @@ public class Dialog extends DB_Element
       return allSpeakerChanges;
    }
 
-   void delete(DialogSpeakerChange speakerchange) {
+   void delete(OldDialogSpeakerChange speakerchange) {
       speakerChanges.remove(speakerchange);
       allSpeakerChanges.remove(speakerchange);
    }
 
-   void add(DialogSpeakerChange speakerChange) {
+   void add(OldDialogSpeakerChange speakerChange) {
       speakerChanges.add(speakerChange);
       allSpeakerChanges.add(speakerChange);
    }
 
-   public void remove(DialogSpeakerChange speakerChange) {
+   public void remove(OldDialogSpeakerChange speakerChange) {
       speakerChanges.remove(speakerChange);
       speakerChange.changeState(REMOVE);
    }
@@ -936,7 +936,7 @@ public class Dialog extends DB_Element
       //followUp.setChapter(key, chapter);
 
       for (int i = 0; i < allSpeakerChanges.size(); i++) {
-         DialogSpeakerChange sc = (DialogSpeakerChange) allSpeakerChanges.get(i);
+         OldDialogSpeakerChange sc = (OldDialogSpeakerChange) allSpeakerChanges.get(i);
          sc.setChapter(key, chapter);
       }
    }
@@ -957,8 +957,8 @@ public class Dialog extends DB_Element
       super.updateIDs(key, d);
 
       for (int i = 0; i < speakerChanges.size(); i++) {
-         DialogSpeakerChange sc1 = (DialogSpeakerChange) speakerChanges.get(i);
-         DialogSpeakerChange sc2 = (DialogSpeakerChange) d.speakerChanges.get(i);
+         OldDialogSpeakerChange sc1 = (OldDialogSpeakerChange) speakerChanges.get(i);
+         OldDialogSpeakerChange sc2 = (OldDialogSpeakerChange) d.speakerChanges.get(i);
          sc1.updateIDs(key, sc2);
       }
    }
@@ -966,6 +966,6 @@ public class Dialog extends DB_Element
    void resetIDs() {
       super.resetIDs();
       for(int i = 0; i < speakerChanges.size(); i++)
-         ((DialogSpeakerChange)speakerChanges.get(i)).resetIDs();
+         ((OldDialogSpeakerChange)speakerChanges.get(i)).resetIDs();
    }
 }

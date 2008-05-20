@@ -18,8 +18,6 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.sun.corba.se.impl.ior.WireObjectKeyTemplate;
-
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Book;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Chapter;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.ChapterEditingTester;
@@ -52,7 +50,7 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Renominalisation;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Renominalisations;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.SememeGroup;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Sign;
-import de.uni_tuebingen.wsi.ct.slang2.dbc.data.SpeakerChange;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DialogSpeakerChange;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Thema_DB;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Token;
@@ -975,7 +973,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		    + ds.getDB_ID());
 
 	    if(res.next())
-		res.deleteRow();
+	    	res.deleteRow();
 
 	    //lösche alle ius_FROM_direct_speeches Einträge aus oldDss die bereits in der Datenbank gespeichert
 	    res = stmt.executeQuery("SELECT * "
@@ -984,8 +982,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		    + ds.getDB_ID());
 
 	    if(res.next())
-		res.deleteRow();
-
+	    	res.deleteRow();
 	}
 
 	// speichere alle aktuellen Direct Speeches des chapters
@@ -1491,7 +1488,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	
 		for (int i = 0; i < scs.size(); i++) 
 		{
-		    SpeakerChange sc = (SpeakerChange) scs.get(i);
+		    DialogSpeakerChange sc = (DialogSpeakerChange) scs.get(i);
 	
 		    res = stmt.executeQuery("SELECT * "
 			    + "FROM speaker_changes "
@@ -1640,7 +1637,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 					+ dialog.getDB_ID());
 
 			if (res.next()) {
-				SpeakerChange sc = new SpeakerChange(key, res.getInt("id"),
+				DialogSpeakerChange sc = new DialogSpeakerChange(key, res.getInt("id"),
 						dialog, res.getInt("speaker_change"), res.getInt("index"), res.getBoolean("accepted"));
 
 				res = stmt.executeQuery("SELECT word FROM words_in_speaker_change "

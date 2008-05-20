@@ -679,6 +679,11 @@ public class Chapter
          return null;
       }
    }
+   
+   public int getIndexOfIllocutionUnit(IllocutionUnit iu)
+   {
+	   return illocutionUnits.indexOf(iu);
+   }
 
    /**
     * Gibt die Äußerungseinheit zurück, die diese Zeichenposition beinhaltet

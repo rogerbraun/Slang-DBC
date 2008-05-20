@@ -17,7 +17,15 @@ public class DialogCosmology implements Serializable, CommentOwner
 	private int endIndex;
 	private String description;
 	
-	public DialogCosmology(Dialog dialog, int start, int end, String desc) {
+	/**
+	 * 
+	 * @param dialog
+	 * @param start IU Index
+	 * @param end IU Index
+	 * @param desc
+	 */
+	public DialogCosmology(Dialog dialog, int start, int end, String desc) 
+	{
 		this.dialog = dialog;
 		this.startIndex = start;
 		this.endIndex = end;
@@ -28,10 +36,18 @@ public class DialogCosmology implements Serializable, CommentOwner
 		this.dialog = dialog;
 	}
 	
+	/**
+	 * 
+	 * @param start IU Index
+	 */
 	public void setStartIndex(int start) {
 		this.startIndex = start;
 	}
 	
+	/**
+	 * 
+	 * @param end IU Index
+	 */
 	public void setEndIndex(int end) {
 		this.endIndex = end;
 	}
@@ -44,10 +60,18 @@ public class DialogCosmology implements Serializable, CommentOwner
 		return this.dialog;
 	}
 	
+	/**
+	 * 
+	 * @return first IU index
+	 */
 	public int getStartIndex() {
 		return startIndex;
 	}
 
+	/**
+	 * 
+	 * @return last IU index
+	 */
 	public int getEndIndex() {
 		return endIndex;
 	}

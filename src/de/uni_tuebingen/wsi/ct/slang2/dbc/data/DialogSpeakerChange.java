@@ -11,7 +11,7 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
  * @author Volker Klöbb
  * 
  */
-public class SpeakerChange extends DB_Element {
+public class DialogSpeakerChange extends DB_Element {
 
    /**
     * 
@@ -75,7 +75,7 @@ public class SpeakerChange extends DB_Element {
     * Konstruktor für die Datenbank. Nicht verwenden!
     * 
     */
-   public SpeakerChange(DBC_Key key,
+   public DialogSpeakerChange(DBC_Key key,
          int id,
          Dialog dialog,
          int speakerChange,
@@ -93,7 +93,7 @@ public class SpeakerChange extends DB_Element {
       dialog.add(this);
    }
 
-   SpeakerChange(Dialog dialog, int speakerChange, int index) {
+   DialogSpeakerChange(Dialog dialog, int speakerChange, int index) {
       super(-1);
       this.dialog = dialog;
       this.speakerChange = speakerChange;

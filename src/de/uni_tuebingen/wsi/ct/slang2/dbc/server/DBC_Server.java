@@ -1674,9 +1674,9 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 						
 		while (res.next()) 
 		{
-			DialogSpeaker speaker = new DialogSpeaker(key, res.getInt("id"), chapter, res.getInt("speaker"), 
-									   res.getInt("location"));
-			speakers.add(speaker);
+//			DialogSpeaker speaker = new DialogSpeaker(key, res.getInt("id"), chapter, res.getInt("speaker"), 
+//									   res.getInt("location"));
+//			speakers.add(speaker);
 		}
 		res.close();
 		stmt.close();

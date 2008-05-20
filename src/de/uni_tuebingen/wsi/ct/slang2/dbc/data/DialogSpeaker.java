@@ -1,6 +1,7 @@
 package de.uni_tuebingen.wsi.ct.slang2.dbc.data;
 
 import java.io.Serializable;
+import java.util.Vector;
 
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
 
@@ -13,12 +14,15 @@ public class DialogSpeaker extends DB_Element implements Serializable, Cloneable
 {
 	private Chapter chapter;
 	private int iuIndex;
-	private int value;
+	private Vector<Integer> speakers;
+	// entweder ein Akteur oder ein Kommunikationspartner (KP)
+	private String typ;
 		
 	public DialogSpeaker() 
 	{
 		this.iuIndex = -1;
-		this.value = -1;
+		this.speakers = new Vector<Integer>();
+		this.typ = "";
 	}
 	
 	/**
@@ -26,16 +30,18 @@ public class DialogSpeaker extends DB_Element implements Serializable, Cloneable
 	 * @param key
 	 * @param id
 	 * @param chapter
-	 * @param value
+	 * @param speakers
+	 * @param typ
 	 * @param iuIndex
 	 */
-	public DialogSpeaker(DBC_Key key, int id, Chapter chapter, int value, int iuIndex) 
+	public DialogSpeaker(DBC_Key key, int id, Chapter chapter, Vector<Integer> speakers, String typ, int iuIndex) 
 	{
 		super(id);
 		key.unlock();
 		this.chapter = chapter;
 		this.iuIndex = iuIndex;
-		this.value = value;
+		this.typ = typ;
+		this.speakers = speakers;
 	}
 	
 	/**
@@ -44,12 +50,13 @@ public class DialogSpeaker extends DB_Element implements Serializable, Cloneable
 	 * @param value
 	 * @param iuIndex
 	 */
-	public DialogSpeaker(Chapter chapter, int value, int iuIndex)
+	public DialogSpeaker(Chapter chapter, Vector<Integer> speakers, String typ, int iuIndex)
 	{
 		super(-1);
 		this.chapter = chapter;
 		this.iuIndex = iuIndex;
-		this.value = value;
+		this.typ = typ;
+		this.speakers = speakers;
 	}
 	
 	public void setIUIndex(int iuIndex) {
@@ -60,13 +67,28 @@ public class DialogSpeaker extends DB_Element implements Serializable, Cloneable
 		return iuIndex;
 	}
 	
-	public void setIndex(int value) {
-		this.value = value;
+	public void setSpeakers(Vector<Integer> speakers) {
+		this.speakers = speakers;
+	}
+	
+	public Vector<Integer> getSpeakers()
+	{
+		return speakers;
+	}
+	
+	public void setTyp(String typ)
+	{
+		this.typ = typ;
+	}
+	
+	public String getTyp()
+	{
+		return typ;
 	}
 	
 	@Override
 	public int getIndex() {
-		return this.value;
+		return -1;
 	}
 
 	public int getClassCode() {

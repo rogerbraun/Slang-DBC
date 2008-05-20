@@ -1,47 +1,62 @@
 package de.uni_tuebingen.wsi.ct.slang2.dbc.data;
 
 import java.io.Serializable;
+import java.util.Vector;
 
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
 
 public class DialogFaces extends DB_Element implements Serializable, Cloneable, CommentOwner
 {
 	private static final long serialVersionUID = 6534135368830250747L;
-	private int row;
-	private String typ;
-	private int speaker;
+	private int iuIndex;
+	private String description;
+	private Vector<Integer> speakers;
 	private Chapter chapter;
 	
-	public DialogFaces(DBC_Key key, int id, Chapter chapter, int index, int row) 
+	public DialogFaces (DBC_Key key, int id, Chapter chapter, String description, Vector<Integer> speakers, int iuIndex) 
 	{
 		super(id);
 		key.unlock();
 		this.chapter = chapter;
-		this.row = row;
-		this.typ = typ;
-		this.speaker = speaker;
+		this.iuIndex = iuIndex;
+		this.description = description;
+		this.speakers = speakers;
+	}
+	
+	public DialogFaces (Chapter chapter, int iuIndex, String description, Vector<Integer> speakers)
+	{
+		super(-1);
+		this.chapter = chapter;
+		this.iuIndex = iuIndex;
+		this.description = description;
+		this.speakers = speakers;
 	}
 		
-	public void setIndex(int row) {
-		this.row = row;
+	public void setIUIndex(int iuindex) {
+		this.iuIndex = iuindex;
 	}
 	
-	public void setTyp(String typ) {
-		this.typ = typ;
+	public Integer getIUIndex() {
+		return iuIndex;
 	}
 	
-	public void setSpeaker(int speaker)
+	public void setDescription(String description) {
+		this.description = description;
+	}
+	
+	public String getDescription() {
+		return this.description;
+	}
+	
+	
+	public void setSpeaker(Vector<Integer> speakers)
 	{
-		this.speaker = speaker;
+		this.speakers = speakers;
 	}
 	
-	public String getTyp() {
-		return typ;
-	}
-	
-	public int getSpeaker()
+	public Vector<Integer> getSpeakers()
 	{
-		return speaker;
+		return speakers;
 	}
 
 	public int getClassCode() {
@@ -50,7 +65,7 @@ public class DialogFaces extends DB_Element implements Serializable, Cloneable, 
 
 	@Override
 	public int getIndex() {
-		return row;
+		return -1;
 	}
 
 	@Override

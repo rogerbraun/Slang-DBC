@@ -1,6 +1,7 @@
 package de.uni_tuebingen.wsi.ct.slang2.dbc.data;
 
 import java.io.Serializable;
+import java.util.Vector;
 
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
 
@@ -9,18 +10,18 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
  * Der Index steht für einen bestimmten Sprecher. Ist der Sprecher über mehrere Zeilen
  * aktiv, wird die Start- bzw. Endzeile als Startindex und Endindex gespeichert.
  */
-public class DialogSpeakerChange extends DB_Element implements Serializable, Cloneable, CommentOwner
+public class DialogD_Themat extends DB_Element implements Serializable, Cloneable, CommentOwner
 {
 	private Chapter chapter;
 	private int iuIndex;
 	private String description;
-	private String typ;
+	private Vector<String> options;
 		
-	public DialogSpeakerChange() 
+	public DialogD_Themat() 
 	{
 		this.iuIndex = -1;
 		this.description = "";
-		this.typ = "";
+		this.options = new Vector<String>();
 	}
 	
 	/**
@@ -31,28 +32,28 @@ public class DialogSpeakerChange extends DB_Element implements Serializable, Clo
 	 * @param description
 	 * @param iuIndex
 	 */
-	public DialogSpeakerChange(DBC_Key key, 
+	public DialogD_Themat(DBC_Key key, 
 			int id, 
 			Chapter chapter, 
 			String description, 
 			int iuIndex, 
-			String typ) 
+			Vector<String> opt) 
 	{
 		super(id);
 		key.unlock();
 		this.chapter = chapter;
 		this.iuIndex = iuIndex;
 		this.description = description;
-		this.typ = typ;
+		this.options = opt;
 	}
 	
-	public DialogSpeakerChange(Chapter chapter, String description, int iuIndex, String typ)
+	public DialogD_Themat(Chapter chapter, String description, int iuIndex, Vector<String> opt)
 	{
 		super(-1);
 		this.chapter = chapter;
 		this.iuIndex = iuIndex;
 		this.description = description;
-		this.typ = typ;
+		this.options = opt;
 	}
 	
 	public void setIUIndex(int iuindex) {
@@ -72,9 +73,9 @@ public class DialogSpeakerChange extends DB_Element implements Serializable, Clo
 		return description;
 	}
 	
-	public String getTyp()
+	public Vector<String> getOptions()
 	{
-		return this.typ;
+		return this.options;
 	}
 	
 	@Override

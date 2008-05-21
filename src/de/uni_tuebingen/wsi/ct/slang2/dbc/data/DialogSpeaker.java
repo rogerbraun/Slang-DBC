@@ -1,6 +1,8 @@
 package de.uni_tuebingen.wsi.ct.slang2.dbc.data;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Vector;
 
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
@@ -10,18 +12,19 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
  * Der Index steht für einen bestimmten Sprecher. Ist der Sprecher über mehrere Zeilen
  * aktiv, wird die Start- bzw. Endzeile als Startindex und Endindex gespeichert.
  */
-public class DialogSpeaker extends DB_Element implements Serializable, Cloneable, CommentOwner
+public class DialogSpeaker extends DB_Element implements Serializable, Cloneable
 {
 	private Chapter chapter;
 	private int iuIndex;
-	private Vector<Integer> speakers;
+	// maping von AkteurNr auf AkteurNamen
+	private Map<Integer, String> speakers;
 	// entweder ein Akteur oder ein Kommunikationspartner (KP)
 	private String typ;
 		
 	public DialogSpeaker() 
 	{
 		this.iuIndex = -1;
-		this.speakers = new Vector<Integer>();
+		this.speakers = new HashMap<Integer, String>();
 		this.typ = "";
 	}
 	
@@ -34,7 +37,7 @@ public class DialogSpeaker extends DB_Element implements Serializable, Cloneable
 	 * @param typ
 	 * @param iuIndex
 	 */
-	public DialogSpeaker(DBC_Key key, int id, Chapter chapter, Vector<Integer> speakers, String typ, int iuIndex) 
+	public DialogSpeaker(DBC_Key key, int id, Chapter chapter, Map<Integer, String> speakers, String typ, int iuIndex) 
 	{
 		super(id);
 		key.unlock();
@@ -50,7 +53,7 @@ public class DialogSpeaker extends DB_Element implements Serializable, Cloneable
 	 * @param value
 	 * @param iuIndex
 	 */
-	public DialogSpeaker(Chapter chapter, Vector<Integer> speakers, String typ, int iuIndex)
+	public DialogSpeaker(Chapter chapter, Map<Integer, String> speakers, String typ, int iuIndex)
 	{
 		super(-1);
 		this.chapter = chapter;
@@ -67,11 +70,11 @@ public class DialogSpeaker extends DB_Element implements Serializable, Cloneable
 		return iuIndex;
 	}
 	
-	public void setSpeakers(Vector<Integer> speakers) {
+	public void setSpeakers(Map<Integer, String> speakers ) {
 		this.speakers = speakers;
 	}
 	
-	public Vector<Integer> getSpeakers()
+	public Map<Integer, String> getSpeakers()
 	{
 		return speakers;
 	}
@@ -89,10 +92,6 @@ public class DialogSpeaker extends DB_Element implements Serializable, Cloneable
 	@Override
 	public int getIndex() {
 		return -1;
-	}
-
-	public int getClassCode() {
-		return Comments.CLASS_CODE_DIALOG_SPEAKERS;
 	}
 
 	@Override

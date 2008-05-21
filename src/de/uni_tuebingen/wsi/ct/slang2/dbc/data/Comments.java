@@ -33,13 +33,15 @@ public class Comments
    public static final int   CLASS_CODE_DIALOG_COSMOLOGIES = 4;
    public static final int   CLASS_CODE_DIALOG_SPEAKERS = 5;
    public static final int   CLASS_CODE_DIALOG_Faces = 6;
+   
+   public static final String Dialog_ID = "dialog"; 
 
    /**
     * 
     */
    private static final long serialVersionUID           = -8239179091611699801L;
 
-   private Hashtable         comments;
+   private Hashtable comments;
 
    /**
     * Erstellt eine leere Kommentarsammlung.
@@ -92,12 +94,15 @@ public class Comments
     * @return Der Kommentar, oder null, falls es zu diesem Element unter dieser
     *         Programm-ID keinen Eintrag gibt.
     */
-   public String getComment(String programID, CommentOwner owner) {
+   public String getComment(String programID, CommentOwner owner) 
+   {
       CommentKey key = new CommentKey(programID, owner);
-      if (comments.containsKey(key)) {
+      if (comments.containsKey(key)) 
+      {
          Comment c = (Comment) comments.get(key);
-         if (!c.isRemoved())
+         if (!c.isRemoved()) {
             return c.getComment();
+         }
       }
       return null;
    }

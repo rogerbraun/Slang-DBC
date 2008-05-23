@@ -30,6 +30,7 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DB_Tupel;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Dialog;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DialogCosmology;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DialogSpeaker;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DialogSpeakerChange;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Dialogs;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DirectSpeech;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DirectSpeeches;
@@ -1587,6 +1588,67 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 //		stmt.close();
 //    }
 
+    
+  public void saveSpeakerChanges(Integer chapterID, ArrayList<DialogSpeakerChange> changes) throws Exception 
+  {
+		Chapter chapter = getChapter(chapterID);
+	  
+		connection.setAutoCommit(false);
+		Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+			ResultSet.CONCUR_UPDATABLE);
+		ResultSet res;
+		
+		// alle SpeakerChanges des Chapters werden gelöscht
+		stmt.execute("DELETE FROM `speaker_changes` WHERE chapter = " + chapter.getDB_ID());
+
+	
+		for (int i = 0; i < changes.size(); i++) 
+		{
+		    DialogSpeakerChange sc = (DialogSpeakerChange) changes.get(i);
+	
+		    res = stmt.executeQuery("SELECT * "
+				    + "FROM speaker_changes "
+				    + "WHERE id = " + sc.getDB_ID());
+			   
+	    	System.out.println("-------------.......qqqqqqqqq");
+	    	res.moveToInsertRow();
+	    	res.updateInt("chapter", chapter.getDB_ID());
+		    res.updateString("description", sc.getDescription());
+		    res.updateString("typ", sc.getTyp());
+		    res.updateInt("location", sc.getIUIndex());
+		    res.insertRow();
+			res.close();
+		    sc.resetState(key);	
+		    
+		    PreparedStatement preStmt = connection.prepareStatement("SELECT id "
+					+ "FROM speaker_changes WHERE " 
+					+ "chapter = " + chapter.getDB_ID()
+					+ " and description =  ? "  
+					+ " and typ =  ?"
+		    		+ " and location = " + sc.getIUIndex());
+				   
+		    
+		    preStmt.setString(1, sc.getDescription());
+		    preStmt.setString(2, sc.getTyp());
+		    res = preStmt.executeQuery();
+		    
+			if (res.next()) {
+			    sc.setDB_ID(key, res.getInt("id"));
+			}
+			else 
+			{
+			    throw new DBC_SaveException("Sprecherwechsel "
+				    + sc
+				    + "konnte nicht angelegt werden");
+			}
+		    			   
+		    res.close();
+		    connection.commit();
+		}
+		connection.setAutoCommit(true);
+		stmt.close();
+  	}
+    
 	public synchronized Dialogs loadDialogs(Integer chapterID) throws Exception 
 	{
 		Chapter chapter = getChapter(chapterID.intValue());

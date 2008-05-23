@@ -7,7 +7,6 @@ package de.uni_tuebingen.wsi.ct.slang2.dbc.client;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Vector;
@@ -19,6 +18,7 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DB_Element;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DB_Tupel;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Dialog;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DialogSpeaker;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DialogSpeakerChange;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Dialogs;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DirectSpeech;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DirectSpeeches;
@@ -328,6 +328,11 @@ public class DBC implements DBC_KeyAcceptor {
 		ArrayList<DialogSpeaker> answer = (ArrayList<DialogSpeaker>) connection.call(new Message(key,
 				"saveSpeakers", new Integer(chapter.getDB_ID()), oldSpeakers, speakers)).getArguments()[0];
 		//speaker.updateIDs(key, answer);
+	}
+	
+	public void saveSpeakerChanges(Chapter chapter, ArrayList<DialogSpeakerChange> changes) throws Exception 
+	{
+		connection.call(new Message(key, "saveSpeakerChanges", new Integer(chapter.getDB_ID()), changes));
 	}
 	
 	public ArrayList<DialogSpeaker> loadSpeakers(Chapter chapter)

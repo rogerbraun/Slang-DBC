@@ -14,6 +14,7 @@ public class DialogSpeakerChange extends DB_Element implements Serializable, Clo
 	private Chapter chapter;
 	private int iuIndex;
 	private String description;
+	// entweder SW1 oder SW2
 	private String typ;
 		
 	public DialogSpeakerChange() 

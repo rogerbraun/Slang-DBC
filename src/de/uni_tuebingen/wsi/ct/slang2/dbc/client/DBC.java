@@ -17,8 +17,13 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Comments;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DB_Element;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DB_Tupel;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Dialog;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DialogComment;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DialogD_Themat;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DialogFaces;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DialogISignal;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DialogSpeaker;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DialogSpeakerChange;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DialogTarget;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Dialogs;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DirectSpeech;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DirectSpeeches;
@@ -323,16 +328,41 @@ public class DBC implements DBC_KeyAcceptor {
 		return ds;
 	}
 
-	public void saveSpeakers(Chapter chapter, ArrayList<DialogSpeaker> oldSpeakers, ArrayList<DialogSpeaker> speakers)
+	public void saveSpeakers(Chapter chapter, ArrayList<DialogSpeaker> speakers)
 	throws Exception {
 		ArrayList<DialogSpeaker> answer = (ArrayList<DialogSpeaker>) connection.call(new Message(key,
-				"saveSpeakers", new Integer(chapter.getDB_ID()), oldSpeakers, speakers)).getArguments()[0];
+				"saveSpeakers", new Integer(chapter.getDB_ID()), speakers)).getArguments()[0];
 		//speaker.updateIDs(key, answer);
 	}
 	
 	public void saveSpeakerChanges(Chapter chapter, ArrayList<DialogSpeakerChange> changes) throws Exception 
 	{
 		connection.call(new Message(key, "saveSpeakerChanges", new Integer(chapter.getDB_ID()), changes));
+	}
+	
+	public void saveD_Themat(Chapter chapter, ArrayList<DialogD_Themat> themats) throws Exception 
+	{
+		connection.call(new Message(key, "saveD_Themat", new Integer(chapter.getDB_ID()), themats));
+	}
+	
+	public void saveFaces(Chapter chapter, ArrayList<DialogFaces> faces) throws Exception
+	{
+		connection.call(new Message(key, "saveFaces", new Integer(chapter.getDB_ID()), faces));
+	}
+	
+	public void saveTargets(Chapter chapter, ArrayList<DialogTarget> targets) throws Exception
+	{
+		connection.call(new Message(key, "saveTargets", new Integer(chapter.getDB_ID()), targets));
+	}
+	
+	public void saveISignals(Chapter chapter, ArrayList<DialogISignal> signals) throws Exception
+	{
+		connection.call(new Message(key, "saveISignals", new Integer(chapter.getDB_ID()), signals));
+	}
+	
+	public void saveComments(Chapter chapter, ArrayList<DialogComment> comments) throws Exception
+	{
+		connection.call(new Message(key, "saveComments", new Integer(chapter.getDB_ID()), comments));
 	}
 	
 	public ArrayList<DialogSpeaker> loadSpeakers(Chapter chapter)

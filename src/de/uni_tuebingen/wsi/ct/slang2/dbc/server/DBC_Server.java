@@ -28,9 +28,14 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Comments;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.ConstitutiveWord;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DB_Tupel;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Dialog;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DialogComment;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DialogCosmology;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DialogD_Themat;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DialogFaces;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DialogISignal;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DialogSpeaker;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DialogSpeakerChange;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DialogTarget;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Dialogs;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DirectSpeech;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DirectSpeeches;
@@ -1409,61 +1414,64 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     }
      */
     
-    public synchronized ArrayList<DialogSpeaker> saveSpeakers(Integer chapterID, ArrayList<DialogSpeaker> oldSpeakers, ArrayList<DialogSpeaker> newSpeakers)
+    /**
+     * Wird vom Dialogprogramm benutzt.
+     * Es werden alle Speakers in der DB gespeichert.
+     * Speaker können Akteure und Kp (Kommunikationspartner) sein, außerdem werden speaker bei der Face-Bestimmung festgelegt. 
+     */
+    public synchronized ArrayList<DialogSpeaker> saveSpeakers(Integer chapterID, ArrayList<DialogSpeaker> speakers)
 	throws Exception 
 	{
 		Chapter chapter = getChapter(chapterID.intValue());
-		ArrayList<DialogSpeaker> speakers = new ArrayList<DialogSpeaker>();
-//		for (int i=0; i != speakers.size(); ++i)
-//		{
-//			speakers.get(i).setChapter(key, chapter);
-//		}
-		
+
 		connection.setAutoCommit(false);
 		Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
 		ResultSet res;
 		
-		for (int i = 0; i < oldSpeakers.size(); i++) {
-			DialogSpeaker speaker = (DialogSpeaker) oldSpeakers.get(i);
-			
-			res = stmt.executeQuery("SELECT * " + "FROM speakers " + "WHERE id = " + speaker.getDB_ID());
-
-			if (res.next()) {
-				res.deleteRow();
-			}
-		}
+		// alle Speakers des Chapters werden gelöscht
+		stmt.execute("DELETE FROM speakers WHERE chapter = " + chapter.getDB_ID());
 		
-		
-		for (int i = 0; i < newSpeakers.size(); i++) 
+		for (int i = 0; i < speakers.size(); i++) 
 		{
-			DialogSpeaker speaker = (DialogSpeaker) newSpeakers.get(i);
+			DialogSpeaker speaker = (DialogSpeaker) speakers.get(i);
 
 			res = stmt.executeQuery("SELECT * " + "FROM speakers "
 					+ "WHERE id = " + speaker.getDB_ID());
 
-			if (speaker.getDB_ID() == -1) 
+			for (int speakerNr : speaker.getSpeakerMap().keySet()) 
 			{
+				String speakerName = speaker.getSpeakerMap().get(speakerNr);
 				res.moveToInsertRow();
 				res.updateInt("chapter", chapter.getDB_ID());
-				res.updateInt("speaker", speaker.getIndex());
+				res.updateString("speaker", speakerName);
+				res.updateString("typ", speaker.getTyp());
 				res.updateInt("location", speaker.getIUIndex());
+				res.insertRow();
 			}
-
-			res.insertRow();
 			res.close();
 			speaker.resetState(key);
 			
-			res = stmt.executeQuery("SELECT id "
-					+ "FROM speakers WHERE chapter = "
-					+ chapter.getDB_ID() + " and `speaker` = "
-					+ speaker.getIndex() + " and location = " + speaker.getIUIndex());
-
-			if (res.next())
-				speaker.setDB_ID(key, res.getInt("id"));
-			else
-				throw new DBC_SaveException("Direkte Rede " + speaker
-						+ "konnte nicht angelegt werden");
+			for (int speakerNr : speaker.getSpeakerMap().keySet()) 
+			{
+				String speakerName = speaker.getSpeakerMap().get(speakerNr);
+				 PreparedStatement preStmt = connection.prepareStatement("SELECT id "
+							+ "FROM speakers WHERE " 
+							+ "chapter = " + chapter.getDB_ID() 
+							+ " and `speaker` = ?"
+							+ " and typ = ?"
+							+ " and location = " + speaker.getIUIndex());
+						   
+				preStmt.setString(1, speakerName);
+				preStmt.setString(2, speaker.getTyp());
+				res = preStmt.executeQuery();
+				
+				if (res.next())
+					speaker.setDB_ID(key, res.getInt("id"));
+				else
+					throw new DBC_SaveException("Speaker " + speaker
+							+ "konnte nicht angelegt werden");
+			}
 
 			res.close();
 		}
@@ -1610,7 +1618,6 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				    + "FROM speaker_changes "
 				    + "WHERE id = " + sc.getDB_ID());
 			   
-	    	System.out.println("-------------.......qqqqqqqqq");
 	    	res.moveToInsertRow();
 	    	res.updateInt("chapter", chapter.getDB_ID());
 		    res.updateString("description", sc.getDescription());
@@ -1642,6 +1649,316 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				    + "konnte nicht angelegt werden");
 			}
 		    			   
+		    res.close();
+		    connection.commit();
+		}
+		connection.setAutoCommit(true);
+		stmt.close();
+  	}
+  
+  	public void saveD_Themat(Integer chapterID, ArrayList<DialogD_Themat> themats) throws Exception 
+  	{
+		Chapter chapter = getChapter(chapterID);
+	  
+		connection.setAutoCommit(false);
+		Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+			ResultSet.CONCUR_UPDATABLE);
+		ResultSet res;
+		
+		// alle SpeakerChanges des Chapters werden gelöscht
+		stmt.execute("DELETE FROM `d_themat` WHERE chapter = " + chapter.getDB_ID());
+
+	
+		for (int i = 0; i < themats.size(); i++) 
+		{
+		    DialogD_Themat dt = (DialogD_Themat) themats.get(i);
+	
+		    res = stmt.executeQuery("SELECT * "
+				    + "FROM d_themat "
+				    + "WHERE id = " + dt.getDB_ID());
+			   
+	    	res.moveToInsertRow();
+	    	res.updateInt("chapter", chapter.getDB_ID());
+		    res.updateString("description", dt.getDescription());
+		    res.updateInt("location", dt.getIUIndex());
+		    res.insertRow();
+			res.close();
+		    dt.resetState(key);	
+		    
+		    PreparedStatement preStmt = connection.prepareStatement("SELECT id "
+					+ "FROM d_themat WHERE " 
+					+ "chapter = " + chapter.getDB_ID()
+					+ " and description =  ? "  
+					+ " and location = " + dt.getIUIndex());
+				   
+		    
+		    preStmt.setString(1, dt.getDescription());
+		    res = preStmt.executeQuery();
+		    
+			if (res.next()) 
+			{
+			    dt.setDB_ID(key, res.getInt("id"));
+			    
+			    // save options
+			    if (dt.getOptions().size() != 0)
+			    {
+				    res = stmt.executeQuery("SELECT * "
+						    + "FROM options_of_d_themat ");
+					
+					res.moveToInsertRow();
+			    	res.updateInt("d_themat", dt.getDB_ID());	    	
+			    	res.updateBoolean("agree", dt.isAgree());
+			    	res.updateBoolean("disagree", dt.isDisagree());	    	
+			    	res.updateBoolean("obey", dt.isObey());
+			    	res.updateBoolean("refuse", dt.isRefuse());
+			    	res.updateBoolean("accept", dt.isAccept());
+			    	res.updateBoolean("reject", dt.isReject());	    	
+			    	res.updateBoolean("approve", dt.isApprove());
+			    	res.updateBoolean("disapprove", dt.isDisapprove());
+			    	res.insertRow();
+					res.close();
+					dt.resetState(key);
+			    }
+			}
+			else 
+			{
+			    throw new DBC_SaveException("d_thematisch Eintrag "
+				    + dt
+				    + "konnte nicht angelegt werden");
+			}
+			
+		    res.close();
+		    connection.commit();
+		}
+		connection.setAutoCommit(true);
+		stmt.close();
+  	}
+  	
+  	/**
+  	 * Wird vom Dialogprogramm benutzt
+  	 * Es werden die Faces in der DB gespeichert. 
+  	 * Die zu den Faces zugehörigen Speakers müssen separat mit saveSpeakers gespeichert werden.
+  	 * @param chapterID
+  	 * @param faces
+  	 * @return
+  	 * @throws Exception
+  	 */
+  	public synchronized void saveFaces (Integer chapterID, ArrayList<DialogFaces> faces)
+	throws Exception 
+	{
+		Chapter chapter = getChapter(chapterID.intValue());
+
+		connection.setAutoCommit(false);
+		Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+
+		ResultSet res;
+		
+		// alle Speakers des Chapters werden gelöscht
+		stmt.execute("DELETE FROM faces WHERE chapter = " + chapter.getDB_ID());
+		
+		for (int i = 0; i < faces.size(); i++) 
+		{
+			DialogFaces face = (DialogFaces) faces.get(i);
+
+			res = stmt.executeQuery("SELECT * " + "FROM faces "
+					+ "WHERE id = " + face.getDB_ID());
+			
+			res.moveToInsertRow();
+			res.updateInt("chapter", chapter.getDB_ID());
+			res.updateString("description", face.getDescription());
+			res.updateInt("location", face.getIUIndex());
+			res.insertRow();
+			res.close();
+			face.resetState(key);
+			
+			 PreparedStatement preStmt = connection.prepareStatement("SELECT id "
+						+ "FROM faces WHERE " 
+						+ "chapter = " + chapter.getDB_ID() 
+						+ " and `description` = ?"
+						+ " and location = " + face.getIUIndex());
+					   
+			preStmt.setString(1, face.getDescription());
+			res = preStmt.executeQuery();
+			
+			if (res.next())
+				face.setDB_ID(key, res.getInt("id"));
+			else {
+				throw new DBC_SaveException("Face " + face
+						+ "konnte nicht angelegt werden");
+			}
+
+			res.close();
+		}
+		connection.commit();
+		connection.setAutoCommit(true);
+		stmt.close();
+	}
+  	
+  	
+  	public void saveTargets(Integer chapterID, ArrayList<DialogTarget> targets) throws Exception 
+  	{
+		Chapter chapter = getChapter(chapterID);
+	  
+		connection.setAutoCommit(false);
+		Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+			ResultSet.CONCUR_UPDATABLE);
+		ResultSet res;
+		
+		// alle SpeakerChanges des Chapters werden gelöscht
+		stmt.execute("DELETE FROM `targets` WHERE chapter = " + chapter.getDB_ID());
+
+	
+		for (int i = 0; i < targets.size(); i++) 
+		{
+		    DialogTarget dt = (DialogTarget) targets.get(i);
+	
+		    res = stmt.executeQuery("SELECT * "
+				    + "FROM targets "
+				    + "WHERE id = " + dt.getDB_ID());
+			   
+	    	res.moveToInsertRow();
+	    	res.updateInt("chapter", chapter.getDB_ID());
+		    res.updateString("description", dt.getDescription());
+		    res.updateInt("targetNr", dt.getTargetNr());
+		    res.updateString("target", dt.getTarget());
+		    res.updateInt("location", dt.getIUIndex());
+		    res.insertRow();
+			res.close();
+		    dt.resetState(key);	
+		    
+		    PreparedStatement preStmt = connection.prepareStatement("SELECT id "
+					+ "FROM targets WHERE " 
+					+ "chapter = " + chapter.getDB_ID()
+					+ " and description =  ? "
+					+ " and targetNr =  " + dt.getTargetNr() 
+					+ " and target =  ? "
+					+ " and location = " + dt.getIUIndex());
+				   
+		    
+		    preStmt.setString(1, dt.getDescription());
+		    preStmt.setString(2, dt.getTarget());
+		    
+		    res = preStmt.executeQuery();
+		    
+			if (res.next()) {
+			    dt.setDB_ID(key, res.getInt("id"));
+			}
+			else 
+			{
+			    throw new DBC_SaveException("Target "
+				    + dt
+				    + "konnte nicht angelegt werden");
+			}
+			
+		    res.close();
+		    connection.commit();
+		}
+		connection.setAutoCommit(true);
+		stmt.close();
+  	}
+  	
+  	public void saveISignals(Integer chapterID, ArrayList<DialogISignal> signals) throws Exception 
+  	{
+		Chapter chapter = getChapter(chapterID);
+	  
+		connection.setAutoCommit(false);
+		Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+			ResultSet.CONCUR_UPDATABLE);
+		ResultSet res;
+		
+		// alle SpeakerChanges des Chapters werden gelöscht
+		stmt.execute("DELETE FROM `i_signals` WHERE chapter = " + chapter.getDB_ID());
+
+	
+		for (int i = 0; i < signals.size(); i++) 
+		{
+		    DialogISignal sig = (DialogISignal) signals.get(i);
+	
+		    res = stmt.executeQuery("SELECT * "
+				    + "FROM i_signals "
+				    + "WHERE id = " + sig.getDB_ID());
+			   
+	    	res.moveToInsertRow();
+	    	res.updateInt("chapter", chapter.getDB_ID());
+		    res.updateBoolean("signal", sig.getSignal());
+		    res.updateInt("location", sig.getIUIndex());
+		    res.insertRow();
+			res.close();
+		    sig.resetState(key);	
+		    
+		    PreparedStatement preStmt = connection.prepareStatement("SELECT id "
+					+ "FROM i_signals WHERE " 
+					+ "chapter = " + chapter.getDB_ID()
+					+ " and signal =  " + sig.getSignal()
+					+ " and location = " + sig.getIUIndex());
+				   
+		    res = preStmt.executeQuery();
+		    
+			if (res.next()) {
+			    sig.setDB_ID(key, res.getInt("id"));
+			}
+			else 
+			{
+			    throw new DBC_SaveException("I_Signal "
+				    + sig
+				    + "konnte nicht angelegt werden");
+			}
+			
+		    res.close();
+		    connection.commit();
+		}
+		connection.setAutoCommit(true);
+		stmt.close();
+  	}
+  	
+  	public void saveComments(Integer chapterID, ArrayList<DialogComment> comments) throws Exception 
+  	{
+		Chapter chapter = getChapter(chapterID);
+	  
+		connection.setAutoCommit(false);
+		Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+			ResultSet.CONCUR_UPDATABLE);
+		ResultSet res;
+		
+		// alle SpeakerChanges des Chapters werden gelöscht
+		stmt.execute("DELETE FROM `comments` WHERE chapter = " + chapter.getDB_ID());
+
+	
+		for (int i = 0; i < comments.size(); i++) 
+		{
+		    DialogComment com = (DialogComment) comments.get(i);
+	
+		    res = stmt.executeQuery("SELECT * "
+				    + "FROM comments "
+				    + "WHERE id = " + com.getDB_ID());
+			   
+	    	res.moveToInsertRow();
+	    	res.updateInt("chapter", chapter.getDB_ID());
+		    res.updateString("comment", com.getComment());
+		    res.updateInt("location", com.getIUIndex());
+		    res.insertRow();
+			res.close();
+		    com.resetState(key);	
+		    
+		    PreparedStatement preStmt = connection.prepareStatement("SELECT id "
+					+ "FROM comments WHERE " 
+					+ "chapter = " + chapter.getDB_ID()
+					+ " and comment =  ?"
+					+ " and location = " + com.getIUIndex());
+				   
+		    preStmt.setString(1, com.getComment());
+		    res = preStmt.executeQuery();
+		    
+			if (res.next()) {
+			    com.setDB_ID(key, res.getInt("id"));
+			}
+			else 
+			{
+			    throw new DBC_SaveException("Comment "
+				    + com
+				    + "konnte nicht angelegt werden");
+			}
+			
 		    res.close();
 		    connection.commit();
 		}

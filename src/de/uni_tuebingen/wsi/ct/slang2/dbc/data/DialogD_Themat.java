@@ -15,12 +15,29 @@ public class DialogD_Themat extends DB_Element implements Serializable, Cloneabl
 	private Chapter chapter;
 	private int iuIndex;
 	private String description;
+	private boolean agree;
+	private boolean disagree;
+	private boolean obey;
+	private boolean refuse;
+	private boolean accept;
+	private boolean reject;
+	private boolean approve;
+	private boolean disapprove;
+	
 	private Vector<String> options;
 		
 	public DialogD_Themat() 
 	{
 		this.iuIndex = -1;
 		this.description = "";
+		agree 	   = false;
+		disagree   = false;
+		obey 	   = false;
+		refuse     = false;
+		accept     = false;
+		reject     = false;
+		approve    = false;
+		disapprove = false;
 		this.options = new Vector<String>();
 	}
 	
@@ -37,23 +54,93 @@ public class DialogD_Themat extends DB_Element implements Serializable, Cloneabl
 			Chapter chapter, 
 			String description, 
 			int iuIndex, 
-			Vector<String> opt) 
+			Vector<String> options) 
 	{
 		super(id);
 		key.unlock();
 		this.chapter = chapter;
 		this.iuIndex = iuIndex;
 		this.description = description;
-		this.options = opt;
+		agree 	   = false;
+		disagree   = false;
+		obey 	   = false;
+		refuse     = false;
+		accept     = false;
+		reject     = false;
+		approve    = false;
+		disapprove = false;
+				
+		for (String opt : options) 
+		{
+			if (opt.equals("agree")) {
+				agree = true;
+			}
+			else if (opt.equals("disagree")) {
+				disagree = true;
+			}
+			else if (opt.equals("obey")) {
+				obey = true;
+			}
+			else if (opt.equals("refuse")) {
+				refuse = true;
+			}
+			else if (opt.equals("accept")) {
+				accept = true;
+			}
+			else if (opt.equals("reject")) {
+				reject = true;
+			}
+			else if (opt.equals("approve")) {
+				approve = true;
+			}
+			else if (opt.equals("disapprove")) {
+				disapprove = true;
+			}
+		}
 	}
 	
-	public DialogD_Themat(Chapter chapter, String description, int iuIndex, Vector<String> opt)
+	public DialogD_Themat(Chapter chapter, String description, int iuIndex, Vector<String> options)
 	{
 		super(-1);
 		this.chapter = chapter;
 		this.iuIndex = iuIndex;
 		this.description = description;
-		this.options = opt;
+		agree 	   = false;
+		disagree   = false;
+		obey 	   = false;
+		refuse     = false;
+		accept     = false;
+		reject     = false;
+		approve    = false;
+		disapprove = false;
+				
+		for (String opt : options) 
+		{
+			if (opt.equals("agree")) {
+				agree = true;
+			}
+			else if (opt.equals("disagree")) {
+				disagree = true;
+			}
+			else if (opt.equals("obey")) {
+				obey = true;
+			}
+			else if (opt.equals("refuse")) {
+				refuse = true;
+			}
+			else if (opt.equals("accept")) {
+				accept = true;
+			}
+			else if (opt.equals("reject")) {
+				reject = true;
+			}
+			else if (opt.equals("approve")) {
+				approve = true;
+			}
+			else if (opt.equals("disapprove")) {
+				disapprove = true;
+			}
+		}
 	}
 	
 	public void setIUIndex(int iuindex) {
@@ -75,7 +162,47 @@ public class DialogD_Themat extends DB_Element implements Serializable, Cloneabl
 	
 	public Vector<String> getOptions()
 	{
-		return this.options;
+		return options;
+	}
+	
+	public boolean isAgree()
+	{
+		return this.agree;
+	}
+	
+	public boolean isDisagree()
+	{
+		return this.disagree;
+	}
+	
+	public boolean isObey()
+	{
+		return this.obey;
+	}
+	
+	public boolean isRefuse()
+	{
+		return this.refuse;
+	}
+	
+	public boolean isAccept()
+	{
+		return this.accept;
+	}
+	
+	public boolean isReject()
+	{
+		return this.reject;
+	}
+	
+	public boolean isApprove()
+	{
+		return this.approve;
+	}
+	
+	public boolean isDisapprove()
+	{
+		return this.disapprove;
 	}
 	
 	@Override

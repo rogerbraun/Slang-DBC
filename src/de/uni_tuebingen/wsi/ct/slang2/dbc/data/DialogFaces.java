@@ -1,7 +1,6 @@
 package de.uni_tuebingen.wsi.ct.slang2.dbc.data;
 
 import java.io.Serializable;
-import java.util.Vector;
 
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
 
@@ -10,10 +9,10 @@ public class DialogFaces extends DB_Element implements Serializable, Cloneable, 
 	private static final long serialVersionUID = 6534135368830250747L;
 	private int iuIndex;
 	private String description;
-	private Vector<Integer> speakers;
+	private DialogSpeaker speakers;
 	private Chapter chapter;
 	
-	public DialogFaces (DBC_Key key, int id, Chapter chapter, String description, Vector<Integer> speakers, int iuIndex) 
+	public DialogFaces (DBC_Key key, int id, Chapter chapter, String description, DialogSpeaker speakers, int iuIndex) 
 	{
 		super(id);
 		key.unlock();
@@ -23,7 +22,7 @@ public class DialogFaces extends DB_Element implements Serializable, Cloneable, 
 		this.speakers = speakers;
 	}
 	
-	public DialogFaces (Chapter chapter, int iuIndex, String description, Vector<Integer> speakers)
+	public DialogFaces (Chapter chapter, int iuIndex, String description, DialogSpeaker speakers)
 	{
 		super(-1);
 		this.chapter = chapter;
@@ -49,12 +48,12 @@ public class DialogFaces extends DB_Element implements Serializable, Cloneable, 
 	}
 	
 	
-	public void setSpeaker(Vector<Integer> speakers)
+	public void setSpeaker(DialogSpeaker speakers)
 	{
 		this.speakers = speakers;
 	}
 	
-	public Vector<Integer> getSpeakers()
+	public DialogSpeaker getSpeakers()
 	{
 		return speakers;
 	}

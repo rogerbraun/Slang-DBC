@@ -74,7 +74,7 @@ public class DialogSpeaker extends DB_Element implements Serializable, Cloneable
 		this.speakers = speakers;
 	}
 	
-	public Map<Integer, String> getSpeakers()
+	public Map<Integer, String> getSpeakerMap()
 	{
 		return speakers;
 	}

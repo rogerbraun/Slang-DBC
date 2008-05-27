@@ -33,7 +33,6 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Pattern;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.PronounComplex;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Relation;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Renominalisations;
-import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Thema_DB;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Word;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.WordListElement;
@@ -365,9 +364,10 @@ public class DBC implements DBC_KeyAcceptor {
 		connection.call(new Message(key, "saveComments", new Integer(chapter.getDB_ID()), comments));
 	}
 	
-	public ArrayList<DialogSpeaker> loadSpeakers(Chapter chapter)
-	throws Exception {
-		Message answer = connection.call(new Message(key, "loadSpeakers", new Integer(chapter.getDB_ID())));
+	public ArrayList<DialogSpeaker> loadSpeakers(Chapter chapter, String typ)
+	throws Exception 
+	{
+		Message answer = connection.call(new Message(key, "loadSpeakers", new Integer(chapter.getDB_ID()), typ));
 		ArrayList<DialogSpeaker> speakers = (ArrayList<DialogSpeaker>) answer.getArguments()[0];
 		for (int i=0; i != speakers.size(); ++i)
 		{
@@ -375,6 +375,78 @@ public class DBC implements DBC_KeyAcceptor {
 			speaker.setChapter(key, chapter);
 		}
 		return speakers;
+	}
+	
+	public synchronized ArrayList<DialogSpeakerChange> loadSpeakerChanges (Chapter chapter, String typ) throws Exception 
+	{
+		Message answer = connection.call(new Message(key, "loadSpeakerChanges", new Integer(chapter.getDB_ID()), typ));
+		ArrayList<DialogSpeakerChange> changes = (ArrayList<DialogSpeakerChange>) answer.getArguments()[0];
+		for (int i=0; i != changes.size(); ++i)
+		{
+			DialogSpeakerChange change = changes.get(i);
+			change.setChapter(key, chapter);
+		}
+		return changes;
+	}
+	
+	public synchronized ArrayList<DialogD_Themat> loadD_Themat (Chapter chapter) throws Exception
+	{
+		Message answer = connection.call(new Message(key, "loadD_Themat", new Integer(chapter.getDB_ID())));
+		ArrayList<DialogD_Themat> d_themas = (ArrayList<DialogD_Themat>) answer.getArguments()[0];
+		for (int i=0; i != d_themas.size(); ++i)
+		{
+			DialogD_Themat d_thema = d_themas.get(i);
+			d_thema.setChapter(key, chapter);
+		}
+		return d_themas;
+	}
+	
+	public synchronized ArrayList<DialogFaces> loadFaces (Chapter chapter) throws Exception 
+	{
+		Message answer = connection.call(new Message(key, "loadFaces", new Integer(chapter.getDB_ID())));
+		ArrayList<DialogFaces> faces = (ArrayList<DialogFaces>) answer.getArguments()[0];
+		for (int i=0; i != faces.size(); ++i)
+		{
+			DialogFaces face = faces.get(i);
+			face.setChapter(key, chapter);
+		}
+		return faces;
+	}
+	
+	public synchronized ArrayList<DialogTarget> loadTargets (Chapter chapter) throws Exception 
+	{
+		Message answer = connection.call(new Message(key, "loadTargets", new Integer(chapter.getDB_ID())));
+		ArrayList<DialogTarget> targets = (ArrayList<DialogTarget>) answer.getArguments()[0];
+		for (int i=0; i != targets.size(); ++i)
+		{
+			DialogTarget target = targets.get(i);
+			target.setChapter(key, chapter);
+		}
+		return targets;
+	}
+	
+	public synchronized ArrayList<DialogISignal> loadISignals (Chapter chapter) throws Exception 
+	{
+		Message answer = connection.call(new Message(key, "loadISignals", new Integer(chapter.getDB_ID())));
+		ArrayList<DialogISignal> signals = (ArrayList<DialogISignal>) answer.getArguments()[0];
+		for (int i=0; i != signals.size(); ++i)
+		{
+			DialogISignal signal = signals.get(i);
+			signal.setChapter(key, chapter);
+		}
+		return signals;
+	}
+	
+	public synchronized ArrayList<DialogComment> loadComments (Chapter chapter) throws Exception
+	{
+		Message answer = connection.call(new Message(key, "loadComments", new Integer(chapter.getDB_ID())));
+		ArrayList<DialogComment> comments = (ArrayList<DialogComment>) answer.getArguments()[0];
+		for (int i=0; i != comments.size(); ++i)
+		{
+			DialogComment comment = comments.get(i);
+			comment.setChapter(key, chapter);
+		}
+		return comments;
 	}
 	
 	/**
@@ -1146,7 +1218,6 @@ public class DBC implements DBC_KeyAcceptor {
 	public Vector loadWordClasses(Vector contents)
 	throws Exception {
 		//key.unlock();
-		System.out.println(contents);
 		Vector answer = (Vector) connection.call(new Message(key, "loadWordClasses", contents))
 		.getArguments()[0];
 		return answer;

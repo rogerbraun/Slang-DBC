@@ -61,6 +61,7 @@ public class DialogD_Themat extends DB_Element implements Serializable, Cloneabl
 		this.chapter = chapter;
 		this.iuIndex = iuIndex;
 		this.description = description;
+		this.options = options;
 		agree 	   = false;
 		disagree   = false;
 		obey 	   = false;
@@ -105,6 +106,7 @@ public class DialogD_Themat extends DB_Element implements Serializable, Cloneabl
 		this.chapter = chapter;
 		this.iuIndex = iuIndex;
 		this.description = description;
+		this.options = options;
 		agree 	   = false;
 		disagree   = false;
 		obey 	   = false;

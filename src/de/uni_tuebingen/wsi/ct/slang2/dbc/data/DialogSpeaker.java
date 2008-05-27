@@ -3,7 +3,6 @@ package de.uni_tuebingen.wsi.ct.slang2.dbc.data;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Vector;
 
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
 
@@ -14,6 +13,10 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
  */
 public class DialogSpeaker extends DB_Element implements Serializable, Cloneable
 {
+	public static final String ACTOR_TYP = "akteur";
+	public static final String KP_TYP = "kp";
+	public static final String FACE_TYP = "face";
+	
 	private Chapter chapter;
 	private int iuIndex;
 	// maping von AkteurNr auf AkteurNamen

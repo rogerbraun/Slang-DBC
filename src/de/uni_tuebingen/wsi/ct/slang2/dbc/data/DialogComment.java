@@ -8,22 +8,25 @@ public class DialogComment extends DB_Element implements Serializable, Cloneable
 {
 	private int iuIndex;
 	private String comment;
+	private int commentNr;
 	private Chapter chapter;
 	
-	public DialogComment (DBC_Key key, int id, Chapter chapter, String comment, int iuIndex) 
+	public DialogComment (DBC_Key key, int id, Chapter chapter, String comment, int commentNr,  int iuIndex) 
 	{
 		super(id);
 		key.unlock();
 		this.chapter = chapter;
 		this.iuIndex = iuIndex;
+		this.commentNr = commentNr;
 		this.comment = comment;
 	}
 	
-	public DialogComment (Chapter chapter, int iuIndex, String comment)
+	public DialogComment (Chapter chapter, int iuIndex, String comment, int commentNr)
 	{
 		super(-1);
 		this.chapter = chapter;
 		this.iuIndex = iuIndex;
+		this.commentNr = commentNr;
 		this.comment = comment;
 	}
 		
@@ -41,6 +44,11 @@ public class DialogComment extends DB_Element implements Serializable, Cloneable
 	
 	public String getComment() {
 		return this.comment;
+	}
+	
+	public int getCommentNr()
+	{
+		return commentNr;
 	}
 
 	@Override

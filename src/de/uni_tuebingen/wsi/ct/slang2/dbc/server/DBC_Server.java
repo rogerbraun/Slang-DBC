@@ -14,6 +14,8 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -1444,6 +1446,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				String speakerName = speaker.getSpeakerMap().get(speakerNr);
 				res.moveToInsertRow();
 				res.updateInt("chapter", chapter.getDB_ID());
+				res.updateInt("speakerNr", speakerNr);
 				res.updateString("speaker", speakerName);
 				res.updateString("typ", speaker.getTyp());
 				res.updateInt("location", speaker.getIUIndex());
@@ -1458,12 +1461,14 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				 PreparedStatement preStmt = connection.prepareStatement("SELECT id "
 							+ "FROM speakers WHERE " 
 							+ "chapter = " + chapter.getDB_ID() 
+							+ " and speakerNr = " + speakerNr 
 							+ " and `speaker` = ?"
 							+ " and typ = ?"
 							+ " and location = " + speaker.getIUIndex());
 						   
 				preStmt.setString(1, speakerName);
 				preStmt.setString(2, speaker.getTyp());
+				
 				res = preStmt.executeQuery();
 				
 				if (res.next())
@@ -1935,6 +1940,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	    	res.moveToInsertRow();
 	    	res.updateInt("chapter", chapter.getDB_ID());
 		    res.updateString("comment", com.getComment());
+		    res.updateInt("commentNr", com.getCommentNr());
 		    res.updateInt("location", com.getIUIndex());
 		    res.insertRow();
 			res.close();
@@ -1944,6 +1950,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 					+ "FROM comments WHERE " 
 					+ "chapter = " + chapter.getDB_ID()
 					+ " and comment =  ?"
+					+ " and commentNr =  " + com.getCommentNr()
 					+ " and location = " + com.getIUIndex());
 				   
 		    preStmt.setString(1, com.getComment());
@@ -2004,7 +2011,6 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				res.getInt("end"), 
 				res.getString("description") );
 				dialog.setCosmology(cosmol);
-				logger.info("------Description------" + cosmol.getDescription());
 			}
 		}
 
@@ -2037,7 +2043,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		return dialogs;
 	}
 
-	public synchronized ArrayList<DialogSpeaker> loadSpeakers (Integer chapterID) throws Exception 
+	public synchronized ArrayList<DialogSpeaker> loadSpeakers (Integer chapterID, String typ) throws Exception 
 	{
 		Chapter chapter = getChapter(chapterID.intValue());
 
@@ -2046,21 +2052,242 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		Statement stmt = connection.createStatement();
 		ResultSet res;
 
-		// Grunddaten der Dialoge einlesen.
-		res = stmt.executeQuery("SELECT id, `speaker`, location "
-						+ "FROM speakers WHERE chapter = "
-						+ chapter.getDB_ID());
-						
-		while (res.next()) 
-		{
-//			DialogSpeaker speaker = new DialogSpeaker(key, res.getInt("id"), chapter, res.getInt("speaker"), 
-//									   res.getInt("location"));
-//			speakers.add(speaker);
-		}
+		PreparedStatement preStmt = connection.prepareStatement("SELECT * "
+					+ "FROM speakers WHERE " 
+					+ "chapter = " + chapter.getDB_ID()
+					+ " and typ = ?"
+					+ " ORDER BY `location` ASC ");
+				   
+		    
+	    preStmt.setString(1, typ);
+	    res = preStmt.executeQuery();
+		    
+	    if ( res.next() )
+	    {
+		    int location = res.getInt("location");
+			Map<Integer, String> map = new HashMap<Integer, String>();
+			map.put(res.getInt("speakerNr"), res.getString("speaker"));
+			
+			while ( res.next() ) 
+			{
+				if ( location == res.getInt("location") )
+				{
+					map.put(res.getInt("speakerNr"), res.getString("speaker"));
+				}
+				else
+				{
+					DialogSpeaker speaker = new DialogSpeaker(chapter, map, typ, location);
+				    speakers.add(speaker);
+				    location = res.getInt("location");
+					map = new HashMap<Integer, String>();
+					map.put(res.getInt("speakerNr"), res.getString("speaker"));
+				}
+			}
+			DialogSpeaker speaker = new DialogSpeaker(chapter, map, typ, location);
+		    speakers.add(speaker);
+	    }
 		res.close();
 		stmt.close();
 		return speakers;
 	}
+	
+	public synchronized ArrayList<DialogSpeakerChange> loadSpeakerChanges (Integer chapterID, String typ) throws Exception 
+	{
+		Chapter chapter = getChapter(chapterID.intValue());
+
+		ArrayList<DialogSpeakerChange> changes = new ArrayList<DialogSpeakerChange>();
+		
+		Statement stmt = connection.createStatement();
+		ResultSet res;
+
+		PreparedStatement preStmt = connection.prepareStatement("SELECT * "
+					+ "FROM speaker_changes WHERE " 
+					+ "chapter = " + chapter.getDB_ID()
+					+ " and typ = ?");
+		 preStmt.setString(1, typ);
+		 res = preStmt.executeQuery();			
+				    
+	    while ( res.next() )
+	    {
+		    DialogSpeakerChange change = new DialogSpeakerChange(chapter, res.getString("description"), res.getInt("location"), typ);
+		    changes.add(change);
+	    }
+		res.close();
+		stmt.close();
+		return changes;
+	}
+	
+	public synchronized ArrayList<DialogD_Themat> loadD_Themat (Integer chapterID) throws Exception 
+	{
+		Chapter chapter = getChapter(chapterID.intValue());
+
+		ArrayList<DialogD_Themat> d_themats = new ArrayList<DialogD_Themat>();
+		
+		Statement stmt = connection.createStatement();
+		ResultSet res, res2;
+
+		PreparedStatement preStmt = connection.prepareStatement("SELECT * "
+					+ "FROM d_themat WHERE " 
+					+ "chapter = " + chapter.getDB_ID());
+		  
+	    res = preStmt.executeQuery();
+		    
+	    while ( res.next() )
+	    {
+	    	PreparedStatement preStmt2 = connection.prepareStatement("SELECT * "
+					+ "FROM options_of_d_themat WHERE " 
+					+ "d_themat = " + res.getInt("id"));
+	    	
+	    	res2 = preStmt2.executeQuery();
+	    	Vector<String> options = new Vector<String>();
+	    	if (res2.next())
+	    	{
+	    		if (res2.getBoolean("agree")) {
+	    			options.add("agree");
+	    		}
+	    		if (res2.getBoolean("disagree")) {
+	    			options.add("disagree");
+	    		}
+	    		if (res2.getBoolean("obey")) {
+	    			options.add("obey");
+	    		}
+	    		if (res2.getBoolean("refuse")) {
+	    			options.add("refuse");
+	    		}
+	    		if (res2.getBoolean("accept")) {
+	    			options.add("accept");
+	    		}
+	    		if (res2.getBoolean("reject")) {
+	    			options.add("reject");
+	    		}
+	    		if (res2.getBoolean("approve")) {
+	    			options.add("approve");
+	    		}
+	    		if (res2.getBoolean("disapprove")) {
+	    			options.add("disapprove");
+	    		}		    	
+	    	}	    	
+		    DialogD_Themat d_themat = new DialogD_Themat(chapter, res.getString("description"), res.getInt("location"), options);
+		    d_themats.add(d_themat);
+	    }
+		res.close();
+		stmt.close();
+		return d_themats;
+	}
+	
+	
+	public synchronized ArrayList<DialogFaces> loadFaces (Integer chapterID) throws Exception 
+	{
+		Chapter chapter = getChapter(chapterID.intValue());
+
+		ArrayList<DialogFaces> faces = new ArrayList<DialogFaces>();
+		
+		Statement stmt = connection.createStatement();
+		ResultSet res;
+
+		PreparedStatement preStmt = connection.prepareStatement("SELECT * "
+					+ "FROM faces WHERE " 
+					+ "chapter = " + chapter.getDB_ID());
+					   
+		res = preStmt.executeQuery();
+		    
+		ArrayList<DialogSpeaker> speakers = loadSpeakers(chapterID, DialogSpeaker.FACE_TYP);
+		while ( res.next() ) 
+		{
+			DialogSpeaker speaker = null;
+			for (DialogSpeaker dialogSpeaker : speakers) 
+			{
+				if (dialogSpeaker.getIUIndex() == res.getInt("location")) 
+				{
+					speaker = dialogSpeaker;
+					break;
+				}
+			}
+			res.getInt("location");
+			DialogFaces face = new DialogFaces(chapter, res.getInt("location"), res.getString("description"), speaker);
+			faces.add(face);
+		}			
+		res.close();
+		stmt.close();
+		return faces;
+	}
+	
+	public synchronized ArrayList<DialogTarget> loadTargets (Integer chapterID) throws Exception 
+	{
+		Chapter chapter = getChapter(chapterID.intValue());
+
+		ArrayList<DialogTarget> targets = new ArrayList<DialogTarget>();
+		
+		Statement stmt = connection.createStatement();
+		ResultSet res;
+
+		PreparedStatement preStmt = connection.prepareStatement("SELECT * "
+					+ "FROM targets WHERE " 
+					+ "chapter = " + chapter.getDB_ID());
+					   
+		res = preStmt.executeQuery();
+		    
+		while ( res.next() ) 
+		{
+			DialogTarget target = new DialogTarget(chapter, res.getInt("location"), 
+					res.getString("description"), res.getInt("targetNr"), res.getString("target"));
+			targets.add(target);
+		}			
+		res.close();
+		stmt.close();
+		return targets;
+	}
+	
+	public synchronized ArrayList<DialogISignal> loadISignals (Integer chapterID) throws Exception 
+	{
+		Chapter chapter = getChapter(chapterID.intValue());
+
+		ArrayList<DialogISignal> signals = new ArrayList<DialogISignal>();
+		
+		Statement stmt = connection.createStatement();
+		ResultSet res;
+
+		PreparedStatement preStmt = connection.prepareStatement("SELECT * "
+					+ "FROM i_signals WHERE " 
+					+ "chapter = " + chapter.getDB_ID());
+					   
+		res = preStmt.executeQuery();
+		    
+		while ( res.next() ) 
+		{
+			DialogISignal signal = new DialogISignal(chapter, res.getBoolean("signal"), res.getInt("location"));
+			signals.add(signal);
+		}			
+		res.close();
+		stmt.close();
+		return signals;
+	}
+	
+	public synchronized ArrayList<DialogComment> loadComments (Integer chapterID) throws Exception 
+	{
+		Chapter chapter = getChapter(chapterID.intValue());
+
+		ArrayList<DialogComment> comments = new ArrayList<DialogComment>();
+		
+		Statement stmt = connection.createStatement();
+		ResultSet res;
+
+		PreparedStatement preStmt = connection.prepareStatement("SELECT location, comment, commentNr "
+					+ "FROM comments WHERE " 
+					+ "chapter = " + chapter.getDB_ID());
+					   
+		res = preStmt.executeQuery();
+		    
+		while ( res.next() ) 
+		{
+			DialogComment comment = new DialogComment(chapter, res.getInt("location"), res.getString("comment"), res.getInt("commentNr"));
+			comments.add(comment);
+		}			
+		res.close();
+		stmt.close();
+		return comments;
+	}
+	
 	
     /**
      * Load the IllocutionUnitRoots for the chapter identified by <code>chapterID</code>

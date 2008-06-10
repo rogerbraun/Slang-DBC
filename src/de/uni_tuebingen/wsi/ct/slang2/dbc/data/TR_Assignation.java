@@ -496,10 +496,10 @@ Serializable {
      * @return All Cases that have been set
      */
     public Case[] getCases() {
-    Enum<?>[] ea = filterConstants(Case.values(), this.ca);
-    if( this.ca == null || ea == null)
+    //Enum<?>[] ea = filterConstants(Case.values(), this.ca);
+    if( this.ca == null )//|| ea == null)
 	    return new Case[0];
-	//Enum<?>[] ea = filterConstants(Case.values(), this.ca);
+	Enum<?>[] ea = filterConstants(Case.values(), this.ca);
 	Case[] ret = new Case[ea.length];
 	System.arraycopy(ea, 0, ret, 0, ea.length);
 	return ret;
@@ -551,10 +551,10 @@ Serializable {
      * @return All Conjugations that have been set
      */
     public Conjugation[] getConjugations() {
-  	Enum<?>[] ea = filterConstants(Conjugation.values(), this.co);
-    if( this.co == null || ea == null )
+  	//Enum<?>[] ea = filterConstants(Conjugation.values(), this.co);
+    if( this.co == null )//|| ea == null )
 	    return new Conjugation[0];
-	//Enum<?>[] ea = filterConstants(Conjugation.values(), this.co);
+	Enum<?>[] ea = filterConstants(Conjugation.values(), this.co);
 	Conjugation[] ret = new Conjugation[ea.length];
 	System.arraycopy(ea, 0, ret, 0, ea.length);
 	return ret;
@@ -604,10 +604,10 @@ Serializable {
      * @return All Determinations that have been set
      */
     public Determination[] getDeterminations() {
-   	Enum<?>[] ea = filterConstants(Determination.values(), this.de);
-	if( this.de == null || ea == null )
+   	//Enum<?>[] ea = filterConstants(Determination.values(), this.de);
+	if( this.de == null )//|| ea == null )
 	    return new Determination[0];
-	//Enum<?>[] ea = filterConstants(Determination.values(), this.de);
+	Enum<?>[] ea = filterConstants(Determination.values(), this.de);
 	Determination[] ret = new Determination[ea.length];
 	System.arraycopy(ea, 0, ret, 0, ea.length);
 	return ret;
@@ -658,10 +658,10 @@ Serializable {
      * @return All Diatheses that have been set
      */
     public Diathese[] getDiatheses() {
-   	Enum<?>[] ea = filterConstants(Diathese.values(), this.di);
-	if( this.di == null || ea == null )
+   	//Enum<?>[] ea = filterConstants(Diathese.values(), this.di);
+	if( this.di == null )//|| ea == null )
 	    return new Diathese[0];
-	//Enum<?>[] ea = filterConstants(Diathese.values(), this.di);
+	Enum<?>[] ea = filterConstants(Diathese.values(), this.di);
 	Diathese[] ret = new Diathese[ea.length];
 	System.arraycopy(ea, 0, ret, 0, ea.length);
 	return ret;
@@ -711,10 +711,10 @@ Serializable {
      * @return All Genera that have been set
      */
     public Genus[] getGenera() {
-    Enum<?>[] ea = filterConstants(Genus.values(), this.g);
-    if( this.g == null || ea == null )
+    //Enum<?>[] ea = filterConstants(Genus.values(), this.g);
+    if( this.g == null )//|| ea == null )
 	    return new Genus[0];
-	//Enum<?>[] ea = filterConstants(Genus.values(), this.g);
+	Enum<?>[] ea = filterConstants(Genus.values(), this.g);
 	Genus[] ret = new Genus[ea.length];
 	System.arraycopy(ea, 0, ret, 0, ea.length);
 	return ret;
@@ -764,10 +764,10 @@ Serializable {
      * @return All Numeri that have been set
      */
     public Numerus[] getNumeri() {
-    Enum<?>[] ea = filterConstants(Numerus.values(), this.n);
-    if( this.n == null || ea == null )
+    //Enum<?>[] ea = filterConstants(Numerus.values(), this.n);
+    if( this.n == null )//|| ea == null )
 	    return new Numerus[0];
-	//Enum<?>[] ea = filterConstants(Numerus.values(), this.n);
+	Enum<?>[] ea = filterConstants(Numerus.values(), this.n);
 	Numerus[] ret = new Numerus[ea.length];
 	System.arraycopy(ea, 0, ret, 0, ea.length);
 	return ret;
@@ -818,10 +818,10 @@ Serializable {
      * @return All Persons that have been set
      */
     public Person[] getPersons() {
-   	Enum<?>[] ea = filterConstants(Person.values(), this.p);
-    if( this.p == null || ea == null)
+   	//Enum<?>[] ea = filterConstants(Person.values(), this.p);
+    if( this.p == null )//|| ea == null)
 	    return new Person[0];
-	//Enum<?>[] ea = filterConstants(Person.values(), this.p);
+	Enum<?>[] ea = filterConstants(Person.values(), this.p);
 	Person[] ret = new Person[ea.length];
 	System.arraycopy(ea, 0, ret, 0, ea.length);
 	return ret;
@@ -872,10 +872,10 @@ Serializable {
      * @return All Tempora that have been set
      */
     public Tempus[] getTempora() {
-   	Enum<?>[] ea = filterConstants(Tempus.values(), this.te);
-	if( this.te == null || ea == null )
+   	//Enum<?>[] ea = filterConstants(Tempus.values(), this.te);
+	if( this.te == null )//|| ea == null )
 	    return new Tempus[0];
-	//Enum<?>[] ea = filterConstants(Tempus.values(), this.te);
+	Enum<?>[] ea = filterConstants(Tempus.values(), this.te);
 	Tempus[] ret = new Tempus[ea.length];
 	System.arraycopy(ea, 0, ret, 0, ea.length);
 	return ret;
@@ -925,10 +925,10 @@ Serializable {
      * @return All Types that have been set
      */
     public Type[] getTypes() {
-  	Enum<?>[] ea = filterConstants(Type.values(), this.ty);
-    if( this.ty == null || ea == null )
+  	//Enum<?>[] ea = filterConstants(Type.values(), this.ty);
+    if( this.ty == null )//|| ea == null )
 	    return new Type[0];
-	//Enum<?>[] ea = filterConstants(Type.values(), this.ty);
+	Enum<?>[] ea = filterConstants(Type.values(), this.ty);
 	Type[] ret = new Type[ea.length];
 	System.arraycopy(ea, 0, ret, 0, ea.length);
 	return ret;
@@ -978,10 +978,10 @@ Serializable {
      * @return All Wordclasses that have been set
      */
     public Wordclass[] getWordclasses() {
-	Enum<?>[] ea = filterConstants(Wordclass.values(), this.wc);
-    if( this.wc == null || ea == null )
-	    return new Wordclass[0];
 	//Enum<?>[] ea = filterConstants(Wordclass.values(), this.wc);
+    if( this.wc == null)// || ea == null )
+	    return new Wordclass[0];
+	Enum<?>[] ea = filterConstants(Wordclass.values(), this.wc);
 	Wordclass[] ret = new Wordclass[ea.length];
 	System.arraycopy(ea, 0, ret, 0, ea.length);
 	return ret;
@@ -1031,10 +1031,10 @@ Serializable {
      * @return All WordsubclassesAdjective that have been set
      */
     public WordsubclassAdjective[] getWordsubclassesAdjective() {
-    Enum<?>[] ea = filterConstants(WordsubclassAdjective.values(), this.wsa);
-    if( this.wsa == null || ea == null )
+    //Enum<?>[] ea = filterConstants(WordsubclassAdjective.values(), this.wsa);
+    if( this.wsa == null )//|| ea == null )
 	    return new WordsubclassAdjective[0];
-	//Enum<?>[] ea = filterConstants(WordsubclassAdjective.values(), this.wsa);
+	Enum<?>[] ea = filterConstants(WordsubclassAdjective.values(), this.wsa);
 	WordsubclassAdjective[] ret = new WordsubclassAdjective[ea.length];
 	System.arraycopy(ea, 0, ret, 0, ea.length);
 	return ret;
@@ -1084,10 +1084,10 @@ Serializable {
      * @return All WordsubclassesConnector that have been set
      */
     public WordsubclassConnector[] getWordsubclassesConnector() {
-   	Enum<?>[] ea = filterConstants(WordsubclassConnector.values(), this.wsc);
-   	if( this.wsc == null || ea == null )
+   	//Enum<?>[] ea = filterConstants(WordsubclassConnector.values(), this.wsc);
+   	if( this.wsc == null )//|| ea == null )
 	    return new WordsubclassConnector[0];
-	//Enum<?>[] ea = filterConstants(WordsubclassConnector.values(), this.wsc);
+	Enum<?>[] ea = filterConstants(WordsubclassConnector.values(), this.wsc);
 	WordsubclassConnector[] ret = new WordsubclassConnector[ea.length];
 	System.arraycopy(ea, 0, ret, 0, ea.length);
 	return ret;
@@ -1137,10 +1137,10 @@ Serializable {
      * @return All WordsubclassesPreposition that have been set
      */
     public WordsubclassPreposition[] getWordsubclassesPreposition() {
-   	Enum<?>[] ea = filterConstants(WordsubclassPreposition.values(), this.wspre);
-    if( this.wspre == null || ea == null)
+   	//Enum<?>[] ea = filterConstants(WordsubclassPreposition.values(), this.wspre);
+    if( this.wspre == null )//|| ea == null)
 	    return new WordsubclassPreposition[0];
-	//Enum<?>[] ea = filterConstants(WordsubclassPreposition.values(), this.wspre);
+	Enum<?>[] ea = filterConstants(WordsubclassPreposition.values(), this.wspre);
 	WordsubclassPreposition[] ret = new WordsubclassPreposition[ea.length];
 	System.arraycopy(ea, 0, ret, 0, ea.length);
 	return ret;
@@ -1190,10 +1190,10 @@ Serializable {
      * @return All WordsubclassesPronoun that have been set
      */
     public WordsubclassPronoun[] getWordsubclassesPronoun() {
-   	Enum<?>[] ea = filterConstants(WordsubclassPronoun.values(), this.wspro);
-    if( this.wspro == null || ea == null )
+   	//Enum<?>[] ea = filterConstants(WordsubclassPronoun.values(), this.wspro);
+    if( this.wspro == null )//|| ea == null )
 	    return new WordsubclassPronoun[0];
-	//Enum<?>[] ea = filterConstants(WordsubclassPronoun.values(), this.wspro);
+	Enum<?>[] ea = filterConstants(WordsubclassPronoun.values(), this.wspro);
 	WordsubclassPronoun[] ret = new WordsubclassPronoun[ea.length];
 	System.arraycopy(ea, 0, ret, 0, ea.length);
 	return ret;
@@ -1243,10 +1243,10 @@ Serializable {
      * @return All WordsubclassesSign that have been set
      */
     public WordsubclassSign[] getWordsubclassesSign() {
-   	Enum<?>[] ea = filterConstants(WordsubclassSign.values(), this.wss);
-    if( this.wss == null || ea == null)
+   	//Enum<?>[] ea = filterConstants(WordsubclassSign.values(), this.wss);
+    if( this.wss == null )//|| ea == null)
 	    return new WordsubclassSign[0];
-	//Enum<?>[] ea = filterConstants(WordsubclassSign.values(), this.wss);
+	Enum<?>[] ea = filterConstants(WordsubclassSign.values(), this.wss);
 	WordsubclassSign[] ret = new WordsubclassSign[ea.length];
 	System.arraycopy(ea, 0, ret, 0, ea.length);
 	return ret;
@@ -1296,10 +1296,10 @@ Serializable {
      * @return All WordsubclassesVerb that have been set
      */
     public WordsubclassVerb[] getWordsubclassesVerb() {
-   	Enum<?>[] ea = filterConstants(WordsubclassVerb.values(), this.wsv);
-    if( this.wsv == null || ea == null )
+   	//Enum<?>[] ea = filterConstants(WordsubclassVerb.values(), this.wsv);
+    if( this.wsv == null )//|| ea == null )
 	    return new WordsubclassVerb[0];
-	//Enum<?>[] ea = filterConstants(WordsubclassVerb.values(), this.wsv);
+	Enum<?>[] ea = filterConstants(WordsubclassVerb.values(), this.wsv);
 	WordsubclassVerb[] ret = new WordsubclassVerb[ea.length];
 	System.arraycopy(ea, 0, ret, 0, ea.length);
 	return ret;
@@ -1349,10 +1349,10 @@ Serializable {
      * @return All Wortarten1 that have been set
      */
     public Wortart1[] getWortarten1() {
-   	Enum<?>[] ea = filterConstants(Wortart1.values(), this.wa1);
-	if( this.wa1 == null || ea == null )
+   	//Enum<?>[] ea = filterConstants(Wortart1.values(), this.wa1);
+	if( this.wa1 == null )//|| ea == null )
 	    return new Wortart1[0];
-	//Enum<?>[] ea = filterConstants(Wortart1.values(), this.wa1);
+	Enum<?>[] ea = filterConstants(Wortart1.values(), this.wa1);
 	Wortart1[] ret = new Wortart1[ea.length];
 	System.arraycopy(ea, 0, ret, 0, ea.length);
 	return ret;
@@ -1402,10 +1402,10 @@ Serializable {
      * @return All Wortarten2 that have been set
      */
     public Wortart2[] getWortarten2() {
- 	Enum<?>[] ea = filterConstants(Wortart2.values(), this.wa2);
-    if( this.wa2 == null || ea == null )
+ 	//Enum<?>[] ea = filterConstants(Wortart2.values(), this.wa2);
+    if( this.wa2 == null )//|| ea == null )
 	    return new Wortart2[0];
-	//Enum<?>[] ea = filterConstants(Wortart2.values(), this.wa2);
+	Enum<?>[] ea = filterConstants(Wortart2.values(), this.wa2);
 	Wortart2[] ret = new Wortart2[ea.length];
 	System.arraycopy(ea, 0, ret, 0, ea.length);
 	return ret;
@@ -1455,10 +1455,10 @@ Serializable {
      * @return All Wortarten3 that have been set
      */
     public Wortart3[] getWortarten3() {
-   	Enum<?>[] ea = filterConstants(Wortart3.values(), this.wa3);
-	if( this.wa3 == null || ea == null )
+   	//Enum<?>[] ea = filterConstants(Wortart3.values(), this.wa3);
+	if( this.wa3 == null )//|| ea == null )
 	    return new Wortart3[0];
-	//Enum<?>[] ea = filterConstants(Wortart3.values(), this.wa3);
+	Enum<?>[] ea = filterConstants(Wortart3.values(), this.wa3);
 	Wortart3[] ret = new Wortart3[ea.length];
 	System.arraycopy(ea, 0, ret, 0, ea.length);
 	return ret;
@@ -1508,10 +1508,10 @@ Serializable {
      * @return All Wortarten4 that have been set
      */
     public Wortart4[] getWortarten4() {
-   	Enum<?>[] ea = filterConstants(Wortart4.values(), this.wa4);
-	if( this.wa4 == null || ea == null )
+   	//Enum<?>[] ea = filterConstants(Wortart4.values(), this.wa4);
+	if( this.wa4 == null )//|| ea == null )
 	    return new Wortart4[0];
-	//Enum<?>[] ea = filterConstants(Wortart4.values(), this.wa4);
+	Enum<?>[] ea = filterConstants(Wortart4.values(), this.wa4);
 	Wortart4[] ret = new Wortart4[ea.length];
 	System.arraycopy(ea, 0, ret, 0, ea.length);
 	return ret;
@@ -1538,9 +1538,9 @@ Serializable {
 	Enum<?>[] ret = new Enum[bs.cardinality()];
 	int j=0;
 	for(int i=bs.nextSetBit(0); i>=0; i=bs.nextSetBit(i+1), j++) {
-	    if(i > enums.length)
-	    	return null;
-	    else
+	  //  if(i > enums.length)
+	 //   	return null;
+	//    else
 	    	ret[j] = enums[i];
 	}
 	return ret;

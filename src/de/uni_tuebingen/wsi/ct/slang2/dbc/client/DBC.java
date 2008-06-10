@@ -1151,9 +1151,16 @@ public class DBC implements DBC_KeyAcceptor {
 
 	public void saveWordListElements(WordListElement ... element) throws Exception {
 		//key.unlock();
-		WordListElement[] answer = (WordListElement[]) connection.call(new Message(key, "saveWordListElement", (Object[]) element))
-		.getArguments()[0];
 
+		//		WordListElement[] answer = (WordListElement[]) connection.call(new Message(key, "saveWordListElement", (Object[]) element)).getArguments()[0];
+
+		Message message =new Message(key, "saveWordListElements", (Object[]) element);
+		Message blal = connection.call(message);
+		Object bla = blal.getArguments()[0];
+		WordListElement[] wlea = (WordListElement[]) bla;
+		WordListElement[] answer = wlea;
+
+		
 		for(int i = 0; i != answer.length; i++){
 			element[i].updateIDs(key, answer[i]);
 			if(element[i].getAssignation() != null)
@@ -1212,7 +1219,12 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @return
 	 */
 	public WordListElement loadWordListElementWithAssigID(int assigID) throws Exception {
-		return (WordListElement) connection.call(new Message(key, "loadWordListElementWithAssigID", assigID)).getArguments()[0];
+		Message m = new Message(key, "loadWordListElementWithAssigID", assigID);
+		Message oa = connection.call(m);
+		Object o = oa.getArguments()[0];
+		WordListElement wle = (WordListElement) o;
+	
+		return wle;//(WordListElement) connection.call(new Message(key, "loadWordListElementWithAssigID", assigID)).getArguments()[0];
 	}
 
 	public Vector loadWordClasses(Vector contents)

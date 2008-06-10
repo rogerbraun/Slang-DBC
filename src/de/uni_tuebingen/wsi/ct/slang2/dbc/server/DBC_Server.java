@@ -4751,40 +4751,40 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 //     * @return WordListElement[] oder null
 //     * @throws SQLException
 //     */
-//    public WordListElement[] loadWordListElementWithAssigID(Integer assigID) throws SQLException 
-//    {
-//    	PreparedStatement stmt = null;
-//    	ResultSet res = null;
-//    	WordListElement[] elements = null;
-//
-//    	//TODO: soll das WordListElement mit der Assignation ID assigID zurückgeben
-//    	try 
-//    	{
-//    		stmt = connection.prepareStatement("SELECT * FROM word_list_elements WHERE word_list_elements.assignation_id = " + assigID);
-//    		res = stmt.executeQuery();
-//    		
-//    		while (res.next()) 
-//    		{
-//    			// zu word_id passenden content laden
-//    			int word_id = res.getInt("word_id");
-//    			stmt = connection.prepareStatement("SELECT content FROM words WHERE id = " + word_id);
-//        		res = stmt.executeQuery();
-//        		String content = null;
-//        		while (res.next()) {
-//        			content = res.getString("content");
-//        		}
-//    			
-//        		if (content != null) {
-//        			elements = loadWordListElement(content);
-//    			}
-//    		}
-//    	}
-//    	catch ( SQLException e ) {
-//    		e.printStackTrace();
-//    	}
-//    	return elements;
-//    }
-    
+/*    public WordListElement[] loadWordListElementWithAssigID(Integer assigID) throws SQLException 
+    {
+    	PreparedStatement stmt = null;
+    	ResultSet res = null;
+    	WordListElement[] elements = null;
+
+    	//TODO: soll das WordListElement mit der Assignation ID assigID zurückgeben
+    	try 
+    	{
+    		stmt = connection.prepareStatement("SELECT * FROM word_list_elements WHERE word_list_elements.assignation_id = " + assigID);
+    		res = stmt.executeQuery();
+    		
+    		while (res.next()) 
+    		{
+    			// zu word_id passenden content laden
+    			int word_id = res.getInt("word_id");
+    			stmt = connection.prepareStatement("SELECT content FROM words WHERE id = " + word_id);
+        		res = stmt.executeQuery();
+        		String content = null;
+        		while (res.next()) {
+        			content = res.getString("content");
+        		}
+    			
+        		if (content != null) {
+        			elements = loadWordListElement(content);
+    			}
+    		}
+    	}
+    	catch ( SQLException e ) {
+    		e.printStackTrace();
+    	}
+    	return elements;
+    }
+*/    
     /**
      * 
      * @param assigID
@@ -4832,7 +4832,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     	}
     	return element;
     }
-    
+ 
     
 	/**
      * Inserts, updates or removes <code>assignations</code> in the Database dependent on their state.

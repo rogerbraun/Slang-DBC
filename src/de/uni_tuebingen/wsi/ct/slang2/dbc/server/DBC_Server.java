@@ -4412,7 +4412,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
      * @param elements
      * @throws SQLException
      */
-    public synchronized WordListElement[] saveWordListElements(WordListElement ... elements) throws SQLException
+    public synchronized ArrayList<WordListElement> saveWordListElements(ArrayList<WordListElement> elements) throws SQLException
     {
 	PreparedStatement stmt = null, stmt2 = null;
 	ResultSet res = null, res2 = null;
@@ -4426,7 +4426,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		    "VALUES(?, ?)"
 	    );
 
-	    TR_Assignation[] assignations = new TR_Assignation[elements.length];
+	    TR_Assignation[] assignations = new TR_Assignation[elements.size()];
 	    int i=0;
 
 	    for (WordListElement wordListElement : elements) {
@@ -4439,8 +4439,6 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		stmt.setBytes(1, wordListElement.getContent().getBytes("ISO-8859-1"));
 		stmt.setString(2, wordListElement.getLanguage());	   
 		stmt.addBatch();
-
-		assignations[i] = wordListElement.getAssignation();
 	    }			 
 	    stmt.executeBatch();
 	    saveAssignations(assignations);
@@ -4843,185 +4841,185 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
      */
     private synchronized TR_Assignation[] saveAssignations(TR_Assignation ... assignations) throws SQLException, NullPointerException
     {
-	logger.entering(this.getClass().getName(), "saveAssignation", assignations);
-	if(assignations == null) {
-	    throw new NullPointerException("");
-	}
-
-	PreparedStatement stmt = null;
-	ResultSet res = null;
-	try {
-	    for (int i = 0; i < assignations.length; i++) {
-
-		TR_Assignation_DB assignation = assignations[i].new TR_Assignation_DB();
-
-		if(assignation == null) {
-		    logger.info("assignation is null");
-		    continue;
+		logger.entering(this.getClass().getName(), "saveAssignation", assignations);
+		if(assignations == null) {
+		    throw new NullPointerException("assignation == null");
 		}
 
-		if(assignation.isUnchanged()) {
-		    logger.finest("assignation unchanged");
-		    continue;
-		}
-
-		stmt = connection.prepareStatement(
-
-			"SELECT * FROM assignations WHERE id = ?",
-
-			ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE
-		);
-		stmt.setInt(1, assignation.getDB_ID());
-		res = stmt.executeQuery();
-
-		if (assignation.hasChanged()) {
-		    if(! res.next()) {
-			res.moveToInsertRow();
+		PreparedStatement stmt = null;
+		ResultSet res = null;
+		
+		try 
+		{
+			for (TR_Assignation tr_assignation : assignations)
+			{
+				TR_Assignation_DB assignation = tr_assignation.new TR_Assignation_DB();			
+				if(assignation == null) {
+				    logger.info("assignation is null");
+				    continue;
+				}
+		
+				if(assignation.isUnchanged()) {
+				    logger.finest("assignation unchanged");
+				    continue;
+				}
+		
+				stmt = connection.prepareStatement("SELECT * FROM assignations WHERE id = ?",
+						ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+				stmt.setInt(1, assignation.getDB_ID());
+				res = stmt.executeQuery();
+		
+				if (assignation.hasChanged()) 
+				{
+				    if(! res.next()) {
+				    	res.moveToInsertRow();
+				    }
+				    
+				    res.updateBytes("tr_type", assignation.getTypesBinary());
+				    res.updateBytes("tr_genus", assignation.getGeneraBinary());
+				    res.updateBytes("tr_numerus", assignation.getNumeriBinary());
+				    res.updateBytes("tr_determination", assignation.getDeterminationsBinary());
+				    res.updateBytes("tr_case", assignation.getCasesBinary());
+				    res.updateBytes("tr_person", assignation.getPersonsBinary());
+				    res.updateBytes("tr_conjugation", assignation.getConjugationsBinary());
+				    res.updateBytes("tr_tempus", assignation.getTemporaBinary());
+				    res.updateBytes("tr_diathese", assignation.getDiathesesBinary());
+				    res.updateBytes("tr_wordclass", assignation.getWordclassesBinary());
+				    res.updateBytes("tr_wortart1", assignation.getWortarten1Binary());
+				    res.updateBytes("tr_wortart2", assignation.getWortarten2Binary());
+				    res.updateBytes("tr_wortart3", assignation.getWortarten3Binary());
+				    res.updateBytes("tr_wortart4", assignation.getWortarten4Binary());
+				    res.updateBytes("tr_subclass_connector", assignation.getWordsubclassesConnectorBinary());
+				    res.updateBytes("tr_subclass_verb", assignation.getWordsubclassesVerbBinary());
+				    res.updateBytes("tr_subclass_adjective", assignation.getWordsubclassesAdjectiveBinary());
+				    res.updateBytes("tr_subclass_preposition", assignation.getWordsubclassesPrepositionBinary());
+				    res.updateBytes("tr_subclass_pronoun", assignation.getWordsubclassesPronounBinary());
+				    //res.updateBytes("tr_subclass_sign", assignation.getWordsubclassesSignBinary());
+							
+				    res.updateString("description", assignation.getDescription());
+				    res.updateString("etymol", assignation.getEtymol());
+				    
+				    if(res.isFirst()) {
+				    	res.updateRow();
+				    }
+				    else {
+						res.insertRow();
+						res.last();
+						//assignations[i].setDB_ID(key, res.getInt("id"));
+						assignation.setDB_ID(key, res.getInt("id"));
+				    }
+				    //assignations[i].resetState(key);
+				    assignation.resetState(key);
+				}
+				else if(assignation.isRemoved() && res.next()) {
+				    res.deleteRow();
+				}
 		    }
-		    
-		    res.updateBytes("tr_type", assignation.getTypesBinary());
-		    res.updateBytes("tr_genus", assignation.getGeneraBinary());
-		    res.updateBytes("tr_numerus", assignation.getNumeriBinary());
-		    res.updateBytes("tr_determination", assignation.getDeterminationsBinary());
-		    res.updateBytes("tr_case", assignation.getCasesBinary());
-		    res.updateBytes("tr_person", assignation.getPersonsBinary());
-		    res.updateBytes("tr_conjugation", assignation.getConjugationsBinary());
-		    res.updateBytes("tr_tempus", assignation.getTemporaBinary());
-		    res.updateBytes("tr_diathese", assignation.getDiathesesBinary());
-		    res.updateBytes("tr_wordclass", assignation.getWordclassesBinary());
-		    res.updateBytes("tr_wortart1", assignation.getWortarten1Binary());
-		    res.updateBytes("tr_wortart2", assignation.getWortarten2Binary());
-		    res.updateBytes("tr_wortart3", assignation.getWortarten3Binary());
-		    res.updateBytes("tr_wortart4", assignation.getWortarten4Binary());
-		    res.updateBytes("tr_subclass_connector", assignation.getWordsubclassesConnectorBinary());
-		    res.updateBytes("tr_subclass_verb", assignation.getWordsubclassesVerbBinary());
-		    res.updateBytes("tr_subclass_adjective", assignation.getWordsubclassesAdjectiveBinary());
-		    res.updateBytes("tr_subclass_preposition", assignation.getWordsubclassesPrepositionBinary());
-		    res.updateBytes("tr_subclass_pronoun", assignation.getWordsubclassesPronounBinary());
-		    //res.updateBytes("tr_subclass_sign", assignation.getWordsubclassesSignBinary());
-					
-		    res.updateString("description", assignation.getDescription());
-		    res.updateString("etymol", assignation.getEtymol());
-		    
-		    if(res.isFirst()) {
-			res.updateRow();
-		    }
-		    else {
-			res.insertRow();
-			res.last();
-			assignations[i].setDB_ID(key, res.getInt("id"));
-		    }
-		    assignations[i].resetState(key);
 		}
-		else if(assignation.isRemoved() && res.next()) {
-		    res.deleteRow();
+		catch ( SQLException e ) {
+		    logger.severe(e.getLocalizedMessage());
+		    throw e;
 		}
+		finally {
+		    try
+		    {
+			if (res  != null)
+			    res.close();
+			if (stmt  != null)
+			    stmt.close();
+		    }
+		    catch (SQLException e)
+		    {
+		    	logger.warning(e.getLocalizedMessage());
+		    }
+		}
+		return assignations;
 	    }
-	}
-	catch ( SQLException e ) {
-	    logger.severe(e.getLocalizedMessage());
-	    throw e;
-	}
-	finally {
-	    try
+	
+	    /**
+	     * Inserts, updates or removes <code>relations</code> in the Database dependent on their state.
+	     * @param relations
+	     * @throws SQLException
+	     * @throws DBC_SaveException
+	     */
+	    public synchronized Relation[] saveRelations(Relation ... relations) throws SQLException, DBC_SaveException
 	    {
-		if (res  != null)
-		    res.close();
-		if (stmt  != null)
-		    stmt.close();
-	    }
-	    catch (SQLException e)
-	    {
-		logger.warning(e.getLocalizedMessage());
-	    }
-	}
-	return assignations;
-    }
-
-    /**
-     * Inserts, updates or removes <code>relations</code> in the Database dependent on their state.
-     * @param relations
-     * @throws SQLException
-     * @throws DBC_SaveException
-     */
-    public synchronized Relation[] saveRelations(Relation ... relations) throws SQLException, DBC_SaveException
-    {
-	if(relations == null) {
-	    throw new NullPointerException("");
-	}
-
-	PreparedStatement stmt = null;
-	ResultSet res = null;
-	connection.setAutoCommit(false);
-
-	try {
-	    for (Relation relation : relations) {
-
-
-		if(relation.getOrigin().getDB_ID() == -1 || relation.getTarget().getDB_ID() == -1) {
-		    logger.finest("origin or target not in DB. Skipping");
-		    continue;
-		    //throw new DBC_SaveException("Speichern der relation fehlgeschlagen: Assignation muss vorher gespeichert werden");
+		if(relations == null) {
+		    throw new NullPointerException("");
 		}
-
-		if(relation.isUnchanged()) {
-		    logger.finest("relation unchanged");
-		    continue;
-		}
-
-		stmt = connection.prepareStatement(
-
-			"SELECT * FROM word_list_relations WHERE id = ?",
-
-			ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE
-		);
-		stmt.setInt(1, relation.getDB_ID());
-		res = stmt.executeQuery();
-
-		if (relation.hasChanged()) {
-		    if(! res.next()) {
-			res.moveToInsertRow();
-		    }	
-
-		    res.updateInt("origin", relation.getOrigin().getDB_ID());
-		    res.updateInt("target", relation.getTarget().getDB_ID());
-		    res.updateString("type", relation.getType().name());
-
-		    if(res.isFirst()) {
-			res.updateRow();
+	
+		PreparedStatement stmt = null;
+		ResultSet res = null;
+		connection.setAutoCommit(false);
+	
+		try {
+		    for (Relation relation : relations) {
+	
+	
+			if(relation.getOrigin().getDB_ID() == -1 || relation.getTarget().getDB_ID() == -1) {
+			    logger.finest("origin or target not in DB. Skipping");
+			    continue;
+			    //throw new DBC_SaveException("Speichern der relation fehlgeschlagen: Assignation muss vorher gespeichert werden");
+			}
+	
+			if(relation.isUnchanged()) {
+			    logger.finest("relation unchanged");
+			    continue;
+			}
+	
+			stmt = connection.prepareStatement(
+	
+				"SELECT * FROM word_list_relations WHERE id = ?",
+	
+				ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE
+			);
+			stmt.setInt(1, relation.getDB_ID());
+			res = stmt.executeQuery();
+	
+			if (relation.hasChanged()) {
+			    if(! res.next()) {
+				res.moveToInsertRow();
+			    }	
+	
+			    res.updateInt("origin", relation.getOrigin().getDB_ID());
+			    res.updateInt("target", relation.getTarget().getDB_ID());
+			    res.updateString("type", relation.getType().name());
+	
+			    if(res.isFirst()) {
+				res.updateRow();
+			    }
+			    else {
+				res.insertRow();
+				res.last();
+				relation.setDB_ID(key, res.getInt("id"));
+			    }
+			    relation.resetState(key);
+			}
+			else if(relation.isRemoved() && res.next()) {
+			    res.deleteRow();
+			}
 		    }
-		    else {
-			res.insertRow();
-			res.last();
-			relation.setDB_ID(key, res.getInt("id"));
+		    connection.commit();
+		}
+		catch ( SQLException e ) {
+		    logger.severe(e.getLocalizedMessage());
+		    throw e;
+		}
+		finally {
+		    try
+		    {
+			connection.setAutoCommit(true);
+			if (res  != null)
+			    res.close();
+			if (stmt  != null)
+			    stmt.close();
 		    }
-		    relation.resetState(key);
+		    catch (SQLException e)
+		    {
+			logger.warning(e.getLocalizedMessage());
+		    }
 		}
-		else if(relation.isRemoved() && res.next()) {
-		    res.deleteRow();
-		}
-	    }
-	    connection.commit();
-	}
-	catch ( SQLException e ) {
-	    logger.severe(e.getLocalizedMessage());
-	    throw e;
-	}
-	finally {
-	    try
-	    {
-		connection.setAutoCommit(true);
-		if (res  != null)
-		    res.close();
-		if (stmt  != null)
-		    stmt.close();
-	    }
-	    catch (SQLException e)
-	    {
-		logger.warning(e.getLocalizedMessage());
-	    }
-	}
-	return relations;
+		return relations;
     }
 
     public Relation_DB[] loadRelations(WordListElement wordlistelement) throws SQLException

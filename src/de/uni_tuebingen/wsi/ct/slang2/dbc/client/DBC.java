@@ -1149,12 +1149,12 @@ public class DBC implements DBC_KeyAcceptor {
 		return renominalisations;
 	}
 
-	public void saveWordListElements(WordListElement ... element) throws Exception {
+	public void saveWordListElements(ArrayList<WordListElement> elements) throws Exception {
 		//key.unlock();
+		
+		//WordListElement[] answer = (WordListElement[]) connection.call(new Message(key, "saveWordListElement", (Object[]) element)).getArguments()[0];
 
-		//		WordListElement[] answer = (WordListElement[]) connection.call(new Message(key, "saveWordListElement", (Object[]) element)).getArguments()[0];
-
-		Message message =new Message(key, "saveWordListElements", (Object[]) element);
+		Message message =new Message(key, "saveWordListElements", elements);
 		Message blal = connection.call(message);
 		Object bla = blal.getArguments()[0];
 		WordListElement[] wlea = (WordListElement[]) bla;
@@ -1162,9 +1162,9 @@ public class DBC implements DBC_KeyAcceptor {
 
 		
 		for(int i = 0; i != answer.length; i++){
-			element[i].updateIDs(key, answer[i]);
-			if(element[i].getAssignation() != null)
-				element[i].getAssignation().updateIDs(key, answer[i].getAssignation());
+			elements.get(i).updateIDs(key, answer[i]);
+			if(elements.get(i).getAssignation() != null)
+				elements.get(i).getAssignation().updateIDs(key, answer[i].getAssignation());
 		}
 	}
 

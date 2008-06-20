@@ -1,6 +1,5 @@
 package de.uni_tuebingen.wsi.ct.slang2.dbc.data;
 
-import de.uni_tuebingen.wsi.ct.slang2.dbc.client.DBC;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
 
 
@@ -14,20 +13,23 @@ public class WordListElement extends DB_Element
 	
 	public WordListElement(String content){
 		super(0);
+		if(content==null)
+		    throw new IllegalArgumentException("");
 		assignation = new TR_Assignation();
 		this.content = content;
 	}
 	
 	public WordListElement(String content, String language){
 		super(0);
+		if(content==null || language==null) // TODO: check language against possible values
+		    throw new IllegalArgumentException("");
 		assignation = new TR_Assignation();
 		this.content = content;
 		this.language = language;
 	}
 	
 	public String getContent(){
-			return content;
-		
+		return content;
 	}
 	
 	public String getLanguage(){	
@@ -39,8 +41,9 @@ public class WordListElement extends DB_Element
 	}
 	
 	public void setAssignation(TR_Assignation assignation) {
-		this.assignation = assignation;
-		changeState(CHANGE);
+	    if(assignation==null)
+		throw new IllegalArgumentException("");
+	    this.assignation = assignation;
 	}
 	
 	/**

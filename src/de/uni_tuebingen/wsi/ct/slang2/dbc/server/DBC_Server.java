@@ -4412,7 +4412,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
      * @param elements
      * @throws SQLException
      */
-    public synchronized ArrayList<WordListElement> saveWordListElements(ArrayList<WordListElement> elements) throws SQLException
+//    public synchronized ArrayList<WordListElement> saveWordListElements(ArrayList<WordListElement> elements) throws SQLException
+    public synchronized WordListElement[] saveWordListElements(WordListElement ... elements) throws SQLException 
     {
 	PreparedStatement stmt = null, stmt2 = null;
 	ResultSet res = null, res2 = null;
@@ -4426,10 +4427,10 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		    "VALUES(?, ?)"
 	    );
 
-	    TR_Assignation[] assignations = new TR_Assignation[elements.size()];
-	    int i=0;
-
-	    for (WordListElement wordListElement : elements) {
+	    TR_Assignation[] assignations = new TR_Assignation[elements.length];
+	    
+	    for (int i = 0; i < elements.length; i++) {
+		WordListElement wordListElement = elements[i];
 
 		if(wordListElement == null) {
 		    logger.info("wordListElement is null");
@@ -4439,6 +4440,10 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		stmt.setBytes(1, wordListElement.getContent().getBytes("ISO-8859-1"));
 		stmt.setString(2, wordListElement.getLanguage());	   
 		stmt.addBatch();
+		
+		assignations[i] = wordListElement.getAssignation();
+		if(assignations[i]==null)
+		    logger.warning("WordListElement without assignation");
 	    }			 
 	    stmt.executeBatch();
 	    saveAssignations(assignations);
@@ -4449,7 +4454,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		    "SELECT * " +
 		    "FROM word_list_elements " +
 		    "WHERE id = ?"
-	    );
+		    
+		    , ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
 	    for (WordListElement wordListElement : elements) {
 
@@ -4478,16 +4484,18 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			    "SELECT id FROM words " +
 			    "WHERE content = ? AND language = ?"
 		    );
-		    stmt.setBytes(1, wordListElement.getContent().getBytes("ISO-8859-1"));
-		    stmt.setString(2, wordListElement.getLanguage());
-		    res2 = stmt.executeQuery();
+		    stmt2.setBytes(1, wordListElement.getContent().getBytes("ISO-8859-1"));
+		    stmt2.setString(2, wordListElement.getLanguage());
+		    res2 = stmt2.executeQuery();
 
 		    // if a word ID could be found
 		    if( res2.next() ) {
 
 			// write WLE to DB
 			res.updateInt("word_id", res2.getInt(1));
-			res.updateInt("assignation_id", wordListElement.getAssignation().getDB_ID());
+			if(wordListElement.getAssignation() != null
+				&& wordListElement.getAssignation().getDB_ID() != TR_Assignation.DEFAULT_ID)
+			    res.updateInt("assignation_id", wordListElement.getAssignation().getDB_ID());
 
 			if(res.isFirst()) {
 			    res.updateRow();
@@ -4798,7 +4806,14 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     	//TODO: soll das WordListElement mit der Assignation ID assigID zurückgeben
     	try 
     	{
-    		stmt = connection.prepareStatement("SELECT * FROM word_list_elements WHERE word_list_elements.assignation_id = " + assigID);
+    		stmt = connection.prepareStatement(
+    			
+    			"SELECT * " +
+    			"FROM word_list_elements " +
+    			"WHERE word_list_elements.assignation_id = ?");
+    		
+    		stmt.setInt(1, assigID);
+    		
     		res = stmt.executeQuery();
     		
     		while (res.next()) 
@@ -4826,7 +4841,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     		}
     	}
     	catch ( SQLException e ) {
-    		e.printStackTrace();
+    		logger.throwing(this.getClass().getName(), "loadWordListElementWithAssigID", e);
+    		throw e;
     	}
     	return element;
     }
@@ -4842,78 +4858,84 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     private synchronized TR_Assignation[] saveAssignations(TR_Assignation ... assignations) throws SQLException, NullPointerException
     {
 		logger.entering(this.getClass().getName(), "saveAssignation", assignations);
-		if(assignations == null) {
-		    throw new NullPointerException("assignation == null");
-		}
+		
+		if(assignations == null)
+		    throw new IllegalArgumentException("");
 
 		PreparedStatement stmt = null;
 		ResultSet res = null;
 		
 		try 
 		{
-			for (TR_Assignation tr_assignation : assignations)
+		    for (TR_Assignation tr_assignation : assignations)
+		    {
+			if(tr_assignation == null) {
+			    logger.info("assignation is null");
+			    continue;
+			}
+
+			if(tr_assignation.isUnchanged()) {
+			    logger.finest("assignation unchanged");
+			    continue;
+			}
+
+			TR_Assignation_DB assignation_db = tr_assignation.new TR_Assignation_DB();
+
+			stmt = connection.prepareStatement(
+				
+				"SELECT * " +
+				"FROM assignations " +
+				"WHERE id = ?",
+				
+				ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+			
+			stmt.setInt(1, assignation_db.getDB_ID());
+			res = stmt.executeQuery();
+
+			if (assignation_db.hasChanged()) 
 			{
-				TR_Assignation_DB assignation = tr_assignation.new TR_Assignation_DB();			
-				if(assignation == null) {
-				    logger.info("assignation is null");
-				    continue;
-				}
-		
-				if(assignation.isUnchanged()) {
-				    logger.finest("assignation unchanged");
-				    continue;
-				}
-		
-				stmt = connection.prepareStatement("SELECT * FROM assignations WHERE id = ?",
-						ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-				stmt.setInt(1, assignation.getDB_ID());
-				res = stmt.executeQuery();
-		
-				if (assignation.hasChanged()) 
-				{
-				    if(! res.next()) {
-				    	res.moveToInsertRow();
-				    }
-				    
-				    res.updateBytes("tr_type", assignation.getTypesBinary());
-				    res.updateBytes("tr_genus", assignation.getGeneraBinary());
-				    res.updateBytes("tr_numerus", assignation.getNumeriBinary());
-				    res.updateBytes("tr_determination", assignation.getDeterminationsBinary());
-				    res.updateBytes("tr_case", assignation.getCasesBinary());
-				    res.updateBytes("tr_person", assignation.getPersonsBinary());
-				    res.updateBytes("tr_conjugation", assignation.getConjugationsBinary());
-				    res.updateBytes("tr_tempus", assignation.getTemporaBinary());
-				    res.updateBytes("tr_diathese", assignation.getDiathesesBinary());
-				    res.updateBytes("tr_wordclass", assignation.getWordclassesBinary());
-				    res.updateBytes("tr_wortart1", assignation.getWortarten1Binary());
-				    res.updateBytes("tr_wortart2", assignation.getWortarten2Binary());
-				    res.updateBytes("tr_wortart3", assignation.getWortarten3Binary());
-				    res.updateBytes("tr_wortart4", assignation.getWortarten4Binary());
-				    res.updateBytes("tr_subclass_connector", assignation.getWordsubclassesConnectorBinary());
-				    res.updateBytes("tr_subclass_verb", assignation.getWordsubclassesVerbBinary());
-				    res.updateBytes("tr_subclass_adjective", assignation.getWordsubclassesAdjectiveBinary());
-				    res.updateBytes("tr_subclass_preposition", assignation.getWordsubclassesPrepositionBinary());
-				    res.updateBytes("tr_subclass_pronoun", assignation.getWordsubclassesPronounBinary());
-				    //res.updateBytes("tr_subclass_sign", assignation.getWordsubclassesSignBinary());
-							
-				    res.updateString("description", assignation.getDescription());
-				    res.updateString("etymol", assignation.getEtymol());
-				    
-				    if(res.isFirst()) {
-				    	res.updateRow();
-				    }
-				    else {
-						res.insertRow();
-						res.last();
-						//assignations[i].setDB_ID(key, res.getInt("id"));
-						assignation.setDB_ID(key, res.getInt("id"));
-				    }
-				    //assignations[i].resetState(key);
-				    assignation.resetState(key);
-				}
-				else if(assignation.isRemoved() && res.next()) {
-				    res.deleteRow();
-				}
+			    if(! res.next()) {
+				res.moveToInsertRow();
+			    }
+
+			    res.updateBytes("tr_type", assignation_db.getTypesBinary());
+			    res.updateBytes("tr_genus", assignation_db.getGeneraBinary());
+			    res.updateBytes("tr_numerus", assignation_db.getNumeriBinary());
+			    res.updateBytes("tr_determination", assignation_db.getDeterminationsBinary());
+			    res.updateBytes("tr_case", assignation_db.getCasesBinary());
+			    res.updateBytes("tr_person", assignation_db.getPersonsBinary());
+			    res.updateBytes("tr_conjugation", assignation_db.getConjugationsBinary());
+			    res.updateBytes("tr_tempus", assignation_db.getTemporaBinary());
+			    res.updateBytes("tr_diathese", assignation_db.getDiathesesBinary());
+			    res.updateBytes("tr_wordclass", assignation_db.getWordclassesBinary());
+			    res.updateBytes("tr_wortart1", assignation_db.getWortarten1Binary());
+			    res.updateBytes("tr_wortart2", assignation_db.getWortarten2Binary());
+			    res.updateBytes("tr_wortart3", assignation_db.getWortarten3Binary());
+			    res.updateBytes("tr_wortart4", assignation_db.getWortarten4Binary());
+			    res.updateBytes("tr_subclass_connector", assignation_db.getWordsubclassesConnectorBinary());
+			    res.updateBytes("tr_subclass_verb", assignation_db.getWordsubclassesVerbBinary());
+			    res.updateBytes("tr_subclass_adjective", assignation_db.getWordsubclassesAdjectiveBinary());
+			    res.updateBytes("tr_subclass_preposition", assignation_db.getWordsubclassesPrepositionBinary());
+			    res.updateBytes("tr_subclass_pronoun", assignation_db.getWordsubclassesPronounBinary());
+			    //res.updateBytes("tr_subclass_sign", assignation.getWordsubclassesSignBinary());
+
+			    res.updateString("description", assignation_db.getDescription());
+			    res.updateString("etymol", assignation_db.getEtymol());
+
+			    if(res.isFirst()) {
+				res.updateRow();
+			    }
+			    else {
+				res.insertRow();
+				res.last();
+				tr_assignation.setDB_ID(key, res.getInt("id"));
+				logger.fine("new assignation inserted. ID="+tr_assignation.getDB_ID());
+			    }
+			    assignation_db.resetState(key);
+			}
+			else if(assignation_db.isRemoved() && res.next()) {
+			    res.deleteRow();
+			}
 		    }
 		}
 		catch ( SQLException e ) {

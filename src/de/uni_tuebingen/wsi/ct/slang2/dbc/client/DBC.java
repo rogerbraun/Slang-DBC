@@ -1149,28 +1149,13 @@ public class DBC implements DBC_KeyAcceptor {
 		return renominalisations;
 	}
 
-	public void saveWordListElements(ArrayList<WordListElement> elements) throws Exception {
+	/**
+	 * @param element
+	 * @throws Exception
+	 */
+	public void saveWordListElements(WordListElement ... element) throws Exception {
 		//key.unlock();
-		
-		//WordListElement[] answer = (WordListElement[]) connection.call(new Message(key, "saveWordListElement", (Object[]) element)).getArguments()[0];
-
-		Message message =new Message(key, "saveWordListElements", elements);
-		Message blal = connection.call(message);
-		Object bla = blal.getArguments()[0];
-		WordListElement[] wlea = (WordListElement[]) bla;
-		WordListElement[] answer = wlea;
-
-		
-		for(int i = 0; i != answer.length; i++){
-			elements.get(i).updateIDs(key, answer[i]);
-			if(elements.get(i).getAssignation() != null)
-				elements.get(i).getAssignation().updateIDs(key, answer[i].getAssignation());
-		}
-	}
-
-/*	public void saveWordListElement(WordListElement element) throws Exception {
-		//key.unlock();
-		WordListElement[] answer = (WordListElement[]) connection.call(new Message(key, "saveWordListElement", (Object) element))
+		WordListElement[] answer = (WordListElement[]) connection.call(new Message(key, "saveWordListElements", new Object[] {(Object[]) element}))
 		.getArguments()[0];
 
 		for(int i = 0; i != answer.length; i++){
@@ -1179,7 +1164,7 @@ public class DBC implements DBC_KeyAcceptor {
 				element[i].getAssignation().updateIDs(key, answer[i].getAssignation());
 		}
 	}
-*/
+
 	/**
 	 * Load from DB all WordListElements with word = <code>content</code>
 	 * @param content

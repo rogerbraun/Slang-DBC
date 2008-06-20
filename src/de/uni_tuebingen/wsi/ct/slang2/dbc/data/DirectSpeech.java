@@ -206,20 +206,24 @@ public class DirectSpeech extends DB_Element
     * @param illocutionUnit
     *        die �u�erungseinheit selbst.
     */
-   public void add(IllocutionUnit illocutionUnit) {
-      int index = illocutionUnit.getIndex();
+   public void add(IllocutionUnit illocutionUnit) 
+   {
+	  if (illocutionUnit != null)
+	  {
+		  int index = illocutionUnit.getIndex();
 
-      for (int i = 0; i < illocutionUnitsIndicies.size(); i++) {
-         int i2 = ((Integer) illocutionUnitsIndicies.get(i)).intValue();
-         if (i2 == index)
-            return;
-         if (i2 > index) {
-            illocutionUnitsIndicies.add(i, new Integer(index));
-            return;
-         }
-      }
-      illocutionUnitsIndicies.add(new Integer(index));
-      changeState(CHANGE);
+	      for (int i = 0; i < illocutionUnitsIndicies.size(); i++) {
+	         int i2 = ((Integer) illocutionUnitsIndicies.get(i)).intValue();
+	         if (i2 == index)
+	            return;
+	         if (i2 > index) {
+	            illocutionUnitsIndicies.add(i, new Integer(index));
+	            return;
+	         }
+	      }
+	      illocutionUnitsIndicies.add(new Integer(index));
+	      changeState(CHANGE);
+	  }
    }
 
    /**

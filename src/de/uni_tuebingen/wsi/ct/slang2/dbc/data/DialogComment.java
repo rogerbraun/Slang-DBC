@@ -6,6 +6,7 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
 
 public class DialogComment extends DB_Element implements Serializable, Cloneable
 {
+	private static final long serialVersionUID = 7523694191229309496L;
 	private int iuIndex;
 	private String comment;
 	private int commentNr;

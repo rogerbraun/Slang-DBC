@@ -12,6 +12,7 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
  */
 public class DialogD_Themat extends DB_Element implements Serializable, Cloneable, CommentOwner
 {
+	private static final long serialVersionUID = 8427023567590373263L;
 	private Chapter chapter;
 	private int iuIndex;
 	private String description;

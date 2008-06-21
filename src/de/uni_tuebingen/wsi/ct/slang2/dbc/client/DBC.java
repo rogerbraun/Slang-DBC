@@ -33,6 +33,7 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Pattern;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.PronounComplex;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Relation;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Renominalisations;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Thema_DB;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Word;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.WordListElement;
@@ -1185,6 +1186,62 @@ public class DBC implements DBC_KeyAcceptor {
 	public WordListElement[] loadWordListElement(String content, String language) throws Exception {
 		//key.unlock();
 		return (WordListElement[]) connection.call(new Message(key, "loadWordListElement", content, language)) .getArguments()[0];
+	}
+	
+	/**
+	 * Load the Words appropriated to the given Wortart
+	 * @param wortArt, Enum from TR_Assignation
+	 * @return 
+	 * @throws Exception
+	 */
+	public Vector<String> loadWordsWithWortArt1(TR_Assignation.Wortart1 wortArt) throws Exception
+    {
+		Message message = new Message(key, "loadWordsWithWortArt1", wortArt);
+		Message mes = connection.call(message);
+		
+		return (Vector<String>)mes.getArguments()[0];
+    }
+	
+	/**
+	 * Load the Words appropriated to the given abbreviation.
+	 * @param wortArt, Enum from TR_Assignation
+	 * @return 
+	 * @throws Exception
+	 */
+	public Vector<String> loadWordsWithAbbreviation(String abbr) throws Exception
+    {
+		Message message = new Message(key, "loadWordsWithAbbreviation", abbr);
+		Message mes = connection.call(message);
+		
+		return (Vector<String>)mes.getArguments()[0];
+    }
+	
+	/**
+	 * Load the Words appropriated to the given Conjugation.
+	 * @param wortArt, Enum from TR_Assignation
+	 * @return 
+	 * @throws Exception
+	 */
+	public Vector<String> loadWordsWithConjugation(TR_Assignation.Conjugation conjug) throws Exception
+	{
+		Message message = new Message(key, "loadWordsWithConjugation", conjug);
+		Message mes = connection.call(message);
+			
+		return (Vector<String>)mes.getArguments()[0];
+	}
+	
+	/**
+	 * Load the Words appropriated to the given Pronoun.
+	 * @param wortArt, Enum from TR_Assignation
+	 * @return 
+	 * @throws Exception
+	 */
+	public Vector<String> loadWordsWithPronoun(TR_Assignation.WordsubclassPronoun pron) throws Exception
+	{
+		 Message message = new Message(key, "loadWordsWithPronoun", pron);
+		 Message mes = connection.call(message);
+				
+		 return (Vector<String>)mes.getArguments()[0];
 	}
 	
 	/**

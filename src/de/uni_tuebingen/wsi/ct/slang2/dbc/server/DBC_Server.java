@@ -4707,6 +4707,138 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 //  return element;
 //  }
+    
+    public Vector<String> loadWordsWithWortArt1(TR_Assignation.Wortart1 wortArt)
+    {
+    	Vector<String> words = new Vector<String>();
+    	byte[] wa1 = new byte[0];
+    	
+		if (wortArt != null)  	{
+    		wa1 = TR_Assignation.setBit(wa1, wortArt.ordinal(), true);
+        }
+		
+		try 
+    	{
+			PreparedStatement stmt = connection.prepareStatement(
+					"SELECT content FROM words WHERE words.id IN" +
+					"(SELECT word_id from word_list_elements where word_list_elements.assignation_id IN " +
+					"(SELECT id FROM assignations WHERE tr_tempus & wa1));",
+					ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+			stmt.setBytes(1, wa1);
+			ResultSet res = stmt.executeQuery();
+    		
+    		while (res.next()) 
+    		{
+    			words.add(res.getString("content"));
+    		}
+    		res.close();
+    		stmt.close();
+    	}
+		catch (SQLException e) 
+		{
+			e.printStackTrace();
+		}
+		return words;
+    }
+    
+    public Vector<String> loadWordsWithAbbreviation(String abbr)
+    {
+    	Vector<String> words = new Vector<String>();
+    	
+		if (abbr != null)  	
+		{		
+			try 
+	    	{
+				PreparedStatement stmt = connection.prepareStatement(
+						"SELECT content FROM words WHERE words.id IN" +
+						"(SELECT word_id from word_list_elements where word_list_elements.assignation_id IN " +
+						"(SELECT id FROM assignations WHERE abbreviation = ?));",
+						ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+				stmt.setString(1, abbr);
+				ResultSet res = stmt.executeQuery();
+	    		
+	    		while (res.next()) 
+	    		{
+	    			words.add(res.getString("content"));
+	    		}
+	    		res.close();
+	    		stmt.close();
+	    	}
+			catch (SQLException e) 
+			{
+				e.printStackTrace();
+			}
+		}
+		return words;
+    }
+    
+    public Vector<String> loadWordsWithConjugation(TR_Assignation.Conjugation conjug)
+    {
+    	Vector<String> words = new Vector<String>();
+    	
+    	byte[] conj = new byte[0];
+    	
+		if (conjug != null) {
+			conj = TR_Assignation.setBit(conj, conjug.ordinal(), true);
+        }	
+		
+		try 
+    	{
+			PreparedStatement stmt = connection.prepareStatement(
+					"SELECT content FROM words WHERE words.id IN" +
+					"(SELECT word_id from word_list_elements where word_list_elements.assignation_id IN " +
+					"(SELECT id FROM assignations WHERE tr_conjugation & ?));",
+					ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+			stmt.setBytes(1, conj);
+			ResultSet res = stmt.executeQuery();
+    		
+    		while (res.next()) 
+    		{
+    			words.add(res.getString("content"));
+    		}
+    		res.close();
+    		stmt.close();
+    	}
+		catch (SQLException e) 
+		{
+			e.printStackTrace();
+		}
+		return words;
+    }
+    
+    public Vector<String> loadWordsWithPronoun(TR_Assignation.WordsubclassPronoun pron)
+    {
+    	Vector<String> words = new Vector<String>();
+    	
+    	byte[] pro = new byte[0];
+    	
+		if (pron != null) {
+			pro = TR_Assignation.setBit(pro, pron.ordinal(), true);
+        }	
+		
+		try 
+    	{
+			PreparedStatement stmt = connection.prepareStatement(
+					"SELECT content FROM words WHERE words.id IN" +
+					"(SELECT word_id from word_list_elements where word_list_elements.assignation_id IN " +
+					"(SELECT id FROM assignations WHERE tr_subclass_pronoun & ?));",
+					ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+			stmt.setBytes(1, pro);
+			ResultSet res = stmt.executeQuery();
+    		
+    		while (res.next()) 
+    		{
+    			words.add(res.getString("content"));
+    		}
+    		res.close();
+    		stmt.close();
+    	}
+		catch (SQLException e) 
+		{
+			e.printStackTrace();
+		}
+		return words;
+    }
 
     public WordListElement loadWordListElement(Integer id) throws SQLException {
 	PreparedStatement stmt = null;

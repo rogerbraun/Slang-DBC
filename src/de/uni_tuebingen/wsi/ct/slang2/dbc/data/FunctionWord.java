@@ -208,10 +208,10 @@ public class FunctionWord extends DB_Element
    }
 
    void setMeaningUnit(MeaningUnit meaningUnit) {
-      if (sememeGroup == null) {
+    //  if (sememeGroup == null) {
          this.meaningUnit = meaningUnit;
          changeState(CHANGE);
-      }
+  //    }
    }
 
    /**

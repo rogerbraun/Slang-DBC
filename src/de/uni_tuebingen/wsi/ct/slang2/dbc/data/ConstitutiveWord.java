@@ -69,7 +69,8 @@ public class ConstitutiveWord extends DB_Element
          int lexpragPath,
          int lexpragLevel,
          int textGrPath,
-         int semPath) {
+         int semPath,
+         TR_Assignation assignation) {
       super(id);
       key.unlock();
       this.root = root;
@@ -81,8 +82,7 @@ public class ConstitutiveWord extends DB_Element
       this.lexpragLevel = lexpragLevel;
       this.textGrPath = textGrPath;
       this.semPath = semPath;
-      this.assignation = new TR_Assignation();
-      this.assignation.setTypes(Type.CONSTITUTIVE_WORD);
+      this.assignation = assignation;
 
       root.add(this);
       root.register(this);

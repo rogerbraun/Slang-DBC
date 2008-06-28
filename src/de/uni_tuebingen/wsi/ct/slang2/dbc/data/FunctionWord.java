@@ -46,7 +46,8 @@ public class FunctionWord extends DB_Element
          Word word,
          int start,
          int end,
-         boolean accepted) {
+         boolean accepted,
+         TR_Assignation assignation) {
       super(id);
       key.unlock();
 
@@ -55,8 +56,7 @@ public class FunctionWord extends DB_Element
       this.word = word;
       this.end = end;
       this.accepted = accepted;
-      this.assignation = new TR_Assignation();
-      this.assignation.setTypes(Type.FUNCTION_WORD);
+      this.assignation = assignation;
       
       root.add(this);
       root.register(this);
@@ -208,10 +208,10 @@ public class FunctionWord extends DB_Element
    }
 
    void setMeaningUnit(MeaningUnit meaningUnit) {
-    //  if (sememeGroup == null) {
+      if (sememeGroup == null) {
          this.meaningUnit = meaningUnit;
          changeState(CHANGE);
-  //    }
+      }
    }
 
    /**

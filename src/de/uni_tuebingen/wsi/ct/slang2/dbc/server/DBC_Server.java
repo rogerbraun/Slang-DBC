@@ -2357,9 +2357,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	Statement stmt = connection.createStatement();
 	Vector<FunctionWord> fwords = new Vector<FunctionWord>();
 
-	ResultSet res = stmt.executeQuery("SELECT function_words.id, "
-		+ "word, start, end, accepted "
-		+ "FROM function_words "
+	ResultSet res = stmt.executeQuery("SELECT * FROM function_words "
 		+ "WHERE chapter = "
 		+ chapter.getDB_ID());
 	while (res.next()) {
@@ -2373,9 +2371,10 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	    IllocutionUnitRoot root = (IllocutionUnitRoot) getElement(token
 		    .getIllocutionUnit().getDB_ID(), roots);
 	    if (token instanceof Word) {
-		fwords.add(new FunctionWord(key, root, res.getInt("id"),
-			(Word) token, res.getInt("start"), res.getInt("end"), res
-			.getBoolean("accepted")));
+	    	TR_Assignation assignation = loadAssignation(res.getInt("assignation_id"));
+	    	fwords.add(new FunctionWord(key, root, res.getInt("id"),
+	    			(Word) token, res.getInt("start"), res.getInt("end"), res
+	    			.getBoolean("accepted"), assignation));
 	    }
 	}
 
@@ -2396,14 +2395,25 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		    if(res.next()) 
 		    {
 				assignation = new TR_Assignation().new TR_Assignation_DB();
+				assignation.setTypesBinary(res.getBytes("tr_type"));
 				assignation.setCasesBinary( res.getBytes("tr_case"));
 				assignation.setConjugationsBinary(res.getBytes("tr_conjugation"));
 				assignation.setDeterminationsBinary(res.getBytes("tr_determination"));
 				assignation.setDiathesesBinary(res.getBytes("tr_diathese"));
+				assignation.setGeneraBinary(res.getBytes("tr_genus"));
 				assignation.setNumeriBinary(res.getBytes("tr_numerus"));
 				assignation.setPersonsBinary(res.getBytes("tr_person"));
 				assignation.setTemporaBinary(res.getBytes("tr_tempus"));
 				assignation.setWordclassesBinary(res.getBytes("tr_wordclass"));
+				assignation.setWortarten1Binary(res.getBytes("tr_wortart1"));
+				assignation.setWortarten2Binary(res.getBytes("tr_wortart2"));
+				assignation.setWortarten3Binary(res.getBytes("tr_wortart3"));
+				assignation.setWortarten4Binary(res.getBytes("tr_wortart4"));
+				assignation.setWordsubclassesAdjectiveBinary(res.getBytes("tr_subclass_adjective"));
+				assignation.setWordsubclassesVerbBinary(res.getBytes("tr_subclass_verb"));
+				assignation.setWordsubclassesConnectorBinary(res.getBytes("tr_subclass_connector"));
+				assignation.setWordsubclassesPrepositionBinary(res.getBytes("tr_subclass_preposition"));
+				assignation.setWordsubclassesPronounBinary(res.getBytes("tr_subclass_pronoun"));
 				//TODO: add other columns
 				assignation.setDB_ID(key, res.getInt("id"));
 				assignation.resetState(key);
@@ -2443,24 +2453,19 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	    stmt.setInt(1, chapter.getDB_ID());
 	    res = stmt.executeQuery();
 	    while (res.next()) {
-		Token token = chapter.getTokenAtPosition(res.getInt("start"));
-		if(token.getIllocutionUnit() == null) // TODO Check if it is acceptable that a token has no IllocutionUnit
-			continue;
-		IllocutionUnitRoot root = (IllocutionUnitRoot) getElement(token
-			.getIllocutionUnit().getDB_ID(), roots);
-		if (token instanceof Word) {
-		    ConstitutiveWord cw = new ConstitutiveWord(key, root, res.getInt("id"),
-			    (Word) token, res.getInt("start"), res.getInt("end"), res.getBoolean("accepted"), res.getInt("lexprag_path"),
-			    res.getInt("lexprag_level"), res.getInt("text_gr_path"), res.getInt("sem_path"));
-
-		    TR_Assignation assi = loadAssignation(res.getInt("assignation_id"));
-		    if(assi != null) {
-//			assi.setContent(cw.getContent());
-			cw.setAssignation(assi);
-		    }
-
-		    cwords.add(cw);
-		}
+			Token token = chapter.getTokenAtPosition(res.getInt("start"));
+			if(token.getIllocutionUnit() == null) // TODO Check if it is acceptable that a token has no IllocutionUnit
+				continue;
+			IllocutionUnitRoot root = (IllocutionUnitRoot) getElement(token
+				.getIllocutionUnit().getDB_ID(), roots);
+			if (token instanceof Word) {
+				TR_Assignation assi = loadAssignation(res.getInt("assignation_id"));
+			    ConstitutiveWord cw = new ConstitutiveWord(key, root, res.getInt("id"),
+				    (Word) token, res.getInt("start"), res.getInt("end"), res.getBoolean("accepted"), res.getInt("lexprag_path"),
+				    res.getInt("lexprag_level"), res.getInt("text_gr_path"), res.getInt("sem_path"),
+				    assi);
+			    cwords.add(cw);
+			}
 	    }
 	}
 
@@ -2712,6 +2717,9 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	    if (word.isUnchanged())
 		continue;
 
+	    //	  Get assignation
+		TR_Assignation assi = word.getAssignation();         
+	    
 	    res = stmt.executeQuery("SELECT * "
 		    + "FROM function_words "
 		    + "WHERE id = "
@@ -2719,20 +2727,25 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 	    if (res.next() && word.getDB_ID() != -1) {
 		if (word.hasChanged()) {
+			if(assi != null)
+		    	saveAssignations(assi);
 		    res.updateInt("chapter", word.getWord().getChapter().getDB_ID());
 		    res.updateInt("word", word.getWord().getDB_ID());
 		    res.updateInt("start", word.getStartPosition());
 		    res.updateInt("end", word.getEndPosition());
 		    res.updateBoolean("accepted", word.isAccepted());
+		    if(assi != null)
+		    	res.updateInt("assignation_id", word.getAssignation().getDB_ID());
 		    res.updateRow();
 		    res.close();
 		    word.resetState(key);
-		}
-		else if (word.isRemoved())
+		} else if (word.isRemoved())
 		    res.deleteRow();
-	    }
-
-	    else if (!word.isRemoved() && word.getDB_ID() == -1) {
+			if(assi != null) {
+				assi.remove();
+				saveAssignations(assi);
+		    }
+	    } else if (!word.isRemoved() && word.getDB_ID() == -1) {
 		res.moveToInsertRow();
 		res.updateInt("chapter", word.getWord().getChapter().getDB_ID());
 		res.updateInt("word", word.getWord().getDB_ID());
@@ -2823,10 +2836,10 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 		if (constitutiveWord.hasChanged()) {
 		    if(assi != null)
-			saveAssignations(assi);
-		    if(! res.next()) {
-			res.moveToInsertRow();
-		    }
+		    	saveAssignations(assi);
+		    if(! res.next()) 
+		    	res.moveToInsertRow();
+		    
 		    res.updateInt("chapter", constitutiveWord.getWord().getChapter().getDB_ID());
 		    res.updateInt("word", constitutiveWord.getWord().getDB_ID());
 		    res.updateInt("start", constitutiveWord.getStartPosition());
@@ -2837,14 +2850,13 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		    res.updateInt("text_gr_path", constitutiveWord.getTextGrPath());
 		    res.updateInt("sem_path", constitutiveWord.getSemPath());
 		    if(assi != null)
-			res.updateInt("assignation_id", constitutiveWord.getAssignation().getDB_ID());
-		    if(res.isFirst()) {
-			res.updateRow();
-		    }
+		    	res.updateInt("assignation_id", constitutiveWord.getAssignation().getDB_ID());
+		    if(res.isFirst()) 
+		    	res.updateRow();
 		    else {
-			res.insertRow();
-			res.last();
-			constitutiveWord.setDB_ID(key, res.getInt("id"));
+		    	res.insertRow();
+		    	res.last();
+		    	constitutiveWord.setDB_ID(key, res.getInt("id"));
 		    }
 
 		    constitutiveWord.resetState(key);

@@ -5305,6 +5305,15 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     }
     
     
+    /**
+     * Alle Einträge der text_raw Tabelle werden geladen. Die Bedingungen können durch die Parameter angegeben werden.
+     * @param strTitle
+     * @param strId
+     * @param strCreator
+     * @param strLang
+     * @param strDate
+     * @return
+     */
     public Vector<Vector<String>> loadText_Raw (String strTitle, String strId, String strCreator, String strLang, String strDate)
     {
 //    strTitle = jtTitle.getText();

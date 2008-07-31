@@ -6,6 +6,7 @@ package de.uni_tuebingen.wsi.ct.slang2.dbc.server;
 
 import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -3828,7 +3829,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 	Statement stmt = connection.createStatement();
 	ResultSet res = stmt.executeQuery("SELECT owner_id, owner_class_code, "
-		+ "program, comment FROM comments "
+		+ "program, comment FROM comments_old "
 		+ "WHERE owner_class_code = "
 		+ ownerClassCode
 		+ " and owner_id in ("
@@ -5302,4 +5303,112 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     public void setKey(DBC_Key key) {
 	this.key = key;
     }
+    
+    
+    public Vector<Vector<String>> loadText_Raw (String strTitle, String strId, String strCreator, String strLang, String strDate)
+    {
+//    strTitle = jtTitle.getText();
+//    strId = jtId.getText();
+//    strCreator = jtCreator.getText();
+//    strLang = jtLang.getText();
+//    strDate = jtDate.getText();
+    	
+	    String sqlStatement = "SELECT * FROM text_raw WHERE ";
+	    if (!strTitle.equals("")) 
+	    {
+	        if (sqlStatement.endsWith("WHERE "))
+	            sqlStatement += "title LIKE '%" + strTitle + "%' ";
+	        else
+	            sqlStatement += "AND title LIKE '%" + strTitle + "%' ";
+	    }
+	    if (!strId.equals("")) 
+	    {
+	        if (sqlStatement.endsWith("WHERE "))
+	            sqlStatement += "id LIKE '%" + strId + "%' ";
+	        else
+	            sqlStatement += "AND id LIKE '%" + strId + "%' ";
+	    }
+	    if (!strCreator.equals("")) 
+	    {
+	        if (sqlStatement.endsWith("WHERE "))
+	            sqlStatement += "creator LIKE '%" +	strCreator + "%' ";
+	        else
+	            sqlStatement += "AND creator LIKE '%" +	strCreator + "%' ";
+	    }
+	    if (!strLang.equals("")) 
+	    {
+	        if (sqlStatement.endsWith("WHERE "))
+	            sqlStatement += "language LIKE '%" + strLang + "%' ";
+	        else
+	            sqlStatement += "AND language LIKE '%" + strLang + "%' ";
+	    }
+	    if (!strDate.equals("")) 
+	    {
+	        if (sqlStatement.endsWith("WHERE "))
+	            sqlStatement += "created LIKE '%" +	strDate + "%' ";
+	        else
+	            sqlStatement += "AND created LIKE '%" +	strDate + "%' ";
+	    }
+	    if (sqlStatement.endsWith("WHERE "))
+	        sqlStatement = "SELECT * FROM text_raw";
+	    
+	    ResultSet res = null;
+	    Vector<Vector<String>> toChange = new Vector<Vector<String>>();
+	    System.out.println();
+	    System.out.println(sqlStatement);
+	    System.out.println();
+	    try 
+	    {
+	    	PreparedStatement stmt = connection.prepareStatement(sqlStatement);
+			res = stmt.executeQuery();    		
+			
+    		while (res.next()) 
+    		{
+    			String id = res.getString("id");
+    			String title = res.getString("title");
+    			String creator = res.getString("creator");
+    			String language = res.getString("language");
+    			Date created = res.getDate("created"); 
+    			
+    			Vector<String> tmp = new Vector<String>();
+    			tmp.add(id);
+    			tmp.add(title);
+    			tmp.add(creator);
+    			tmp.add(language);
+    			tmp.add(created.toString());
+    			toChange.add(tmp);    			
+    		}
+    		res.close();
+    	}
+	    catch (Exception e) {
+	    	e.printStackTrace();		
+	    }
+	    
+	    return toChange;
+	        
+	        /*
+	        DBHandler.connect(config.db.host,
+	config.db.port, config.db.database,
+	                config.db.username,
+	config.db.password);
+	        Vector<Object[]> results = DBHandler
+	
+	.sqlQueryMultipleResult(sqlStatement);
+	        System.out.println("Fired Query: " +
+	sqlStatement);
+	        System.out.println("Affected Rows: " +
+	results.size());
+	        for (Object[] temp : results) {
+	            Vector<String> t = new Vector<String>();
+	            for (int i = 0; i < temp.length; i++) {
+	                if (temp[i] != null)
+	
+	t.add(temp[i].toString());
+	                else
+	                    t.add("");
+	            }
+	            toChange.add(t);
+	        }
+	        */
+	   }
 }

@@ -1359,4 +1359,11 @@ public class DBC implements DBC_KeyAcceptor {
 	public void setKey(DBC_Key key) {
 	    DBC.key = key;
 	}
+	
+	public Vector<Vector<String>> loadText_Raw (String strTitle, String strId, String strCreator, String strLang, String strDate) throws Exception
+    {
+		Message answer = connection.call(new Message(key, "loadText_Raw", strTitle, strId, strCreator, strLang, strDate));
+		return (Vector<Vector<String>>) answer.getArguments()[0];
+		
+    }
 }

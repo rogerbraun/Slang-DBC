@@ -5378,11 +5378,31 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     			Date created = res.getDate("created"); 
     			
     			Vector<String> tmp = new Vector<String>();
-    			tmp.add(id);
-    			tmp.add(title);
-    			tmp.add(creator);
-    			tmp.add(language);
-    			tmp.add(created.toString());
+    			if (id != null)
+    				tmp.add(id);
+    			else
+    				tmp.add("");
+    			
+    			if (title != null)
+    				tmp.add(title);
+    			else
+    				tmp.add("");
+    			
+    			if (creator != null)
+    				tmp.add(creator);
+    			else
+    				tmp.add("");
+    			
+    			if (language != null)
+    				tmp.add(language);
+    			else
+    				tmp.add("");
+    			
+    			if (created != null)
+    				tmp.add(created.toString());
+    			else
+    				tmp.add("");
+    			
     			toChange.add(tmp);    			
     		}
     		res.close();

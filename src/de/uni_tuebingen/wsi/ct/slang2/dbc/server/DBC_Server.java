@@ -5363,9 +5363,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	    
 	    ResultSet res = null;
 	    Vector<Vector<String>> toChange = new Vector<Vector<String>>();
-	    System.out.println();
-	    System.out.println(sqlStatement);
-	    System.out.println();
+	   
 	    try 
 	    {
 	    	PreparedStatement stmt = connection.prepareStatement(sqlStatement);

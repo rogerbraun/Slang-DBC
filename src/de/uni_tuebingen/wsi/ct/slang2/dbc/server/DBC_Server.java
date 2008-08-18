@@ -2740,12 +2740,13 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		    res.updateRow();
 		    res.close();
 		    word.resetState(key);
-		} else if (word.isRemoved())
+		} else if (word.isRemoved()) {
 		    res.deleteRow();
 			if(assi != null) {
 				assi.remove();
 				saveAssignations(assi);
-		    }
+		    	}
+			}
 	    } else if (!word.isRemoved() && word.getDB_ID() == -1) {
 		res.moveToInsertRow();
 		res.updateInt("chapter", word.getWord().getChapter().getDB_ID());

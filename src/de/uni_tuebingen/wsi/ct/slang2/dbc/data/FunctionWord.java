@@ -137,7 +137,10 @@ public class FunctionWord extends DB_Element
       this.root = root;
       this.start = start;
       this.end = end;
-
+      
+      accepted = false;
+      this.assignation = new TR_Assignation();
+      this.assignation.setTypes(Type.FUNCTION_WORD);
       if (root.add(this))
          root.register(this);
    }

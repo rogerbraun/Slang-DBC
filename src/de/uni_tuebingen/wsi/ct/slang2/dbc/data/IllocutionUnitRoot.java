@@ -154,7 +154,7 @@ public class IllocutionUnitRoot extends DB_Element
    }
    
    /**
-    * Setzt den Pafd dieser Äußerungseinheit
+    * Setzt den Pfad dieser Äußerungseinheit
     * 
     * @param pathID
     *        die ID des Pfades
@@ -430,7 +430,7 @@ public class IllocutionUnitRoot extends DB_Element
       if (fwsCache != null)
          return fwsCache;
 
-      Vector fws = new Vector();
+      Vector<FunctionWord> fws = new Vector<FunctionWord>();
       for (int i = 0; i < elements.size(); i++) {
          FunctionWord fw = null;
          if (elements.get(i) instanceof FunctionWord)
@@ -440,7 +440,6 @@ public class IllocutionUnitRoot extends DB_Element
             if (mu.getFunctionWord() != null)
                fw = mu.getFunctionWord();
          }
-
          if (fw != null) {
             boolean insert = false;
             for (int j = 0; j < fws.size(); j++) {

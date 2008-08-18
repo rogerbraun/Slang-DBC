@@ -42,7 +42,8 @@ public class WordListElement extends DB_Element
 	
 	public void setAssignation(TR_Assignation assignation) {
 	    if(assignation==null)
-		throw new IllegalArgumentException("");
+	    	assignation = new TR_Assignation();
+//		throw new IllegalArgumentException("");
 	    this.assignation = assignation;
 	}
 	

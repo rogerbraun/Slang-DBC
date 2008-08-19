@@ -250,7 +250,7 @@ public class ConstitutiveWord extends DB_Element
 
 
    //TODO: Zugriff auf die Assignation sollte nicht direkt geschehen, sondern restriktiv bzw. selectiv über cw eigene methoden.
-   // Warum? Eine Assignation kann mehrere / wiedersprüchliche werte annehmen.
+   // Warum? Eine Assignation kann mehrere / wiederspruechliche werte annehmen.
       
    public void setAssignation(TR_Assignation assignation){
       this.assignation = assignation;
@@ -396,6 +396,14 @@ public class ConstitutiveWord extends DB_Element
          return true;
       }
       return false;
+   }
+   /**
+    * setzt die Assignation ID auf NULL
+    * @return
+    */
+   public boolean removeAssignation() {
+	   this.assignation = null;
+	   return true;
    }
    
    public Case getCase() {

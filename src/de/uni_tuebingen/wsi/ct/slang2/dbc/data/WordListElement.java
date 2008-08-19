@@ -59,7 +59,8 @@ public class WordListElement extends DB_Element
 	}
 	
 	public boolean remove() {
-		return false;
+		this.changeState(REMOVE);
+		return true;
 	}
 	public int getIndex() {
 		return 0;

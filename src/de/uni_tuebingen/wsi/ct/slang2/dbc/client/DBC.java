@@ -247,11 +247,6 @@ public class DBC implements DBC_KeyAcceptor {
 		chapter.updateIDs(key, answer);
 	}
 
-	/*
-	 * Löscht ein Kapitel aus der Datenbank
-	 * 
-	 * @see #deleteChapter(int)
-	 */
 	/**
 	 * Loescht ein Kapitel aus der Datenbank
 	 * 
@@ -261,6 +256,23 @@ public class DBC implements DBC_KeyAcceptor {
 	throws Exception {
 		Message answer = connection.call(new Message(key, "deleteChapter", new Integer(id)));
 	}
+	
+	/**
+	 *  delete wle and the coressponding assignation and set the assignation in cw to null
+	 */
+	public void deleteWLECW(int wleID, int assigID, int cwID)
+	throws Exception {
+		Message answer = connection.call(new Message(key, "deleteWLECW", new Integer(wleID), new Integer(assigID), new Integer(cwID)));
+	}
+	
+	/**
+	 *  delete wle and the coressponding assignation and set the assignation in cw to null
+	 */
+	public void deleteWLEFW(int wleID, int assigID, int fwID)
+	throws Exception {
+		Message answer = connection.call(new Message(key, "deleteWLEFW", new Integer(wleID), new Integer(assigID), new Integer(fwID)));
+	}
+	
 	
 	/**
 	 * Lï¿½dt alle Direkten Reden aus der Datenbank, die zu diesem Kapitel

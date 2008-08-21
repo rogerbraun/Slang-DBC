@@ -895,6 +895,34 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	}
     }
     
+    /**
+     * delete wle and the coressponding assignation and set the assignation in cw to null
+     * @param chapterID
+     * @throws Exception
+     */
+    public synchronized void deleteWLECW(Integer wleID, Integer assigID, Integer cwID)
+    throws Exception {
+		Statement stmt = connection.createStatement();
+		// delete wle
+		stmt.execute("DELETE FROM word_list_elements WHERE id = "+wleID);
+		stmt.execute("DELETE FROM assignations WHERE id = "+assigID);
+		stmt.execute("UPDATE constitutive_words SET assignation_id = NULL WHERE id = "+cwID);
+	}
+    
+    /**
+     * delete wle and the coressponding assignation and set the assignation in fw to null
+     * @param chapterID
+     * @throws Exception
+     */
+    public synchronized void deleteWLEFW(Integer wleID, Integer assigID, Integer fwID)
+    throws Exception {
+		Statement stmt = connection.createStatement();
+		// delete wle
+		stmt.execute("DELETE FROM word_list_elements WHERE id = "+wleID);
+		stmt.execute("DELETE FROM assignations WHERE id = "+assigID);
+		stmt.execute("UPDATE function_words SET assignation_id = NULL WHERE id = "+fwID);
+	}
+    
 	/**
 	 * L�dt alle Direkten Reden aus der Datenbank, die zu diesem Kapitel
 	 * gespeichert wurden.

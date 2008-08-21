@@ -403,6 +403,7 @@ public class ConstitutiveWord extends DB_Element
     */
    public boolean removeAssignation() {
 	   this.assignation = null;
+	   changeState(CHANGE);
 	   return true;
    }
    

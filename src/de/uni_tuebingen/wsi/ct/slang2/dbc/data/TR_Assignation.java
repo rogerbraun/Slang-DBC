@@ -8,9 +8,6 @@ package de.uni_tuebingen.wsi.ct.slang2.dbc.data;
 import java.io.Serializable;
 import java.util.BitSet;
 
-import javax.activity.InvalidActivityException;
-
-
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Chapter;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DB_Element;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;

@@ -52,13 +52,13 @@ public class Slang2Server implements Daemon, Runnable {
 	private void init(Properties p) {
 		this.properties = new Properties();
 		this.properties.setProperty("slang2server.host", "localhost");
-		this.properties.setProperty("slang2server.port", "9998");
+		this.properties.setProperty("slang2server.port", "9999");
 		this.properties.setProperty("slang2server.max_connections", "10");
 		this.properties.setProperty("slang2server.dbc.host", "localhost");
 		this.properties.setProperty("slang2server.dbc.port", "3306");
 		this.properties.setProperty("slang2server.dbc.name", "slang2_v2");
 		this.properties.setProperty("slang2server.dbc.user", "slang2");
-		this.properties.setProperty("slang2server.dbc.password", "kauderwelch");
+		this.properties.setProperty("slang2server.dbc.password", "kauderwelsch");
 		this.properties.setProperty("slang2server.log.file", "");
 		this.properties.setProperty("slang2server.log.level", "ALL");
 		this.properties.putAll(p);

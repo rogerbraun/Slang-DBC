@@ -116,6 +116,7 @@ public class ChapterLoader extends JComponent
     */
    public void showDialog(Component parent, int x, int y) {
       dialog = createDialog((JFrame) parent);
+      dialog.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
       dialog.pack();
       dialog.setLocation(x, y);
       dialog.setVisible(true);

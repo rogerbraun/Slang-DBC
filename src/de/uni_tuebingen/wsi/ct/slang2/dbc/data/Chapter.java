@@ -185,8 +185,8 @@ public class Chapter
          int endPosition) {
       key.unlock();
       int index = getIllocutionUnitIndex(startPosition);
-      illocutionUnits.add(index, new IllocutionUnit(id, this, index,
-            startPosition, endPosition));
+      IllocutionUnit iu = new IllocutionUnit(id, this, index, startPosition, endPosition);
+      illocutionUnits.add(index, iu);
    }
 
    /**

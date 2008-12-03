@@ -2362,7 +2362,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
      */
     private Vector<IllocutionUnitRoot> makeIllocutionUnitRoots(Chapter chapter)
     throws Exception {
-	Vector<IllocutionUnit> ius = chapter.getIllocutionUnits();
+	Vector ius = chapter.getIllocutionUnits();
 	Vector<IllocutionUnitRoot> roots = new Vector<IllocutionUnitRoot>(ius.size());
 	Statement stmt = connection.createStatement();
 	ResultSet res = stmt.executeQuery("SELECT * FROM illocution_units "

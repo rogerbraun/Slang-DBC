@@ -685,7 +685,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		    }
 
 		    if( wordId > 0 ) {
-			word.setDB_ID(key, res.getInt("id"));
+			word.setDB_ID(key, wordId);
 		    }
 		    else {
 			connection.rollback();
@@ -814,7 +814,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		IllocutionUnit iu = (IllocutionUnit) ius.get(i);
 		stmt.setInt(1, chapter.getDB_ID());
 		stmt.setInt(2, iu.getStartPosition());
-		stmt.setInt(3, iu.getStartPosition());
+		stmt.setInt(3, iu.getEndPosition());
 		stmt.addBatch();
 	    }
 	    updateCounts = stmt.executeBatch();
@@ -827,7 +827,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		IllocutionUnit iu = (IllocutionUnit) ius.get(i);			   
 		stmt.setInt(1, chapter.getDB_ID());
 		stmt.setInt(2, iu.getStartPosition());
-		stmt.setInt(3, iu.getStartPosition());
+		stmt.setInt(3, iu.getEndPosition());
 		res = stmt.executeQuery();
 
 		if ( res.next() )

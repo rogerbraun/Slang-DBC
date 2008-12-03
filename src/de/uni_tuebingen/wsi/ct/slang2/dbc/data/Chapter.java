@@ -7,7 +7,7 @@ package de.uni_tuebingen.wsi.ct.slang2.dbc.data;
 import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.Vector;
-
+import java.util.logging.Logger;
 
 import de.uni_tuebingen.wsi.ct.slang2.dbc.client.DBC;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
@@ -402,15 +402,21 @@ public class Chapter
             break;
       }
       while (e == null) {
-         e = getTokenAtPosition(++ei);
+         e = getTokenAtPosition(--ei);
          if (ei - end > 10)
             break;
       }
 
-      String res = getContent(s, e);
-      start = Math.max(0, start - s.getStartPosition());
-      end = Math.min(res.length(), end - s.getStartPosition() + 1);
-      return res.substring(start, end);
+      if (s != null && e != null) {
+    	  String res = getContent(s, e);
+          start = Math.max(0, start - s.getStartPosition());
+          end = Math.min(res.length(), end - s.getStartPosition() + 1);
+          return res.substring(start, end);
+      }
+      else {
+    	  Logger.global.severe("Eins der beiden Token konnte nicht gefunden werden.");
+    	  return "";
+      }
    }
 
    private int getNextParagraph(int pos) {

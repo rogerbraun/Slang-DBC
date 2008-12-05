@@ -49,6 +49,8 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.data.IllocutionUnitRoot;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.IllocutionUnitRoots;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Isotope;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Isotopes;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.LiteraryCriticism1;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.LiteraryCriticism2;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.MacroSentence;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.MeaningUnit;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Occurrence_DB;
@@ -64,9 +66,13 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Thema_DB;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Token;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Word;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.WordListElement;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.WorkingTranslation;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.LiteraryCriticism1.LiteraryCriticism1_DB;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.LiteraryCriticism2.LiteraryCriticism2_DB;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.PronounComplex.PronounComplex_DB;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Relation.Relation_DB;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation.TR_Assignation_DB;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.WorkingTranslation.WorkingTranslation_DB;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_KeyAcceptor;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.exceptions.DBC_ConnectionException;
@@ -145,23 +151,27 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
      * @see #close()
      */
     void open() throws DBC_ConnectionException {	   
-	if (connection == null) {
-	    logger.info("Connecting to the mySQL server...");
-	    try {
+	try {
+	    if (connection == null || connection.isClosed()) {
+		logger.info("Connecting to the mySQL server...");
+		try {
 
-		Class.forName("com.mysql.jdbc.Driver");
-		connection = DriverManager.getConnection(String.format("jdbc:mysql://%1$s:%2$d/%3$s?useUnicode=true&characterEncoding=ISO-8859-1"
-			,this.db_host, this.db_port, this.db_name), this.db_user, this.db_password);
+		    Class.forName("com.mysql.jdbc.Driver");
+		    connection = DriverManager.getConnection(String.format("jdbc:mysql://%1$s:%2$d/%3$s?useUnicode=true&characterEncoding=ISO-8859-1"
+			    ,this.db_host, this.db_port, this.db_name), this.db_user, this.db_password);
+		}
+		catch (SQLException e) {
+		    logger.log(Level.SEVERE, "JDBC Connection Failure", e);
+		    throw new DBC_ConnectionException("The DBC-Server was unable to connect to the mySQL-Server");
+		}
+		catch (ClassNotFoundException e) {
+		    logger.log(Level.SEVERE, "JDBC driver not found", e);
+		    throw new DBC_ConnectionException("The DBC-Server was unable to connect to the mySQL-Server");
+		}
+		logger.info("Connection is up.");
 	    }
-	    catch (SQLException e) {
-		logger.log(Level.SEVERE, "JDBC Connection Failure", e);
-		throw new DBC_ConnectionException("The DBC-Server was unable to connect to the mySQL-Server");
-	    }
-	    catch (ClassNotFoundException e) {
-		logger.log(Level.SEVERE, "JDBC driver not found", e);
-		throw new DBC_ConnectionException("The DBC-Server was unable to connect to the mySQL-Server");
-	    }
-	    logger.info("Connection is up.");
+	} catch (SQLException e) {
+	    logger.log(Level.SEVERE, "Database Access error", e);
 	}
     }
 
@@ -5467,4 +5477,423 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	        }
 	        */
 	   }
+    
+    /**
+     * save all of <code>translations</code> whose state indicates an "out of sync with DB" status.
+     * @param translations
+     * @return <code>translations</code> with updated states and DB_IDs
+     * @throws SQLException
+     */
+    public synchronized ArrayList<WorkingTranslation_DB> saveWorkingTranslations( ArrayList<WorkingTranslation_DB> translations) throws SQLException
+    {
+	connection.setAutoCommit(false);
+	PreparedStatement stmt_insert = null, stmt_delete = null, stmt_max_id = null;
+	ResultSet res = null;
+	int max_id = 0;
+
+	try {
+	    // compute free id value for insertion
+	    stmt_max_id = connection.prepareStatement("SELECT MAX(id) FROM working_translation");
+	    res = stmt_max_id.executeQuery();
+	    connection.commit();
+	    if( res.next()) {
+		max_id = res.getInt(1);
+	    }
+
+	    stmt_insert = connection.prepareStatement(
+
+		    "INSERT INTO working_translation (id, chapter_id, char_pos_start, char_pos_end, translation) VALUES (?, ?, ?, ?, ?)"
+	    );
+	    stmt_delete = connection.prepareStatement(
+
+		    "DELETE FROM working_translation WHERE id = ?"
+	    );
+
+	    for (WorkingTranslation_DB translation_DB : translations) {
+
+		if(translation_DB.getStateAsInt() == WorkingTranslation_DB.NEW) {
+		    translation_DB.setDB_ID(key, ++max_id);
+		}
+		// remove existing entries
+		if(translation_DB.getStateAsInt() == WorkingTranslation_DB.REMOVE
+			|| translation_DB.getStateAsInt() == WorkingTranslation_DB.CHANGE) {
+		    stmt_delete.setInt(1, translation_DB.getDB_ID());
+		    stmt_delete.addBatch();
+		}
+		if(translation_DB.getStateAsInt() == WorkingTranslation_DB.NEW
+			|| translation_DB.getStateAsInt() == WorkingTranslation_DB.CHANGE) {
+		    // add noun
+		    stmt_insert.setInt(1, translation_DB.getDB_ID());
+		    stmt_insert.setInt(2, translation_DB.chapterID);
+		    stmt_insert.setInt(3, translation_DB.getStartPosition());
+		    stmt_insert.setInt(4, translation_DB.getEndPosition());
+		    stmt_insert.setString(5, translation_DB.getTranslation());
+		    stmt_insert.addBatch();
+
+		    translation_DB.resetState(key);
+		}
+	    }
+	    stmt_delete.executeBatch();
+	    stmt_insert.executeBatch();
+	    connection.commit();
+	}
+	catch ( SQLException e ) {
+	    connection.rollback();
+	    logger.severe(e.getLocalizedMessage());
+	    throw e;
+	}
+	finally {
+	    try
+	    {
+		connection.setAutoCommit(true);
+		if (res  != null)
+		    res.close();
+		if (stmt_insert  != null)
+		    stmt_insert.close();
+		if (stmt_delete  != null)
+		    stmt_delete.close();
+		if (stmt_max_id  != null)
+		    stmt_max_id.close();
+	    }
+	    catch (SQLException e)
+	    {
+		logger.warning(e.getLocalizedMessage());
+	    }
+	}
+	return translations;
+    }
+    
+    /**
+     * Load all complexes in chapter with ID <code>chapterID</code>
+     * @param chapterID
+     * @return a Vector of PronounComplex_DB. All elements are expected to get converted into PronounComplex on the client side.
+     * @throws Exception
+     */
+    public Vector<WorkingTranslation_DB> loadWorkingTranslations(Integer chapterID) throws Exception
+    {
+	Vector<WorkingTranslation_DB> result = new Vector<WorkingTranslation_DB>();
+	PreparedStatement stmt = null;
+	ResultSet res = null;
+
+	try {
+	    stmt = connection.prepareStatement(
+
+		    "SELECT * FROM working_translation WHERE chapter_id = ? ORDER BY id"
+	    );
+	    stmt.setInt(1, chapterID);
+	    res = stmt.executeQuery();
+	    WorkingTranslation_DB complex = null;
+	    while(res.next()) {
+		complex = new WorkingTranslation(key).new WorkingTranslation_DB(key);
+		complex.setDB_ID(key, res.getInt("id"));
+		complex.chapterID = chapterID;
+		complex.setStartPosition(res.getInt("char_pos_start"));
+		complex.setEndPosition(res.getInt("char_pos_end"));
+		complex.setTranslation(res.getString("translation"));
+		complex.resetState(key);
+		result.add(complex);
+	    }
+	}
+	catch ( SQLException e ) {
+	    logger.severe(e.getLocalizedMessage());
+	    throw e;
+	}
+	finally {
+	    try
+	    {
+		connection.setAutoCommit(true);
+		if (res  != null)
+		    res.close();
+		if (stmt  != null)
+		    stmt.close();
+	    }
+	    catch (SQLException e)
+	    {
+		logger.warning(e.getLocalizedMessage());
+	    }
+	}
+	return result;
+    }
+    
+    /**
+     * save all of <code>criticisms</code> whose state indicates an "out of sync with DB" status.
+     * @param criticisms
+     * @return <code>criticisms</code> with updated states and DB_IDs
+     * @throws SQLException
+     */
+    public synchronized ArrayList<LiteraryCriticism1_DB> saveLiteraryCriticism1( ArrayList<LiteraryCriticism1_DB> criticisms) throws SQLException
+    {
+	connection.setAutoCommit(false);
+	PreparedStatement stmt_insert = null, stmt_delete = null, stmt_max_id = null;
+	ResultSet res = null;
+	int max_id = 0;
+
+	try {
+	    // compute free id value for insertion
+	    stmt_max_id = connection.prepareStatement("SELECT MAX(id) FROM literary_criticism_1");
+	    res = stmt_max_id.executeQuery();
+	    connection.commit();
+	    if( res.next()) {
+		max_id = res.getInt(1);
+	    }
+
+	    stmt_insert = connection.prepareStatement(
+
+		    "INSERT INTO literary_criticism_1 (id, chapter_id, char_pos1_start, char_pos1_end, char_pos2_start, char_pos2_end, annotation) VALUES (?, ?, ?, ?, ?, ?, ?)"
+	    );
+	    stmt_delete = connection.prepareStatement(
+
+		    "DELETE FROM literary_criticism_1 WHERE id = ?"
+	    );
+
+	    for (LiteraryCriticism1_DB criticism_DB : criticisms) {
+
+		if(criticism_DB.getStateAsInt() == LiteraryCriticism1_DB.NEW) {
+		    criticism_DB.setDB_ID(key, ++max_id);
+		}
+		// remove existing entries
+		if(criticism_DB.getStateAsInt() == LiteraryCriticism1_DB.REMOVE
+			|| criticism_DB.getStateAsInt() == LiteraryCriticism1_DB.CHANGE) {
+		    stmt_delete.setInt(1, criticism_DB.getDB_ID());
+		    stmt_delete.addBatch();
+		}
+		if(criticism_DB.getStateAsInt() == LiteraryCriticism1_DB.NEW
+			|| criticism_DB.getStateAsInt() == LiteraryCriticism1_DB.CHANGE) {
+		    // add noun
+		    stmt_insert.setInt(1, criticism_DB.getDB_ID());
+		    stmt_insert.setInt(2, criticism_DB.chapterID);
+		    stmt_insert.setInt(3, criticism_DB.getPos1_start());
+		    stmt_insert.setInt(4, criticism_DB.getPos1_end());
+		    stmt_insert.setInt(5, criticism_DB.getPos2_start());
+		    stmt_insert.setInt(6, criticism_DB.getPos2_end());
+		    stmt_insert.setString(7, criticism_DB.getAnnotation());
+		    stmt_insert.addBatch();
+
+		    criticism_DB.resetState(key);
+		}
+	    }
+	    stmt_delete.executeBatch();
+	    stmt_insert.executeBatch();
+	    connection.commit();
+	}
+	catch ( SQLException e ) {
+	    connection.rollback();
+	    logger.severe(e.getLocalizedMessage());
+	    throw e;
+	}
+	finally {
+	    try
+	    {
+		connection.setAutoCommit(true);
+		if (res  != null)
+		    res.close();
+		if (stmt_insert  != null)
+		    stmt_insert.close();
+		if (stmt_delete  != null)
+		    stmt_delete.close();
+		if (stmt_max_id  != null)
+		    stmt_max_id.close();
+	    }
+	    catch (SQLException e)
+	    {
+		logger.warning(e.getLocalizedMessage());
+	    }
+	}
+	return criticisms;
+    }
+    
+    /**
+     * Load all complexes in chapter with ID <code>chapterID</code>
+     * @param chapterID
+     * @return a Vector of PronounComplex_DB. All elements are expected to get converted into PronounComplex on the client side.
+     * @throws Exception
+     */
+    public Vector<LiteraryCriticism1_DB> loadLiteraryCriticism1(Integer chapterID) throws Exception
+    {
+	Vector<LiteraryCriticism1_DB> result = new Vector<LiteraryCriticism1_DB>();
+	PreparedStatement stmt = null;
+	ResultSet res = null;
+
+	try {
+	    stmt = connection.prepareStatement(
+
+		    "SELECT * FROM literary_criticism_1 WHERE chapter_id = ? ORDER BY id"
+	    );
+	    stmt.setInt(1, chapterID);
+	    res = stmt.executeQuery();
+	    LiteraryCriticism1_DB criticism = null;
+	    while(res.next()) {
+		criticism = new LiteraryCriticism1(key).new LiteraryCriticism1_DB(key);
+		criticism.setDB_ID(key, res.getInt("id"));
+		criticism.chapterID = chapterID;
+		criticism.setPos1_start(res.getInt("char_pos1_start"));
+		criticism.setPos1_end(res.getInt("char_pos1_end"));
+		criticism.setPos2_start(res.getInt("char_pos2_start"));
+		criticism.setPos2_end(res.getInt("char_pos2_end"));
+		criticism.setAnnotation(res.getString("annotation"));
+		criticism.resetState(key);
+		result.add(criticism);
+	    }
+	}
+	catch ( SQLException e ) {
+	    logger.severe(e.getLocalizedMessage());
+	    throw e;
+	}
+	finally {
+	    try
+	    {
+		connection.setAutoCommit(true);
+		if (res  != null)
+		    res.close();
+		if (stmt  != null)
+		    stmt.close();
+	    }
+	    catch (SQLException e)
+	    {
+		logger.warning(e.getLocalizedMessage());
+	    }
+	}
+	return result;
+    }
+    
+    /**
+     * save all of <code>criticisms</code> whose state indicates an "out of sync with DB" status.
+     * @param criticisms
+     * @return <code>criticisms</code> with updated states and DB_IDs
+     * @throws SQLException
+     */
+    public synchronized ArrayList<LiteraryCriticism2_DB> saveLiteraryCriticism2( ArrayList<LiteraryCriticism2_DB> criticisms) throws SQLException
+    {
+	connection.setAutoCommit(false);
+	PreparedStatement stmt_insert = null, stmt_delete = null, stmt_max_id = null;
+	ResultSet res = null;
+	int max_id = 0;
+
+	try {
+	    // compute free id value for insertion
+	    stmt_max_id = connection.prepareStatement("SELECT MAX(id) FROM literary_criticism_2");
+	    res = stmt_max_id.executeQuery();
+	    connection.commit();
+	    if( res.next()) {
+		max_id = res.getInt(1);
+	    }
+
+	    stmt_insert = connection.prepareStatement(
+
+		    "INSERT INTO literary_criticism_2 (id, chapter_id, char_pos_start, char_pos_end, type, annotation1, annotation2) VALUES (?, ?, ?, ?, ?, ?, ?)"
+	    );
+	    stmt_delete = connection.prepareStatement(
+
+		    "DELETE FROM literary_criticism_2 WHERE id = ?"
+	    );
+
+	    for (LiteraryCriticism2_DB criticism_DB : criticisms) {
+
+		if(criticism_DB.getStateAsInt() == LiteraryCriticism2_DB.NEW) {
+		    criticism_DB.setDB_ID(key, ++max_id);
+		}
+		// remove existing entries
+		if(criticism_DB.getStateAsInt() == LiteraryCriticism2_DB.REMOVE
+			|| criticism_DB.getStateAsInt() == LiteraryCriticism2_DB.CHANGE) {
+		    stmt_delete.setInt(1, criticism_DB.getDB_ID());
+		    stmt_delete.addBatch();
+		}
+		if(criticism_DB.getStateAsInt() == LiteraryCriticism2_DB.NEW
+			|| criticism_DB.getStateAsInt() == LiteraryCriticism2_DB.CHANGE) {
+		    // add noun
+		    stmt_insert.setInt(1, criticism_DB.getDB_ID());
+		    stmt_insert.setInt(2, criticism_DB.chapterID);
+		    stmt_insert.setInt(3, criticism_DB.getPos_start());
+		    stmt_insert.setInt(4, criticism_DB.getPos_end());
+		    stmt_insert.setInt(5, criticism_DB.getType());
+		    stmt_insert.setString(6, criticism_DB.getAnnotation1());
+		    stmt_insert.setString(7, criticism_DB.getAnnotation2());
+		    stmt_insert.addBatch();
+
+		    criticism_DB.resetState(key);
+		}
+	    }
+	    stmt_delete.executeBatch();
+	    stmt_insert.executeBatch();
+	    connection.commit();
+	}
+	catch ( SQLException e ) {
+	    connection.rollback();
+	    logger.severe(e.getLocalizedMessage());
+	    throw e;
+	}
+	finally {
+	    try
+	    {
+		connection.setAutoCommit(true);
+		if (res  != null)
+		    res.close();
+		if (stmt_insert  != null)
+		    stmt_insert.close();
+		if (stmt_delete  != null)
+		    stmt_delete.close();
+		if (stmt_max_id  != null)
+		    stmt_max_id.close();
+	    }
+	    catch (SQLException e)
+	    {
+		logger.warning(e.getLocalizedMessage());
+	    }
+	}
+	return criticisms;
+    }
+    
+    /**
+     * Load all complexes in chapter with ID <code>chapterID</code>
+     * @param chapterID
+     * @return a Vector of PronounComplex_DB. All elements are expected to get converted into PronounComplex on the client side.
+     * @throws Exception
+     */
+    public Vector<LiteraryCriticism2_DB> loadLiteraryCriticism2(Integer chapterID) throws Exception
+    {
+	Vector<LiteraryCriticism2_DB> result = new Vector<LiteraryCriticism2_DB>();
+	PreparedStatement stmt = null;
+	ResultSet res = null;
+
+	try {
+	    stmt = connection.prepareStatement(
+
+		    "SELECT * FROM literary_criticism_2 WHERE chapter_id = ? ORDER BY id"
+	    );
+	    stmt.setInt(1, chapterID);
+	    res = stmt.executeQuery();
+	    LiteraryCriticism2_DB criticism = null;
+	    while(res.next()) {
+		criticism = new LiteraryCriticism2(key).new LiteraryCriticism2_DB(key);
+		criticism.setDB_ID(key, res.getInt("id"));
+		criticism.chapterID = chapterID;
+		criticism.setPos_start(res.getInt("char_pos_start"));
+		criticism.setPos_end(res.getInt("char_pos_end"));
+		criticism.setType(res.getInt("type"));
+		criticism.setAnnotation1(res.getString("annotation1"));
+		criticism.setAnnotation2(res.getString("annotation2"));
+		criticism.resetState(key);
+		result.add(criticism);
+	    }
+	}
+	catch ( SQLException e ) {
+	    logger.severe(e.getLocalizedMessage());
+	    throw e;
+	}
+	finally {
+	    try
+	    {
+		connection.setAutoCommit(true);
+		if (res  != null)
+		    res.close();
+		if (stmt  != null)
+		    stmt.close();
+	    }
+	    catch (SQLException e)
+	    {
+		logger.warning(e.getLocalizedMessage());
+	    }
+	}
+	return result;
+    }
 }

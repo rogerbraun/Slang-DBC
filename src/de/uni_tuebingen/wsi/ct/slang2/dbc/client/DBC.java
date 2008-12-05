@@ -29,6 +29,8 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DirectSpeech;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DirectSpeeches;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.IllocutionUnitRoots;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Isotopes;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.LiteraryCriticism1;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.LiteraryCriticism2;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Pattern;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.PronounComplex;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Relation;
@@ -37,8 +39,13 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Thema_DB;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Word;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.WordListElement;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.WorkingTranslation;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.LiteraryCriticism1.LiteraryCriticism1_DB;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.LiteraryCriticism2.LiteraryCriticism2_DB;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.PronounComplex.PronounComplex_DB;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Relation.Relation_DB;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.WorkingTranslation.WorkingTranslation_DB;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.server.DBC_Server;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_KeyAcceptor;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.Message;
@@ -96,7 +103,7 @@ public class DBC implements DBC_KeyAcceptor {
 			Socket socket = null;
 			try {
 				InetAddress server = InetAddress.getByName(this.server);
-				socket = new Socket(server, 9999);
+				socket = new Socket(server, 9998);
 				connection = new Connection(socket);
 				sendHello();
 			}
@@ -1373,9 +1380,168 @@ public class DBC implements DBC_KeyAcceptor {
 	}
 	
 	public Vector<Vector<String>> loadText_Raw (String strTitle, String strId, String strCreator, String strLang, String strDate) throws Exception
-    {
-		Message answer = connection.call(new Message(key, "loadText_Raw", strTitle, strId, strCreator, strLang, strDate));
-		return (Vector<Vector<String>>) answer.getArguments()[0];
+	{
+	    Message answer = connection.call(new Message(key, "loadText_Raw", strTitle, strId, strCreator, strLang, strDate));
+	    return (Vector<Vector<String>>) answer.getArguments()[0];
+
+	}
+	
+	public void saveWorkingTranslations(WorkingTranslation ... translations) throws Exception {
+	    // get all complexes that have changed as DB Version
+	    ArrayList<WorkingTranslation> translations_oos = new ArrayList<WorkingTranslation>();
+	    ArrayList<WorkingTranslation_DB> translations_db = new ArrayList<WorkingTranslation_DB>();
+	    for (WorkingTranslation translation : translations) {
+		if( translation.isOutOfSync() ) {
+		    translations_oos.add(translation);
+		    translations_db.add(translation.new WorkingTranslation_DB(key));
+		    //TODO: check for unsaved references and ...?
+		}
+	    }
+
+	    // save
+	    ArrayList<WorkingTranslation_DB> answer = (ArrayList<WorkingTranslation_DB>) connection.call(
+		    new Message(key, "saveWorkingTranslations", translations_db)).getArguments()[0];
+
+	    // update
+	    if(answer.size() != translations_db.size()) {
+		for (WorkingTranslation_DB workingTranslation_DB : translations_db) {
+		    workingTranslation_DB.changeState(key, DB_Element.ERROR);
+		}
+		throw new DBC_SaveException("WorkingTranslation could (probably) be saved but server did not return all of them");
+	    }
+	    else
+		for (int i = 0; i < answer.size(); i++) {
+		    translations_oos.get(i).setDB_ID(key, answer.toArray(new WorkingTranslation_DB[0])[i].getDB_ID());
+		    translations_oos.get(i).changeState(key, DB_Element.NORMAL);
+		}
+	}
+	
+	/**
+	 * @param roots
+	 * @return
+	 * @throws Exception
+	 */
+	public Vector<WorkingTranslation> loadWorkingTranslations(Chapter chapter) throws Exception
+	{
+		Message answer = connection.call(new Message(key, "loadWorkingTranslations", new Integer(chapter.getDB_ID())));
 		
-    }
+		Vector<WorkingTranslation> translations = new Vector<WorkingTranslation>();
+		
+		// materialize complexes
+		for (WorkingTranslation_DB pronounComplex : (Vector<WorkingTranslation_DB>) answer.getArguments()[0]) {
+			try {
+				translations.add(new WorkingTranslation(key, chapter, pronounComplex));
+			}
+			catch (Exception e) {
+				// TODO: handle exception
+			}
+		}
+		return translations;
+	}
+	
+	public void saveLiteraryCriticism1(LiteraryCriticism1 ... criticisms) throws Exception {
+	    // get all complexes that have changed as DB Version
+	    ArrayList<LiteraryCriticism1> criticisms_oos = new ArrayList<LiteraryCriticism1>();
+	    ArrayList<LiteraryCriticism1_DB> criticisms_db = new ArrayList<LiteraryCriticism1_DB>();
+	    for (LiteraryCriticism1 criticism : criticisms) {
+		if( criticism.isOutOfSync() ) {
+		    criticisms_oos.add(criticism);
+		    criticisms_db.add(criticism.new LiteraryCriticism1_DB(key));
+		    //TODO: check for unsaved references and ...?
+		}
+	    }
+
+	    // save
+	    ArrayList<LiteraryCriticism1_DB> answer = (ArrayList<LiteraryCriticism1_DB>) connection.call(
+		    new Message(key, "saveLiteraryCriticism1", criticisms_db)).getArguments()[0];
+
+	    // update
+	    if(answer.size() != criticisms_db.size()) {
+		for (LiteraryCriticism1_DB criticism_DB : criticisms_db) {
+		    criticism_DB.changeState(key, DB_Element.ERROR);
+		}
+		throw new DBC_SaveException("LiteraryCriticism1 could (probably) be saved but server did not return all of them");
+	    }
+	    else
+		for (int i = 0; i < answer.size(); i++) {
+		    criticisms_oos.get(i).setDB_ID(key, answer.toArray(new LiteraryCriticism1_DB[0])[i].getDB_ID());
+		    criticisms_oos.get(i).changeState(key, DB_Element.NORMAL);
+		}
+	}
+	
+	/**
+	 * @param roots
+	 * @return
+	 * @throws Exception
+	 */
+	public Vector<LiteraryCriticism1> loadLiteraryCriticism1(Chapter chapter) throws Exception
+	{
+		Message answer = connection.call(new Message(key, "loadLiteraryCriticism1", new Integer(chapter.getDB_ID())));
+		
+		Vector<LiteraryCriticism1> criticisms = new Vector<LiteraryCriticism1>();
+		
+		// materialize complexes
+		for (LiteraryCriticism1_DB criticism : (Vector<LiteraryCriticism1_DB>) answer.getArguments()[0]) {
+			try {
+				criticisms.add(new LiteraryCriticism1(key, chapter, criticism));
+			}
+			catch (Exception e) {
+				// TODO: handle exception
+			}
+		}
+		return criticisms;
+	}
+
+	public void saveLiteraryCriticism2(LiteraryCriticism2 ... criticisms) throws Exception {
+	    // get all complexes that have changed as DB Version
+	    ArrayList<LiteraryCriticism2> criticisms_oos = new ArrayList<LiteraryCriticism2>();
+	    ArrayList<LiteraryCriticism2_DB> criticisms_db = new ArrayList<LiteraryCriticism2_DB>();
+	    for (LiteraryCriticism2 criticism : criticisms) {
+		if( criticism.isOutOfSync() ) {
+		    criticisms_oos.add(criticism);
+		    criticisms_db.add(criticism.new LiteraryCriticism2_DB(key));
+		    //TODO: check for unsaved references and ...?
+		}
+	    }
+
+	    // save
+	    ArrayList<LiteraryCriticism2_DB> answer = (ArrayList<LiteraryCriticism2_DB>) connection.call(
+		    new Message(key, "saveLiteraryCriticism2", criticisms_db)).getArguments()[0];
+
+	    // update
+	    if(answer.size() != criticisms_db.size()) {
+		for (LiteraryCriticism2_DB criticism_DB : criticisms_db) {
+		    criticism_DB.changeState(key, DB_Element.ERROR);
+		}
+		throw new DBC_SaveException("LiteraryCriticism2 could (probably) be saved but server did not return all of them");
+	    }
+	    else
+		for (int i = 0; i < answer.size(); i++) {
+		    criticisms_oos.get(i).setDB_ID(key, answer.toArray(new LiteraryCriticism2_DB[0])[i].getDB_ID());
+		    criticisms_oos.get(i).changeState(key, DB_Element.NORMAL);
+		}
+	}
+	
+	/**
+	 * @param roots
+	 * @return
+	 * @throws Exception
+	 */
+	public Vector<LiteraryCriticism2> loadLiteraryCriticism2(Chapter chapter) throws Exception
+	{
+		Message answer = connection.call(new Message(key, "loadLiteraryCriticism2", new Integer(chapter.getDB_ID())));
+		
+		Vector<LiteraryCriticism2> criticisms = new Vector<LiteraryCriticism2>();
+		
+		// materialize complexes
+		for (LiteraryCriticism2_DB pronounComplex : (Vector<LiteraryCriticism2_DB>) answer.getArguments()[0]) {
+			try {
+				criticisms.add(new LiteraryCriticism2(key, chapter, pronounComplex));
+			}
+			catch (Exception e) {
+				// TODO: handle exception
+			}
+		}
+		return criticisms;
+	}
 }

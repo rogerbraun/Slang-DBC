@@ -916,7 +916,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		// delete wle
 		stmt.execute("DELETE FROM word_list_elements WHERE id = "+wleID);
 		stmt.execute("DELETE FROM assignations WHERE id = "+assigID);
-		stmt.execute("UPDATE constitutive_words SET assignation_id = NULL WHERE id = "+cwID);
+		stmt.execute("DELETE FROM constitutive_words WHERE id = "+cwID);
 	}
     
     /**
@@ -930,7 +930,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		// delete wle
 		stmt.execute("DELETE FROM word_list_elements WHERE id = "+wleID);
 		stmt.execute("DELETE FROM assignations WHERE id = "+assigID);
-		stmt.execute("UPDATE function_words SET assignation_id = NULL WHERE id = "+fwID);
+		stmt.execute("DELETE FROM function_words WHERE id = "+fwID);
 	}
     
 	/**

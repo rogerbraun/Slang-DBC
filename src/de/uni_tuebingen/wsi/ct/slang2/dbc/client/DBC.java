@@ -103,7 +103,7 @@ public class DBC implements DBC_KeyAcceptor {
 			Socket socket = null;
 			try {
 				InetAddress server = InetAddress.getByName(this.server);
-				socket = new Socket(server, 9998);
+				socket = new Socket(server, 9999);
 				connection = new Connection(socket);
 				sendHello();
 			}

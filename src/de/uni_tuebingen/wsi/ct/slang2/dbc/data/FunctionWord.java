@@ -339,6 +339,16 @@ public class FunctionWord extends DB_Element
       return false;
    }
    
+   /**
+    * setzt die Assignation ID auf NULL
+    * @return
+    */
+   public boolean removeAssignation() {
+	   this.assignation = null;
+	   changeState(CHANGE);
+	   return true;
+   }
+     
    //TODO: Zugriff auf die Assignation sollte nicht direkt geschehen, sondern restriktiv bzw. selectiv über cw eigene methoden.
    // Warum? Eine Assignation kann mehrere / wiedersprüchliche werte annehmen.
    

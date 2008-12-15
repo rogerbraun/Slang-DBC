@@ -467,7 +467,7 @@ public class IllocutionUnitRoots
    /**
     * Wird vom DBC benötigt
     */
-   public Vector getFunctionWords(DBC_Key key) {
+   public Vector<FunctionWord> getFunctionWords(DBC_Key key) {
       key.unlock();
       Vector res = new Vector();
       for (int i = 0; i < roots.size(); i++) {

@@ -915,6 +915,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		Statement stmt = connection.createStatement();
 		// delete wle
 		stmt.execute("DELETE FROM word_list_elements WHERE id = "+wleID);
+	//	nicht einfach so die assig löschen
 		stmt.execute("DELETE FROM assignations WHERE id = "+assigID);
 		stmt.execute("DELETE FROM constitutive_words WHERE id = "+cwID);
 	}
@@ -2726,113 +2727,160 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	connection.setAutoCommit(true);
     }
 
-    private void saveFunctionWords(Vector words)
-    throws Exception {
-	connection.setAutoCommit(false);
-	Statement stmt = connection
-	.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
-		ResultSet.CONCUR_UPDATABLE);
-	ResultSet res;
+    private void saveFunctionWords(Vector<FunctionWord> words) throws Exception {
+    	logger.entering(this.getClass().getName(), "saveFunctionWords", words);
+    	if(words == null) {
+    	    logger.warning("unexpected null pointer as method parameter");
+    	    return;
+    	}
 
-	for (int i = 0; i < words.size(); i++) {
+    	PreparedStatement stmt = null;
+    	ResultSet res = null;
+    	try{
+	    		
+	    	connection.setAutoCommit(false);
+	    	 stmt = connection.prepareStatement("SELECT * FROM function_words WHERE id = ?", ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+	  	
+	    	  for (FunctionWord functionWord : words) {
 
-	    if (!(words.get(i) instanceof FunctionWord))
-		continue;
+	    			// Check for exceptions
+	    			if(functionWord == null) {
+	    			    logger.warning("functionWordfunctionWord is unexpectedly a null pointer");
+	    			    continue;
+	    			}
 
-	    FunctionWord word = (FunctionWord) words.get(i);
+	    			if (functionWord.getWord() == null) {
+	    			    logger.warning("functionWord has unexpectedly no associated word");
+	    			    continue;
+	    			}
+	    			// Get assignation
+	    			TR_Assignation assi = functionWord.getAssignation();              
 
-	    if (word.getWord() == null) {
-		System.err.println("Funktionswort "
-			+ word
-			+ "("
-			+ word.getDB_ID()
-			+ ", "
-			+ word.getState()
-			+ ")"
-			+ " ist keinem Wort zugeordnet!");
-		continue;
-	    }
+	    			stmt.setInt(1, functionWord.getDB_ID());			   
+	    			res = stmt.executeQuery();
 
-	    if (word.isUnchanged())
-		continue;
+	    			if (functionWord.hasChanged()) {
+	    			    if(assi != null)
+	    			    	saveAssignations(assi);
+	    			    if(! res.next()) 
+	    			    	res.moveToInsertRow();
+	    			    
+	    			    res.updateInt("chapter", functionWord.getWord().getChapter().getDB_ID());
+	    			    res.updateInt("word", functionWord.getWord().getDB_ID());
+	    			    res.updateInt("start", functionWord.getStartPosition());
+	    			    res.updateInt("end", functionWord.getEndPosition());
+	    			    res.updateBoolean("accepted", functionWord.isAccepted());
+	    			    if(assi != null)
+	    			    	res.updateInt("assignation_id", functionWord.getAssignation().getDB_ID());
+	    			    if(res.isFirst()) 
+	    			    	res.updateRow();
+	    			    else {
+	    			    	res.insertRow();
+	    			    	res.last();
+	    			    	functionWord.setDB_ID(key, res.getInt("id"));
+	    			    }
+	    			    functionWord.resetState(key);
+	    			}
+	    			else if(functionWord.isRemoved() && res.next()) {
+	    			    res.deleteRow();
+	    			    if(assi != null) {
+	    				assi.remove();
+	    				saveAssignations(assi);
+	    			    }
+	    			}			
+	    			connection.commit();
+	    		    }
 
-	    //	  Get assignation
-		TR_Assignation assi = word.getAssignation();         
-	    
-	    res = stmt.executeQuery("SELECT * "
-		    + "FROM function_words "
-		    + "WHERE id = "
-		    + word.getDB_ID());
-
-	    if (res.next() && word.getDB_ID() != -1) {
-		if (word.hasChanged()) {
-			if(assi != null)
-		    	saveAssignations(assi);
-		    res.updateInt("chapter", word.getWord().getChapter().getDB_ID());
-		    res.updateInt("word", word.getWord().getDB_ID());
-		    res.updateInt("start", word.getStartPosition());
-		    res.updateInt("end", word.getEndPosition());
-		    res.updateBoolean("accepted", word.isAccepted());
-		    if(assi != null)
-		    	res.updateInt("assignation_id", word.getAssignation().getDB_ID());
-		    res.updateRow();
-		    res.close();
-		    word.resetState(key);
-		} else if (word.isRemoved()) {
-		    res.deleteRow();
-			if(assi != null) {
-				assi.remove();
-				saveAssignations(assi);
-		    	}
+		
+		/*	for (int i = 0; i < words.size(); i++) {
+			    if (!(words.get(i) instanceof FunctionWord))
+				continue;
+		
+			    FunctionWord word = (FunctionWord) words.get(i);
+		
+			    if (word.getWord() == null) {
+				System.err.println("Funktionswort " + word + "(" + word.getDB_ID() + ", " + word.getState() + ")" + " ist keinem Wort zugeordnet!");
+				continue;
+			    }
+		
+			    if (word.isUnchanged())
+				continue;
+		
+			    //	  Get assignation
+				TR_Assignation assi = word.getAssignation();         
+			    res = stmt.executeQuery("SELECT * FROM function_words WHERE id = " + word.getDB_ID());
+		
+			    if (res.next() && word.getDB_ID() != -1) {
+			    	if (word.hasChanged()) {
+						if(assi != null)
+							saveAssignations(assi);
+					    res.updateInt("chapter", word.getWord().getChapter().getDB_ID());
+					    res.updateInt("word", word.getWord().getDB_ID());
+					    res.updateInt("start", word.getStartPosition());
+					    res.updateInt("end", word.getEndPosition());
+					    res.updateBoolean("accepted", word.isAccepted());
+					    if(assi != null)
+					    	res.updateInt("assignation_id", word.getAssignation().getDB_ID());
+					    res.updateRow();
+					    res.close();
+					    word.resetState(key);
+					} else if (word.isRemoved()) {
+					    res.deleteRow();
+						if(assi != null) {
+							assi.remove();
+							saveAssignations(assi);
+					    }
+					}
+			    } else if (!word.isRemoved() && word.getDB_ID() == -1) {
+					res.moveToInsertRow();
+					res.updateInt("chapter", word.getWord().getChapter().getDB_ID());
+					res.updateInt("word", word.getWord().getDB_ID());
+					res.updateInt("start", word.getStartPosition());
+					res.updateInt("end", word.getEndPosition());
+					res.updateBoolean("accepted", word.isAccepted());
+					res.insertRow();
+					res.close();
+					word.resetState(key);
+			
+					res = stmt.executeQuery("SELECT id FROM function_words WHERE word = " + word.getWord().getDB_ID() + " and chapter = "
+						+ word.getWord().getChapter().getDB_ID() + " and start = " + word.getStartPosition() + " and end = " + word.getEndPosition());
+			
+					// hole die DB-ID zu dem neu angelegten FW
+					if (res.next())
+					    word.setDB_ID(key, res.getInt("id"));
+					else
+					    throw new DBC_SaveException("Funktionswort " + word + " konnte nicht in der " + "DB gespeichert werden!");
+				    }
+				    else
+					System.err.println("Funktionswort " + word + "(" + word.getDB_ID() + ", " + word.getState() + ")" + " hat beim speichern einen Fehler verursacht!");
+				    res.close();
+				    connection.commit();
 			}
-	    } else if (!word.isRemoved() && word.getDB_ID() == -1) {
-		res.moveToInsertRow();
-		res.updateInt("chapter", word.getWord().getChapter().getDB_ID());
-		res.updateInt("word", word.getWord().getDB_ID());
-		res.updateInt("start", word.getStartPosition());
-		res.updateInt("end", word.getEndPosition());
-		res.updateBoolean("accepted", word.isAccepted());
-		res.insertRow();
-		res.close();
-		word.resetState(key);
+			stmt.close();
+			connection.setAutoCommit(true);*/
+    	}
+    	catch ( SQLException e ) {
+    	    if(connection != null)
+    		connection.rollback();
+    	    logger.severe(e.getLocalizedMessage());
+    	    throw e;
+    	}
+    	finally {
+    	    try
+    	    {
+    		if(connection != null)
+    		    connection.setAutoCommit(true);
+    		if (res  != null)
+    		    res.close();
+    		if (stmt  != null)
+    		    stmt.close();
+    	    }
+    	    catch (SQLException e)
+    	    {
+    		logger.warning(e.getLocalizedMessage());
+    	    }
+    	}
 
-		res = stmt.executeQuery("SELECT id "
-			+ "FROM function_words WHERE word = "
-			+ word.getWord().getDB_ID()
-			+ " and chapter = "
-			+ word.getWord().getChapter().getDB_ID()
-			+ " and start = "
-			+ word.getStartPosition()
-			+ " and end = "
-			+ word.getEndPosition());
-
-		// hole die DB-ID zu dem neu angelegten FW
-		if (res.next())
-		    word.setDB_ID(key, res.getInt("id"));
-
-		else
-		    throw new DBC_SaveException("Funktionswort "
-			    + word
-			    + " konnte nicht in der "
-			    + "DB gespeichert werden!");
-	    }
-
-	    else
-		System.err.println("Funktionswort "
-			+ word
-			+ "("
-			+ word.getDB_ID()
-			+ ", "
-			+ word.getState()
-			+ ")"
-			+ " hat beim speichern einen Fehler verursacht!");
-
-	    res.close();
-	    connection.commit();
-	}
-
-	stmt.close();
-	connection.setAutoCommit(true);
 
     }
 
@@ -2849,12 +2897,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 	try {
 	    connection.setAutoCommit(false);
-	    stmt = connection.prepareStatement(
-
-		    "SELECT * FROM constitutive_words WHERE id = ?",
-
-		    ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE
-	    );
+	    stmt = connection.prepareStatement("SELECT * FROM constitutive_words WHERE id = ?", ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 	    for (ConstitutiveWord constitutiveWord : words) {
 
 		// Check for exceptions
@@ -5123,6 +5166,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		    }
 		}
 		catch ( SQLException e ) {
+			System.err.println(e.getMessage());
 		    logger.severe(e.getLocalizedMessage());
 		    throw e;
 		}

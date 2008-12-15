@@ -349,7 +349,7 @@ public class FunctionWord extends DB_Element
 	   return true;
    }
      
-   //TODO: Zugriff auf die Assignation sollte nicht direkt geschehen, sondern restriktiv bzw. selectiv über cw eigene methoden.
+   //TODO: Zugriff auf die Assignation sollte nicht direkt geschehen, sondern restriktiv bzw. selectiv über fw eigene methoden.
    // Warum? Eine Assignation kann mehrere / wiedersprüchliche werte annehmen.
    
 

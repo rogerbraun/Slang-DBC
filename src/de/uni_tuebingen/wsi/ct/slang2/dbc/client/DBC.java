@@ -267,17 +267,17 @@ public class DBC implements DBC_KeyAcceptor {
 	/**
 	 *  delete wle and the coressponding assignation and set the assignation in cw to null
 	 */
-	public void deleteWLECW(int wleID, int assigID, int cwID)
+	public void deleteWLECW(int wleID, int assigID)
 	throws Exception {
-		Message answer = connection.call(new Message(key, "deleteWLECW", new Integer(wleID), new Integer(assigID), new Integer(cwID)));
+		Message answer = connection.call(new Message(key, "deleteWLECW", new Integer(wleID), new Integer(assigID)));
 	}
 	
 	/**
 	 *  delete wle and the coressponding assignation and set the assignation in cw to null
 	 */
-	public void deleteWLEFW(int wleID, int assigID, int fwID)
+	public void deleteWLEFW(int wleID, int assigID)
 	throws Exception {
-		Message answer = connection.call(new Message(key, "deleteWLEFW", new Integer(wleID), new Integer(assigID), new Integer(fwID)));
+		Message answer = connection.call(new Message(key, "deleteWLEFW", new Integer(wleID), new Integer(assigID)));
 	}
 	
 	

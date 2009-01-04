@@ -45,6 +45,7 @@ public class WordListElement extends DB_Element
 	    	assignation = new TR_Assignation();
 //		throw new IllegalArgumentException("");
 	    this.assignation = assignation;
+	    changeState(CHANGE);
 	}
 	
 	/**

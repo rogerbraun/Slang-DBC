@@ -910,14 +910,15 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
      * @param chapterID
      * @throws Exception
      */
-    public synchronized void deleteWLECW(Integer wleID, Integer assigID, Integer cwID)
+    public synchronized void deleteWLECW(Integer wleID, Integer assigID)//, Integer cwID)
     throws Exception {
 		Statement stmt = connection.createStatement();
 		// delete wle
 		stmt.execute("DELETE FROM word_list_elements WHERE id = "+wleID);
 	//	nicht einfach so die assig löschen
 		stmt.execute("DELETE FROM assignations WHERE id = "+assigID);
-		stmt.execute("DELETE FROM constitutive_words WHERE id = "+cwID);
+		//stmt.execute("DELETE FROM constitutive_words WHERE id = "+cwID);
+		stmt.execute("UPDATE constitutive_words SET assignation_id = NULL WHERE assignation_id = " + assigID);
 	}
     
     /**
@@ -925,13 +926,13 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
      * @param chapterID
      * @throws Exception
      */
-    public synchronized void deleteWLEFW(Integer wleID, Integer assigID, Integer fwID)
+    public synchronized void deleteWLEFW(Integer wleID, Integer assigID)
     throws Exception {
 		Statement stmt = connection.createStatement();
 		// delete wle
 		stmt.execute("DELETE FROM word_list_elements WHERE id = "+wleID);
 		stmt.execute("DELETE FROM assignations WHERE id = "+assigID);
-		stmt.execute("DELETE FROM function_words WHERE id = "+fwID);
+		stmt.execute("UPDATE function_words SET assignation_id = NULL WHERE assignation_id = " + assigID);
 	}
     
 	/**
@@ -4554,63 +4555,77 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 	    for (WordListElement wordListElement : elements) {
 
-		if(wordListElement == null) {
-		    logger.info("wordListElement is null");
-		    continue;
-		}
-
-		if(wordListElement.isUnchanged()) {
-		    logger.finest("wordListElement unchanged");
-		    continue;
-		}
-
-		stmt.setInt(1, wordListElement.getDB_ID());
-		res = stmt.executeQuery();
-
-		// INSERT or UPDATE
-		if (wordListElement.hasChanged()) {
-		    if(! res.next()) {
-			res.moveToInsertRow();
-		    }
-
-		    // get word id
-		    stmt2 = connection.prepareStatement(
-
-			    "SELECT id FROM words " +
-			    "WHERE content = ? AND language = ?"
-		    );
-		    stmt2.setBytes(1, wordListElement.getContent().getBytes("ISO-8859-1"));
-		    stmt2.setString(2, wordListElement.getLanguage());
-		    res2 = stmt2.executeQuery();
-
-		    // if a word ID could be found
-		    if( res2.next() ) {
-
-			// write WLE to DB
-			res.updateInt("word_id", res2.getInt(1));
-			if(wordListElement.getAssignation() != null
-				&& wordListElement.getAssignation().getDB_ID() != TR_Assignation.DEFAULT_ID)
-			    res.updateInt("assignation_id", wordListElement.getAssignation().getDB_ID());
-
-			if(res.isFirst()) {
-			    res.updateRow();
+			if(wordListElement == null) {
+			    logger.info("wordListElement is null");
+			    continue;
 			}
-			else {
-			    res.insertRow();
-			    res.last();
-			    wordListElement.setDB_ID(key, res.getInt("id"));
+	
+			if(wordListElement.isUnchanged()) {
+			    logger.finest("wordListElement unchanged");
+			    continue;
 			}
-			wordListElement.resetState(key);
+	
+			boolean duplicate = false;
+			WordListElement wle[] = loadWordListElement(wordListElement.getContent());
+			// don't save the same entry several times
+			for(int i = 0; i < wle.length; i++) {
+				int a = wle[i].getAssignation().getDB_ID();
+				int b = wordListElement.getAssignation().getDB_ID();
+				String c = wle[i].getContent();
+				String d =	wordListElement.getContent();			
+				if(a == b && c == d)
+					duplicate = true;
+			}
+			
+			if(!duplicate) {
+				stmt.setInt(1, wordListElement.getDB_ID());
+				res = stmt.executeQuery();
+		
+				// INSERT or UPDATE
+				if (wordListElement.hasChanged()) {
+				    if(! res.next()) {
+					res.moveToInsertRow();
+				    }
+		
+				    // get word id
+				    stmt2 = connection.prepareStatement(
+		
+					    "SELECT id FROM words " +
+					    "WHERE content = ? AND language = ?"
+				    );
+				    stmt2.setBytes(1, wordListElement.getContent().getBytes("ISO-8859-1"));
+				    stmt2.setString(2, wordListElement.getLanguage());
+				    res2 = stmt2.executeQuery();
+		
+				    // if a word ID could be found
+				    if( res2.next() ) {
+		
+					// write WLE to DB
+					res.updateInt("word_id", res2.getInt(1));
+					if(wordListElement.getAssignation() != null
+						&& wordListElement.getAssignation().getDB_ID() != TR_Assignation.DEFAULT_ID)
+					    res.updateInt("assignation_id", wordListElement.getAssignation().getDB_ID());
+		
+					if(res.isFirst()) {
+					    res.updateRow();
+					}
+					else {
+					    res.insertRow();
+					    res.last();
+					    wordListElement.setDB_ID(key, res.getInt("id"));
+					}
+					wordListElement.resetState(key);
+				    }
+				    else {
+					logger.warning("word id not found");
+					continue;
+				    }
+				}
+				// DELETE
+				else if(wordListElement.isRemoved() && res.next()) {
+				    res.deleteRow();
+				}
 		    }
-		    else {
-			logger.warning("word id not found");
-			continue;
-		    }
-		}
-		// DELETE
-		else if(wordListElement.isRemoved() && res.next()) {
-		    res.deleteRow();
-		}
 	    }
 	}
 	catch ( SQLException e ) {
@@ -5144,7 +5159,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			    res.updateBytes("tr_subclass_adjective", assignation_db.getWordsubclassesAdjectiveBinary());
 			    res.updateBytes("tr_subclass_preposition", assignation_db.getWordsubclassesPrepositionBinary());
 			    res.updateBytes("tr_subclass_pronoun", assignation_db.getWordsubclassesPronounBinary());
-			    //res.updateBytes("tr_subclass_sign", assignation.getWordsubclassesSignBinary());
+			    res.updateBytes("tr_subclass_sign", assignation_db.getWordsubclassesSignBinary());
 
 			    res.updateString("description", assignation_db.getDescription());
 			    res.updateString("etymol", assignation_db.getEtymol());

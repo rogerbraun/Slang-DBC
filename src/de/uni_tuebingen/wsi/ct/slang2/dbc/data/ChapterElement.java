@@ -10,7 +10,6 @@ public interface ChapterElement
 	 * @return the position of the first character of this element relative to the chapter it is in
 	 */
 	public int getStartPosition();
-
 	/**
 	 * @return
 	 */

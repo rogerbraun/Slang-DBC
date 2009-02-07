@@ -5584,8 +5584,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		    // add noun
 		    stmt_insert.setInt(1, translation_DB.getDB_ID());
 		    stmt_insert.setInt(2, translation_DB.chapterID);
-		    stmt_insert.setInt(3, translation_DB.getStartPosition());
-		    stmt_insert.setInt(4, translation_DB.getEndPosition());
+		    stmt_insert.setString(3, translation_DB.getLanguage());
+		    stmt_insert.setString(4, translation_DB.getOrginal());
 		    stmt_insert.setString(5, translation_DB.getTranslation());
 		    stmt_insert.addBatch();
 
@@ -5646,8 +5646,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		complex = new WorkingTranslation(key).new WorkingTranslation_DB(key);
 		complex.setDB_ID(key, res.getInt("id"));
 		complex.chapterID = chapterID;
-		complex.setStartPosition(res.getInt("char_pos_start"));
-		complex.setEndPosition(res.getInt("char_pos_end"));
+		complex.setLanguage(res.getString("language"));
+		complex.setOrginal(res.getString("orginal"));
 		complex.setTranslation(res.getString("translation"));
 		complex.resetState(key);
 		result.add(complex);

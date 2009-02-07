@@ -2,7 +2,7 @@ package de.uni_tuebingen.wsi.ct.slang2.dbc.data;
 
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
 
-public class WorkingTranslation extends DB_Element implements ChapterElement {
+public class WorkingTranslation extends DB_Element/* implements ChapterElement */{
 
     /**
      * 
@@ -11,9 +11,9 @@ public class WorkingTranslation extends DB_Element implements ChapterElement {
 
     private transient Chapter chapter;
 
-    private int pos_start;
+    private String language;
 
-    private int pos_end;
+    private String orginal;
 
     private String translation;
 
@@ -41,8 +41,8 @@ public class WorkingTranslation extends DB_Element implements ChapterElement {
 	else
 	    throw new IllegalArgumentException("Chapter IDs do not match");
 
-	this.pos_start = pcdb.getStartPosition();
-	this.pos_end = pcdb.getEndPosition();
+	this.language = pcdb.getLanguage();
+	this.orginal = pcdb.getOrginal();
 	this.translation = pcdb.getTranslation();
 
     }
@@ -51,12 +51,12 @@ public class WorkingTranslation extends DB_Element implements ChapterElement {
 	return chapter;
     }
 
-    public int getEndPosition() {
-	return pos_end;
+    public String getLanguage() {
+	return language;
     }
 
-    public int getStartPosition() {
-	return pos_start;
+    public String getOrginal() {
+	return orginal;
     }
 
     @Override
@@ -77,12 +77,12 @@ public class WorkingTranslation extends DB_Element implements ChapterElement {
 	this.chapter = chapter;
     }
 
-    public void setStartPosition(int pos_start) {
-	this.pos_start = pos_start;
+    public void setLanguage(String language) {
+	this.language = language;
     }
 
-    public void setEndPosition(int pos_end) {
-	this.pos_end = pos_end;
+    public void setOrginal(String orginal) {
+	this.orginal = orginal;
     }
 
     public String getTranslation() {
@@ -117,8 +117,8 @@ public class WorkingTranslation extends DB_Element implements ChapterElement {
 	     if(WorkingTranslation.this.chapter != null)
 		 this.chapterID = WorkingTranslation.this.chapter.getDB_ID();
 
-	     this.setStartPosition(WorkingTranslation.this.getStartPosition());
-	     this.setEndPosition(WorkingTranslation.this.getEndPosition());
+	     this.setLanguage(WorkingTranslation.this.getLanguage());
+	     this.setOrginal(WorkingTranslation.this.getOrginal());
 	     this.setTranslation(WorkingTranslation.this.getTranslation());
 	 }
 

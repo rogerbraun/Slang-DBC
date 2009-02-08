@@ -277,6 +277,10 @@ public class IllocutionUnitRoots
     */
    public FunctionWord getFunctionWordAtPosition(int position) {
       Token token = chapter.getTokenAtPosition(position);
+      
+ //     FunctionWord fw = 
+      
+      
       if (token != null) {
          IllocutionUnitRoot iur = getRoot(token);
          Vector fws = iur.getFunctionWords();

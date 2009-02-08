@@ -2385,6 +2385,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	while (res.next()) {
 	    int start = res.getInt("start");
 	    int path = res.getInt("path");
+//TODO	    int numerus_path = res.getInt("numerus_path");
 	    IllocutionUnit iu = chapter.getIllocutionUnitAtPosition(start);
 	    roots.add(new IllocutionUnitRoot(key, iu, path));
 	}
@@ -2580,7 +2581,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		    }
 		    
 		    mus.add( new MeaningUnit(key, root, res.getInt("id"), fw, cw,
-	    		    res.getInt("path"), res.getBoolean("accepted")));
+	    		    res.getInt("path"), res.getInt("numerus_paths"), res.getBoolean("accepted")));
 		}
 	} catch (SQLException e) {
 	    logger.log(Level.SEVERE, "Unable to load Meaning Units", e);
@@ -3013,6 +3014,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			    .getDB_ID());
 		    res.updateInt("path", mu.getPath());
 		    res.updateBoolean("accepted", mu.isAccepted());
+		    res.updateInt("numerus_paths", mu.getNumerusPath());
 		    res.updateRow();
 		    mu.resetState(key);
 		}
@@ -3028,6 +3030,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		res.updateInt("constitutive_word", mu.getConstitutiveWord()
 			.getDB_ID());
 		res.updateInt("path", mu.getPath());
+		res.updateInt("numerus_paths", mu.getNumerusPath());
+		
 		res.updateBoolean("accepted", mu.isAccepted());
 		res.insertRow();
 		res.close();
@@ -3087,6 +3091,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		    res.updateInt("meaning_unit_1", sg.getFirst().getDB_ID());
 		    res.updateInt("meaning_unit_2", sg.getSecond().getDB_ID());
 		    res.updateInt("path", sg.getPath());
+		    res.updateInt("numerus_path", sg.getNumerusPath());
 		    res.updateBoolean("accepted", sg.isAccepted());
 		    res.updateRow();
 		    sg.resetState(key);
@@ -3106,6 +3111,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		res.updateInt("meaning_unit_1", sg.getFirst().getDB_ID());
 		res.updateInt("meaning_unit_2", sg.getSecond().getDB_ID());
 		res.updateInt("path", sg.getPath());
+		res.updateInt("numerus_path", sg.getNumerusPath());
 		res.updateBoolean("accepted", sg.isAccepted());
 		res.insertRow();
 		res.close();
@@ -3159,6 +3165,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		    res.updateInt("meaning_unit", ch.getMeaningUnit().getDB_ID());
 		    res.updateInt("chapter", ch.getRoot().getChapter().getDB_ID());
 		    res.updateInt("path", ch.getPath());
+//TODO ?? 		    res.updateInt("numerus_path", ch.getNumerusPath());
 		    res.updateBoolean("accepted", ch.isAccepted());
 		    res.updateRow();
 		    ch.resetState(key);
@@ -3222,6 +3229,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		    res.updateInt("head", ms.getHead().getDB_ID());
 		    res.updateInt("chapter", ms.getHead().getChapter().getDB_ID());
 		    res.updateInt("path", ms.getPath());
+//TODO		    res.updateInt("numerus_path", ms.getPath());
 		    res.updateBoolean("accepted", ms.isAccepted());
 		    res.updateRow();
 		    ms.resetState(key);
@@ -3253,6 +3261,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		res.updateInt("head", ms.getHead().getDB_ID());
 		res.updateInt("chapter", ms.getHead().getChapter().getDB_ID());
 		res.updateInt("path", ms.getPath());
+	//	res.updateInt("numerus_path", ms.getPath());
 		res.updateBoolean("accepted", ms.isAccepted());
 		res.insertRow();
 		res.close();

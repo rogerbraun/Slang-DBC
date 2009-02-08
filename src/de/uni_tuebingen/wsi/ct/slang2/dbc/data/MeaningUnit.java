@@ -49,7 +49,7 @@ public MeaningUnit(DBC_Key key,
          int id,
          FunctionWord functionWord,
          ConstitutiveWord constitutiveWord,
-         int path,
+         int path, int numerusPath,
          boolean accepted) {
       super(id);
         
@@ -66,6 +66,7 @@ public MeaningUnit(DBC_Key key,
       this.functionWord = functionWord;
       this.constitutiveWord = constitutiveWord;
       this.path = path;
+      this.numerusPath = numerusPath;
       this.accepted = accepted;
       sememeGroups = new Vector<SememeGroup>();
 

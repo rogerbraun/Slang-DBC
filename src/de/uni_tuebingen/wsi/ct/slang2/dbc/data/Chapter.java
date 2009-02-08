@@ -192,10 +192,34 @@ public class Chapter
    /**
     * Wird vom DBC benötigt
     */
+   public void addIllocutionUnit(DBC_Key key,
+         int id,
+         int startPosition,
+         int endPosition,
+         String kriterium) {
+      key.unlock();
+      int index = getIllocutionUnitIndex(startPosition);
+      IllocutionUnit iu = new IllocutionUnit(id, this, index, startPosition, endPosition, kriterium);
+      illocutionUnits.add(index, iu);
+   }
+   
+   /**
+    * Wird vom DBC benötigt
+    */
    public void addIllocutionUnit(DBC_Key handler,
          int startPosition,
          int endPosition) {
-      addIllocutionUnit(handler, -1, startPosition, endPosition);
+      addIllocutionUnit(handler, -1, startPosition, endPosition, "");
+   }
+   
+   /**
+    * Wird vom DBC benötigt
+    */
+   public void addIllocutionUnit(DBC_Key handler,
+         int startPosition,
+         int endPosition,
+         String kriterium) {
+      addIllocutionUnit(handler, -1, startPosition, endPosition, kriterium);
    }
 
    /**
@@ -641,7 +665,7 @@ public class Chapter
     *         werden, oder null, falls start oder end ungültig sind.
     * @see Token
     */
-   public Vector getTokenSequence(int start, int end) {
+   public Vector<Token> getTokenSequence(int start, int end) {
       Token s = getTokenAtPosition(start);
       Token e = getTokenAtPosition(end);
       int si = start;
@@ -805,7 +829,7 @@ public class Chapter
       // nur lineares Suchen möglich, da nicht sicher ist,
       // ob AEE's (oder deren ID's) sortiert gespeichert werden.
       for (int i = 0; i < illocutionUnits.size(); i++) {
-         IllocutionUnit iu = (IllocutionUnit) illocutionUnits.get(i);
+         IllocutionUnit iu = illocutionUnits.get(i);
          if (iu.getDB_ID() == id)
             return iu;
       }
@@ -813,7 +837,7 @@ public class Chapter
    }
 
    /**
-    * Alle Äußerungseinheiten dieses Kapitels in einem Vektor.
+    * Alle Aeusserungseinheiten dieses Kapitels in einem Vektor.
     * 
     */
    public Vector<IllocutionUnit> getIllocutionUnits() {
@@ -831,8 +855,8 @@ public class Chapter
     * @return ein Vektor von Äußerungseinheiten.
     * @see de.uni_tuebingen.wsi.ct.slang2.dbc.data.IllocutionUnit
     */
-   public Vector getIllocutionUnitsFromPositions(int start, int end) {
-      Vector res = new Vector();
+   public Vector<IllocutionUnit> getIllocutionUnitsFromPositions(int start, int end) {
+      Vector<IllocutionUnit> res = new Vector<IllocutionUnit>();
       IllocutionUnit startIU = getIllocutionUnitAtPosition(start);
       IllocutionUnit endIU = getIllocutionUnitAtPosition(end);
       IllocutionUnit a = startIU;

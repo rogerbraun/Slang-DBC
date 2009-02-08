@@ -818,26 +818,28 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 	    stmt = connection.prepareStatement(
 
-		    "INSERT INTO illocution_units (chapter, start, end) VALUES (?, ?, ?)"
+		    "INSERT INTO illocution_units (chapter, start, end, kriterium) VALUES (?, ?, ?, ?)"
 	    );		   
 	    for (int i = 0; i < ius.size(); i++) {
 		IllocutionUnit iu = (IllocutionUnit) ius.get(i);
 		stmt.setInt(1, chapter.getDB_ID());
 		stmt.setInt(2, iu.getStartPosition());
 		stmt.setInt(3, iu.getEndPosition());
+		stmt.setString(4, iu.getKriterium());
 		stmt.addBatch();
 	    }
 	    updateCounts = stmt.executeBatch();
 
 	    stmt = connection.prepareStatement(
 
-		    "SELECT id FROM illocution_units WHERE chapter = ? AND start = ? AND end = ?"
+		    "SELECT id FROM illocution_units WHERE chapter = ? AND start = ? AND end = ? AND kriterium = ?"
 	    );
 	    for (int i = 0; i < ius.size(); i++) {
 		IllocutionUnit iu = (IllocutionUnit) ius.get(i);			   
 		stmt.setInt(1, chapter.getDB_ID());
 		stmt.setInt(2, iu.getStartPosition());
 		stmt.setInt(3, iu.getEndPosition());
+		stmt.setString(4, iu.getKriterium());
 		res = stmt.executeQuery();
 
 		if ( res.next() )

@@ -35,8 +35,10 @@ public class IllocutionUnit
    private int               paragraph;
    private int               paragraphIndex;
 
+   private String kriterium;
+   
    /**
-    * Wird vom DBC benötigt
+   * Wird vom DBC benötigt
     */
    IllocutionUnit(int id, Chapter chapter, int index, int start, int end) {
       this.id = id;
@@ -44,8 +46,20 @@ public class IllocutionUnit
       this.index = index;
       this.start = start;
       this.end = end;
+      this.kriterium="";
    }
 
+   /**
+    * Wird vom DBC benötigt
+    */
+   IllocutionUnit(int id, Chapter chapter, int index, int start, int end, String kriterium) {
+      this.id = id;
+      this.chapter = chapter;
+      this.index = index;
+      this.start = start;
+      this.end = end;
+      this.kriterium = kriterium;
+   }
    /**
     * Das Kapitel, in dem diese Äußerungseinheit steht.
     */
@@ -88,6 +102,13 @@ public class IllocutionUnit
     */
    public int getEndPosition() {
       return end;
+   }
+   
+   /**
+    * Liefert das Kriterium über das diese Äußerungseinheit definiert wurde.
+    */
+   public String getKriterium() {
+      return kriterium;
    }
 
    /**
@@ -166,7 +187,7 @@ public class IllocutionUnit
     * Gibt alle Tokens dieser Äußerungseinheit in einem Vektor zurück.
     * 
     */
-   public Vector getTokens() {
+   public Vector<Token> getTokens() {
       return chapter.getTokenSequence(start, end);
    }
 

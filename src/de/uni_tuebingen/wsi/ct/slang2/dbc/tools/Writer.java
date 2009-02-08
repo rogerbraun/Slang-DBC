@@ -155,10 +155,24 @@ public class Writer implements DBC_KeyAcceptor {
     * @param endPosition
     *        Die Zeichenposition des Endbuchstabens der Äußerungseinheit
     */
-   public void addIllocutionUnit(int startPosition, int endPosition) {
+/*   public void addIllocutionUnit(int startPosition, int endPosition) {
       chapter.addIllocutionUnit(key, startPosition, endPosition);
    }
-
+*/
+   /**
+    * Fügt eine Äußerungseinheit in ein bestehendes Kapitel ein.
+    * 
+    * @param startPosition
+    *        Die Zeichenposition des Anfangsbuchstabens der Äußerungseinheit
+    * @param endPosition
+    *        Die Zeichenposition des Endbuchstabens der Äußerungseinheit
+    * @param kriterium
+    * 		 Grund warum diese Äußerungseinheit definiert wurde
+    */
+   public void addIllocutionUnit(int startPosition, int endPosition, String kriterium) {
+      chapter.addIllocutionUnit(key, startPosition, endPosition, kriterium);
+   }
+   
    /**
     * Setzt den Writer zurück, alle Daten gehen verloren.
     * 

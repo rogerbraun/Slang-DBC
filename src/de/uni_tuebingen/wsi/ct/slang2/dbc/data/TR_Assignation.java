@@ -249,7 +249,7 @@ Serializable {
 
     public static enum WordsubclassVerb {
 	STRONG ("Starkes Verb"),
-	WEAK ("Weiches Verb"),
+	WEAK ("Schwaches Verb"),
 	AUXILIARY ("Auxiliarverb");
 	private String name;
 	protected static final Wordclass parent = Wordclass.VERB;
@@ -263,8 +263,9 @@ Serializable {
 
 
     public static enum WordsubclassAdjective {
-	ADVERSATIV ("Adversativ"),
-	NEKTIV ("Nektiv");
+	POSITIV ("Positiv"),
+	KOMPARATIV ("Komparativ"),
+	SUPERLATIV ("Superlativ");
 	private String name;
 	protected static final Wordclass parent = Wordclass.ADJECTIVE;
 	public String toString() {

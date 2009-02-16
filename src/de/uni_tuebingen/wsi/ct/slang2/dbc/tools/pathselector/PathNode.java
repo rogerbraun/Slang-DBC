@@ -112,7 +112,7 @@ public class PathNode
    }
 
    /**
-    * Gibt den vollen Pfad des Knotesn als String zurück
+    * Gibt den vollen Pfad des Knotens als String zurück
     */
    public String getFullPath() {
       if (root == null)

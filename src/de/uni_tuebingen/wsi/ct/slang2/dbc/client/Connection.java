@@ -27,6 +27,14 @@ class Connection {
     	      this.in = new ObjectInputStream(socket.getInputStream());
     	  }
     	  catch( IOException e) {
+    		  try {
+        	      this.out = new ObjectOutputStream(socket.getOutputStream());
+        	      this.in = new ObjectInputStream(socket.getInputStream());
+        	  }
+        	  catch( IOException e1) {
+        		  close();
+        		  throw e1;
+        	  }
     		  close();
     		  throw e;
     	  }

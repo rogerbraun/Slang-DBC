@@ -551,8 +551,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			+ "WHERE chapter = "
 			+ chapter.getDB_ID());
 		while (res.next())
-		    chapter.addIllocutionUnit(key, res.getInt("id"), res
-			    .getInt("start"), res.getInt("end"));
+		  //  chapter.addIllocutionUnit(key, res.getInt("id"), res.getInt("start"), res.getInt("end"));
+			  chapter.addIllocutionUnit(key, res.getInt("id"), res.getInt("start"), res.getInt("end"), res.getString("kriterium"));
 
 		chapter.calculateIndicies(key);
 		setChapter(chapter);
@@ -2385,9 +2385,10 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	while (res.next()) {
 	    int start = res.getInt("start");
 	    int path = res.getInt("path");
-//TODO	    int numerus_path = res.getInt("numerus_path");
+	    int numerus_path = res.getInt("numerus_paths");
+	    int phrastic = res.getInt("phrastic");
 	    IllocutionUnit iu = chapter.getIllocutionUnitAtPosition(start);
-	    roots.add(new IllocutionUnitRoot(key, iu, path));
+	    roots.add(new IllocutionUnitRoot(key, iu, path, numerus_path, phrastic));
 	}
 	stmt.close();
 	return roots;
@@ -3091,7 +3092,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		    res.updateInt("meaning_unit_1", sg.getFirst().getDB_ID());
 		    res.updateInt("meaning_unit_2", sg.getSecond().getDB_ID());
 		    res.updateInt("path", sg.getPath());
-		    res.updateInt("numerus_path", sg.getNumerusPath());
+		    res.updateInt("numerus_paths", sg.getNumerusPath());
 		    res.updateBoolean("accepted", sg.isAccepted());
 		    res.updateRow();
 		    sg.resetState(key);
@@ -3111,7 +3112,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		res.updateInt("meaning_unit_1", sg.getFirst().getDB_ID());
 		res.updateInt("meaning_unit_2", sg.getSecond().getDB_ID());
 		res.updateInt("path", sg.getPath());
-		res.updateInt("numerus_path", sg.getNumerusPath());
+		res.updateInt("numerus_paths", sg.getNumerusPath());
 		res.updateBoolean("accepted", sg.isAccepted());
 		res.insertRow();
 		res.close();

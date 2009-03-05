@@ -107,6 +107,7 @@ public class Chapter
       int lastIndex = 0;
       for (int i = 0; i < illocutionUnits.size(); i++) {
          IllocutionUnit iu = (IllocutionUnit) illocutionUnits.get(i);
+         String g = iu.getKriterium();
          if (iu.getStartPosition() > startPosition)
             return lastIndex;
          lastIndex++;
@@ -672,12 +673,14 @@ public class Chapter
       int ei = end;
 
       while (s == null) {
-         s = getTokenAtPosition(--si);
+         s = getTokenAtPosition(++si);// liegts an der neuen (Stand Anfang 2009) Segmentierung? altes war: s = getTokenAtPosition(--si);
+									  // also jetzt suchen wir vorwärts statt rückwärts
          if (start - si > 10)
             break;
       }
       while (e == null) {
-         e = getTokenAtPosition(++ei);
+	  e = getTokenAtPosition(--ei); // liegts an der neuen (Stand Anfang 2009) Segmentierung? altes war: e = getTokenAtPosition(++ei);
+	  								// also jetzt suchen wir rückwärts statt vorwärts
          if (ei - end > 10)
             break;
       }

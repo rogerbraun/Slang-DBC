@@ -5,7 +5,7 @@ pid_file=slang2server.pid
 lock_file=slang2server.lock
 cmd_file=slang2server.cmd
 log_file=slang2server.log
-exec_cmd="java -jar dbc.jar"
+exec_cmd="java -Xmx512m -jar dbc.jar"
 
 
 start()

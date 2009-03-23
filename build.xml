@@ -19,7 +19,12 @@
 		<tstamp/>
 		<mkdir dir="${path.bin}"/>
 		<mkdir dir="${path.jar}"/>
+		<mkdir dir="${path.bin}/lib"/>
 		
+		<copy toDir="${path.bin}/lib">
+			<fileset dir="${path.lib}" />
+		</copy>
+				
 		<copy includeemptydirs="false" todir="${path.bin}">
 			<fileset dir="${path.src}" excludes="**/*.launch, **/*.java"/>
 		</copy>
@@ -54,7 +59,6 @@
 				<attribute name="Class-Path" value="${manifest.classpath}" />
 			</manifest>
 		</jar>
-		
 	</target>
 
 	<target name="docs-init">

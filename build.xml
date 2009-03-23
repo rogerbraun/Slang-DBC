@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project basedir="." default="build" name="dbc">
+<project basedir="." default="jar" name="dbc">
 
 	<!-- Laden unserer Property-Datei für Zugriff auf Konstanten (Details folgen unten) -->
-	<property file="build.properties" />
+	<property file="build.properties"/>
 
 	<path id="dbc.sourcepath">
 		<pathelement location="${path.src}"/>
@@ -16,7 +16,10 @@
 	</path>
 
 	<target name="init">
+		<tstamp/>
 		<mkdir dir="${path.bin}"/>
+		<mkdir dir="${path.jar}"/>
+		
 		<copy includeemptydirs="false" todir="${path.bin}">
 			<fileset dir="${path.src}" excludes="**/*.launch, **/*.java"/>
 		</copy>
@@ -27,7 +30,6 @@
 	</target>
 
 	<target depends="init" name="build">
-		<echo message="${ant.project.name}: ${ant.file}" />
 		<javac destdir="${path.bin}">
 			<src refid="dbc.sourcepath" />
 			<classpath refid="dbc.classpath" />
@@ -41,8 +43,12 @@
 			<path refid="dbc.classpath" />
 			<map from="${basedir}/" to=""/>
 		</pathconvert>
-
-		<jar destfile="${ant.project.name}.jar" baseDir="${path.bin}">
+		
+		<delete verbose="on">
+			<fileset dir="${path.jar}" includes="*.jar"/>
+		</delete>
+		
+		<jar destfile="${path.jar}/${ant.project.name}.jar" baseDir="${path.bin}">
 			<manifest>
 				<attribute name="Main-Class" value="${manifest.mainclass}" />
 				<attribute name="Class-Path" value="${manifest.classpath}" />

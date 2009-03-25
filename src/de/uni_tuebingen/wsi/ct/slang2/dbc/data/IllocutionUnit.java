@@ -145,8 +145,20 @@ public class IllocutionUnit
     * @return der letzte Token von dieser Äußerungseinheit.
     * @see IllocutionUnit#getFirstToken()
     */
-   public Token getLastToken() {
+   public Token getLastToken_ALT() {
       return chapter.getTokenAtPosition(end);
+   }
+   
+   /**
+    * Gibt den letzten Token dieser Äußerungseinheit zurück.
+    * ACHTUNG: Oben: alte Variante ohne - 1.
+    * -1 für dialog-tool eingebaut. wenn keine Probleme auftreten kann obige 
+    * Methode gelöscht werden.
+    * @return der letzte Token von dieser Äußerungseinheit.
+    * @see IllocutionUnit#getFirstToken()
+    */
+   public Token getLastToken() {
+      return chapter.getTokenAtPosition(end-1);
    }
 
    /**

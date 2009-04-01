@@ -4907,8 +4907,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		try 
     	{
 			PreparedStatement stmt = connection.prepareStatement(
-					"SELECT content FROM words WHERE words.id IN" +
-					"(SELECT word_id from word_list_elements where word_list_elements.assignation_id IN " +
+					"SELECT content FROM words WHERE id IN" +
+					"(SELECT word_id FROM word_list_elements WHERE assignation_id IN " +
 					"(SELECT id FROM assignations WHERE tr_conjugation & ?));",
 					ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 			stmt.setBytes(1, conj);

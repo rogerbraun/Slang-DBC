@@ -962,131 +962,6 @@ public class DBC implements DBC_KeyAcceptor {
 	}
 
 	/**
-	 * Gibt alle Eintrï¿½ge aus der Wortliste zurï¿½ck, die sich auf das Wort
-	 * beziehen
-	 * 
-	 * @param word
-	 *        Das Wort (Groï¿½/Kleinschreibung wird ignoriert)
-	 * @param language
-	 *        Die Sprache des Wortes (DE, EN, usw.)
-	 * @return Ein Vektor mit DB_Tupeln
-	 *         <ul>
-	 *         <li><b>content (String) </b>: Das Wort</li>
-	 *         <li><b>language (String) </b>: Die Sprache des Wortes</li>
-	 *         <li><b>id (int) </b>: Die ID des Eintrages in der Wortliste</li>
-	 *         <li><b>tr_genus (byte) </b>: Genus. Beliebiger Wert, muss aber
-	 *         nicht unbedingt gesetzt sein</li>
-	 *         <li><b>tr_numerus (byte) </b>: Numerus. Beliebiger Wert, muss
-	 *         aber nicht unbedingt gesetzt sein</li>
-	 *         <li><b>tr_case (byte) </b>: Fall. Beliebiger Wert, muss aber
-	 *         nicht unbedingt gesetzt sein</li>
-	 *         <li><b>tr_determination (byte) </b>: Determination. Beliebiger
-	 *         Wert, muss aber nicht unbedingt gesetzt sein</li>
-	 *         <li><b>tr_person (byte) </b>: Person. Beliebiger Wert, muss aber
-	 *         nicht unbedingt gesetzt sein</li>
-	 *         <li><b>tr_wordclass (byte) </b>: Wordclass. Beliebiger Wert, muss
-	 *         aber nicht unbedingt gesetzt sein</li>
-	 *         <li><b>tr_wordsubclass (byte) </b>: Wordsubclass. Beliebiger
-	 *         Wert, muss aber nicht unbedingt gesetzt sein</li>
-	 *         <li><b>tr_conjugation (byte) </b>: Konjunktion. Beliebiger Wert,
-	 *         muss aber nicht unbedingt gesetzt sein</li>
-	 *         <li><b>tr_pronoun (byte) </b>: Pronomen. Beliebiger Wert, muss
-	 *         aber nicht unbedingt gesetzt sein</li>
-	 *         <li><b>tr_tempus (byte) </b>: Zeit. Beliebiger Wert, muss aber
-	 *         nicht unbedingt gesetzt sein</li>
-	 *         <li><b>tr_diathese (byte) </b>: Diathese. Beliebiger Wert, muss
-	 *         aber nicht unbedingt gesetzt sein</li>
-	 *         <li><b>type (byte) </b>: Type des Wortes, also FW (1), CW (2)
-	 *         oder unbekannt (0). Muss aber nicht unbedingt gesetzt sein</li>
-	 *         <li><b>multiple (int) </b>: Beliebiger Wert, muss aber nicht
-	 *         unbedingt gesetzt sein</li>
-	 *         </ul>
-	 * @throws Exception
-	 * @deprecated Ohne Funktion! Wortliste ist nun über WordListElements erreichbar.
-	 */
-	public Vector getWordList(String word, String language) throws Exception
-	{
-//		return (Vector) connection.call(new Message(key, "getWordList", word,
-//		language)).getArguments()[0];
-		return null;
-	}
-
-	/**
-	 * Gibt alle Eintrï¿½ge aus der Wortliste zurï¿½ck, deren Werte mit denen des
-	 * Query-DB-Tupel ï¿½bereinstimmen
-	 * 
-	 * @param query
-	 *        ein DB_Tupel, um die Auswahl aus der Wortliste einzugrenzen.
-	 *        Erlaubte Eintrï¿½ge sind content, language (aber nur mit content
-	 *        zusammen), tr_genus, tr_numerus, tr_determination, tr_case,
-	 *        tr_person, tr_wordclass, tr_wordsubclass, tr_conjugation,
-	 *        tr_pronoun, tr_tempus, tr_diathese, type und multiple. Alle
-	 *        Eintrï¿½ge sind optional.
-	 * @return ein Vektor mit DB-Tupel, die diese Einschrï¿½nkungen erfï¿½llen
-	 * @throws Exception
-	 * @deprecated Ohne Funktion! Wortliste ist nun über WordListElements erreichbar.
-	 */
-	public Vector getWordList(DB_Tupel query) throws Exception
-	{
-//		return (Vector) connection.call(new Message(key, "getWordList", query))
-//		.getArguments()[0];
-		return null;
-	}
-
-	/**
-	 * Speichert eine Liste von Tupel in die Wortliste der Datenbank. Dabei
-	 * kï¿½nnen auch mehrere Eintrï¿½ge zu einem Content gespeichert werden,
-	 * vorrausgesetzt die Bestimmung ist unterschiedlich (z.B. bei Bank). ï¿½ber
-	 * die Funktion setStateSave(), setStateChange() und setStateDelete() von
-	 * DB-Tupel kann entschieden werden, ob dieses Tupel gespeichert, geï¿½ndert
-	 * oder gelï¿½scht werden soll. Beim Lï¿½schen eines Tupels wird der Eintrag "id"
-	 * (int) benï¿½tigt, der beim Auslesen der Wortliste gesetzt wird.
-	 * 
-	 * @param list
-	 *        ein Vector mit DB_Tupeln
-	 *        <ul>
-	 *        <li><b>content (String) </b>: Das Wort, muss angegeben werden</li>
-	 *        <li><b>language (String) </b>: Die Sprache des Wortes, muss
-	 *        angegeben werden</li>
-	 *        <li><b>id (int) </b>: Die ID des Tupels, wird zum ï¿½ndern und
-	 *        lï¿½schen benï¿½tigt</li>
-	 *        <li><b>tr_genus (byte) </b>: Genus. Beliebiger Wert, muss aber
-	 *        nicht unbedingt gesetzt sein</li>
-	 *        <li><b>tr_numerus (byte) </b>: Numerus. Beliebiger Wert, muss aber
-	 *        nicht unbedingt gesetzt sein</li>
-	 *        <li><b>tr_case (byte) </b>: Fall. Beliebiger Wert, muss aber nicht
-	 *        unbedingt gesetzt sein</li>
-	 *        <li><b>tr_determination (byte) </b>: Determination. Beliebiger
-	 *        Wert, muss aber nicht unbedingt gesetzt sein</li>
-	 *        <li><b>tr_person (byte) </b>: Person. Beliebiger Wert, muss aber
-	 *        nicht unbedingt gesetzt sein</li>
-	 *        <li><b>tr_wordclass (byte) </b>: Wordclass. Beliebiger Wert, muss
-	 *        aber nicht unbedingt gesetzt sein</li>
-	 *        <li><b>tr_wordsubclass (byte) </b>: Wordsubclass. Beliebiger Wert,
-	 *        muss aber nicht unbedingt gesetzt sein</li>
-	 *        <li><b>tr_conjugation (byte) </b>: Konjunktion. Beliebiger Wert,
-	 *        muss aber nicht unbedingt gesetzt sein</li>
-	 *        <li><b>tr_pronoun (byte) </b>: Pronomen. Beliebiger Wert, muss
-	 *        aber nicht unbedingt gesetzt sein</li>
-	 *        <li><b>tr_tempus (byte) </b>: Zeit. Beliebiger Wert, muss aber
-	 *        nicht unbedingt gesetzt sein</li>
-	 *        <li><b>tr_diathese (byte) </b>: Diathese. Beliebiger Wert, muss
-	 *        aber nicht unbedingt gesetzt sein</li>
-	 *        <li><b>type (byte) </b>: Type des Wortes, also FW (1), CW (2) oder
-	 *        unbekannt (0). Muss aber nicht unbedingt gesetzt sein</li>
-	 *        <li><b>multiple (Object) </b>: Beliebiger Wert, muss aber nicht
-	 *        unbedingt gesetzt sein</li>
-	 *        </ul>
-	 * @throws Exception
-	 * @deprecated Ohne Funktion! Wortliste ist nun über WordListElements erreichbar.
-	 */
-	public void saveWordList(Vector list)
-	throws Exception {
-		connection.call(new Message(key, "saveWordList", list));
-	}
-
-	
-	/**
 	 * Save all of <code>complexes</code> that are out of sync with DB
 	 * @param complexes
 	 * @throws Exception
@@ -1170,6 +1045,130 @@ public class DBC implements DBC_KeyAcceptor {
 	}
 
 	/**
+		 * Gibt alle Eintrï¿½ge aus der Wortliste zurï¿½ck, die sich auf das Wort
+		 * beziehen
+		 * 
+		 * @param word
+		 *        Das Wort (Groï¿½/Kleinschreibung wird ignoriert)
+		 * @param language
+		 *        Die Sprache des Wortes (DE, EN, usw.)
+		 * @return Ein Vektor mit DB_Tupeln
+		 *         <ul>
+		 *         <li><b>content (String) </b>: Das Wort</li>
+		 *         <li><b>language (String) </b>: Die Sprache des Wortes</li>
+		 *         <li><b>id (int) </b>: Die ID des Eintrages in der Wortliste</li>
+		 *         <li><b>tr_genus (byte) </b>: Genus. Beliebiger Wert, muss aber
+		 *         nicht unbedingt gesetzt sein</li>
+		 *         <li><b>tr_numerus (byte) </b>: Numerus. Beliebiger Wert, muss
+		 *         aber nicht unbedingt gesetzt sein</li>
+		 *         <li><b>tr_case (byte) </b>: Fall. Beliebiger Wert, muss aber
+		 *         nicht unbedingt gesetzt sein</li>
+		 *         <li><b>tr_determination (byte) </b>: Determination. Beliebiger
+		 *         Wert, muss aber nicht unbedingt gesetzt sein</li>
+		 *         <li><b>tr_person (byte) </b>: Person. Beliebiger Wert, muss aber
+		 *         nicht unbedingt gesetzt sein</li>
+		 *         <li><b>tr_wordclass (byte) </b>: Wordclass. Beliebiger Wert, muss
+		 *         aber nicht unbedingt gesetzt sein</li>
+		 *         <li><b>tr_wordsubclass (byte) </b>: Wordsubclass. Beliebiger
+		 *         Wert, muss aber nicht unbedingt gesetzt sein</li>
+		 *         <li><b>tr_conjugation (byte) </b>: Konjunktion. Beliebiger Wert,
+		 *         muss aber nicht unbedingt gesetzt sein</li>
+		 *         <li><b>tr_pronoun (byte) </b>: Pronomen. Beliebiger Wert, muss
+		 *         aber nicht unbedingt gesetzt sein</li>
+		 *         <li><b>tr_tempus (byte) </b>: Zeit. Beliebiger Wert, muss aber
+		 *         nicht unbedingt gesetzt sein</li>
+		 *         <li><b>tr_diathese (byte) </b>: Diathese. Beliebiger Wert, muss
+		 *         aber nicht unbedingt gesetzt sein</li>
+		 *         <li><b>type (byte) </b>: Type des Wortes, also FW (1), CW (2)
+		 *         oder unbekannt (0). Muss aber nicht unbedingt gesetzt sein</li>
+		 *         <li><b>multiple (int) </b>: Beliebiger Wert, muss aber nicht
+		 *         unbedingt gesetzt sein</li>
+		 *         </ul>
+		 * @throws Exception
+		 * @deprecated Ohne Funktion! Wortliste ist nun über WordListElements erreichbar.
+		 */
+		public Vector getWordList(String word, String language) throws Exception
+		{
+	//		return (Vector) connection.call(new Message(key, "getWordList", word,
+	//		language)).getArguments()[0];
+			return null;
+		}
+
+	/**
+		 * Gibt alle Eintrï¿½ge aus der Wortliste zurï¿½ck, deren Werte mit denen des
+		 * Query-DB-Tupel ï¿½bereinstimmen
+		 * 
+		 * @param query
+		 *        ein DB_Tupel, um die Auswahl aus der Wortliste einzugrenzen.
+		 *        Erlaubte Eintrï¿½ge sind content, language (aber nur mit content
+		 *        zusammen), tr_genus, tr_numerus, tr_determination, tr_case,
+		 *        tr_person, tr_wordclass, tr_wordsubclass, tr_conjugation,
+		 *        tr_pronoun, tr_tempus, tr_diathese, type und multiple. Alle
+		 *        Eintrï¿½ge sind optional.
+		 * @return ein Vektor mit DB-Tupel, die diese Einschrï¿½nkungen erfï¿½llen
+		 * @throws Exception
+		 * @deprecated Ohne Funktion! Wortliste ist nun über WordListElements erreichbar.
+		 */
+		public Vector getWordList(DB_Tupel query) throws Exception
+		{
+	//		return (Vector) connection.call(new Message(key, "getWordList", query))
+	//		.getArguments()[0];
+			return null;
+		}
+
+	/**
+	 * Speichert eine Liste von Tupel in die Wortliste der Datenbank. Dabei
+	 * kï¿½nnen auch mehrere Eintrï¿½ge zu einem Content gespeichert werden,
+	 * vorrausgesetzt die Bestimmung ist unterschiedlich (z.B. bei Bank). ï¿½ber
+	 * die Funktion setStateSave(), setStateChange() und setStateDelete() von
+	 * DB-Tupel kann entschieden werden, ob dieses Tupel gespeichert, geï¿½ndert
+	 * oder gelï¿½scht werden soll. Beim Lï¿½schen eines Tupels wird der Eintrag "id"
+	 * (int) benï¿½tigt, der beim Auslesen der Wortliste gesetzt wird.
+	 * 
+	 * @param list
+	 *        ein Vector mit DB_Tupeln
+	 *        <ul>
+	 *        <li><b>content (String) </b>: Das Wort, muss angegeben werden</li>
+	 *        <li><b>language (String) </b>: Die Sprache des Wortes, muss
+	 *        angegeben werden</li>
+	 *        <li><b>id (int) </b>: Die ID des Tupels, wird zum ï¿½ndern und
+	 *        lï¿½schen benï¿½tigt</li>
+	 *        <li><b>tr_genus (byte) </b>: Genus. Beliebiger Wert, muss aber
+	 *        nicht unbedingt gesetzt sein</li>
+	 *        <li><b>tr_numerus (byte) </b>: Numerus. Beliebiger Wert, muss aber
+	 *        nicht unbedingt gesetzt sein</li>
+	 *        <li><b>tr_case (byte) </b>: Fall. Beliebiger Wert, muss aber nicht
+	 *        unbedingt gesetzt sein</li>
+	 *        <li><b>tr_determination (byte) </b>: Determination. Beliebiger
+	 *        Wert, muss aber nicht unbedingt gesetzt sein</li>
+	 *        <li><b>tr_person (byte) </b>: Person. Beliebiger Wert, muss aber
+	 *        nicht unbedingt gesetzt sein</li>
+	 *        <li><b>tr_wordclass (byte) </b>: Wordclass. Beliebiger Wert, muss
+	 *        aber nicht unbedingt gesetzt sein</li>
+	 *        <li><b>tr_wordsubclass (byte) </b>: Wordsubclass. Beliebiger Wert,
+	 *        muss aber nicht unbedingt gesetzt sein</li>
+	 *        <li><b>tr_conjugation (byte) </b>: Konjunktion. Beliebiger Wert,
+	 *        muss aber nicht unbedingt gesetzt sein</li>
+	 *        <li><b>tr_pronoun (byte) </b>: Pronomen. Beliebiger Wert, muss
+	 *        aber nicht unbedingt gesetzt sein</li>
+	 *        <li><b>tr_tempus (byte) </b>: Zeit. Beliebiger Wert, muss aber
+	 *        nicht unbedingt gesetzt sein</li>
+	 *        <li><b>tr_diathese (byte) </b>: Diathese. Beliebiger Wert, muss
+	 *        aber nicht unbedingt gesetzt sein</li>
+	 *        <li><b>type (byte) </b>: Type des Wortes, also FW (1), CW (2) oder
+	 *        unbekannt (0). Muss aber nicht unbedingt gesetzt sein</li>
+	 *        <li><b>multiple (Object) </b>: Beliebiger Wert, muss aber nicht
+	 *        unbedingt gesetzt sein</li>
+	 *        </ul>
+	 * @throws Exception
+	 * @deprecated Ohne Funktion! Wortliste ist nun über WordListElements erreichbar.
+	 */
+	public void saveWordList(Vector list)
+	throws Exception {
+		connection.call(new Message(key, "saveWordList", list));
+	}
+
+	/**
 	 * @param element
 	 * @throws Exception
 	 */
@@ -1207,6 +1206,31 @@ public class DBC implements DBC_KeyAcceptor {
 		return (WordListElement[]) connection.call(new Message(key, "loadWordListElement", content, language)) .getArguments()[0];
 	}
 	
+	/**
+	 * Load from DB the WordListElement with DB_ID = id 
+	 * @param id the id of the WordListElement to load
+	 * @return a WordListElement with DB_ID = id
+	 * @throws NullPointerException
+	 * @throws Exception
+	 */
+	private WordListElement loadWordListElement(int id) throws NullPointerException, Exception {
+		return (WordListElement) connection.call(new Message(key, "loadWordListElement", new Integer(id))).getArguments()[0];
+	}
+
+	/**
+	 * Load from DB WordListElement with assignation id = assigID
+	 * @param AssigID
+	 * @return
+	 */
+	public WordListElement loadWordListElementWithAssigID(int assigID) throws Exception {
+		Message m = new Message(key, "loadWordListElementWithAssigID", assigID);
+		Message oa = connection.call(m);
+		Object o = oa.getArguments()[0];
+		WordListElement wle = (WordListElement) o;
+	
+		return wle;//(WordListElement) connection.call(new Message(key, "loadWordListElementWithAssigID", assigID)).getArguments()[0];
+	}
+
 	/**
 	 * Load the Words appropriated to the given Wortart
 	 * @param wortArt, Enum from TR_Assignation
@@ -1263,31 +1287,6 @@ public class DBC implements DBC_KeyAcceptor {
 		 return (Vector<String>)mes.getArguments()[0];
 	}
 	
-	/**
-	 * Load from DB the WordListElement with DB_ID = id 
-	 * @param id the id of the WordListElement to load
-	 * @return a WordListElement with DB_ID = id
-	 * @throws NullPointerException
-	 * @throws Exception
-	 */
-	private WordListElement loadWordListElement(int id) throws NullPointerException, Exception {
-		return (WordListElement) connection.call(new Message(key, "loadWordListElement", new Integer(id))).getArguments()[0];
-	}
-
-	/**
-	 * Load from DB WordListElement with assignation id = assigID
-	 * @param AssigID
-	 * @return
-	 */
-	public WordListElement loadWordListElementWithAssigID(int assigID) throws Exception {
-		Message m = new Message(key, "loadWordListElementWithAssigID", assigID);
-		Message oa = connection.call(m);
-		Object o = oa.getArguments()[0];
-		WordListElement wle = (WordListElement) o;
-	
-		return wle;//(WordListElement) connection.call(new Message(key, "loadWordListElementWithAssigID", assigID)).getArguments()[0];
-	}
-
 	public Vector loadWordClasses(Vector contents)
 	throws Exception {
 		//key.unlock();

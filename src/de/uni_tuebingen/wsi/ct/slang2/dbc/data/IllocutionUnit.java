@@ -145,9 +145,9 @@ public class IllocutionUnit
     * @return der letzte Token von dieser Äußerungseinheit.
     * @see IllocutionUnit#getFirstToken()
     */
-   public Token getLastToken_ALT() {
-      return chapter.getTokenAtPosition(end);
-   }
+//   public Token getLastToken_ALT() {
+//      return chapter.getTokenAtPosition(end);
+//   }
    
    /**
     * Gibt den letzten Token dieser Äußerungseinheit zurück.

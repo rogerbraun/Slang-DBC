@@ -59,6 +59,8 @@
 				<attribute name="Class-Path" value="${manifest.classpath}" />
 			</manifest>
 		</jar>
+		
+		<delete dir="${path.bin}/lib" />
 	</target>
 
 	<target name="docs-init">

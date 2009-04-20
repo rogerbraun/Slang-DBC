@@ -44,6 +44,7 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DirectSpeech;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DirectSpeeches;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.FunctionWord;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.IDOwner;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.IU_Comment;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.IllocutionUnit;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.IllocutionUnitRoot;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.IllocutionUnitRoots;
@@ -5966,5 +5967,65 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	    }
 	}
 	return result;
+    }
+    
+    /*
+     * ==========================================
+     * =============== IU_Comment ===============
+     * ========================================== 
+     */
+    public synchronized ArrayList<IU_Comment> loadIUComments (Integer chapterID) throws Exception
+    {
+    	Chapter chapter = getChapter(chapterID.intValue());
+
+    	ArrayList<IU_Comment> comments = new ArrayList<IU_Comment>();
+
+    	Statement stmt = connection.createStatement();
+    	ResultSet res;
+
+    	PreparedStatement preStmt = connection.prepareStatement("SELECT * "
+    				+ "FROM iu_comments WHERE "
+    				+ "chapter = " + chapter.getDB_ID());
+
+    	res = preStmt.executeQuery();
+
+    	while ( res.next() )
+    	{
+    		IU_Comment comment = new IU_Comment(res.getInt("ID"), res.getInt("iu"), res.getString("comment"), chapter.getDB_ID(), res.getString("author"), res.getTimestamp("last_update"));
+    		comments.add(comment);
+    	}
+    	res.close();
+    	stmt.close();
+    	return comments;
+    }
+
+    public synchronized void saveIUComment(IU_Comment comment)  throws Exception
+    {
+    	connection.setAutoCommit(false);
+    	Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+    	stmt.executeUpdate("INSERT INTO iu_comments (iu, chapter, comment, author) VALUES('" + comment.IU_ID + "', '" + comment.chapter + "', '" + comment.text + "', '" + comment.author +"')");
+    	stmt.close();
+    	connection.commit();
+    	connection.setAutoCommit(true);
+    }
+
+    public synchronized void deleteIUComment(Integer IU_ID)  throws Exception
+    {
+    	connection.setAutoCommit(false);
+    	Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+    	stmt.executeUpdate("DELETE FROM iu_comments WHERE ID=" + IU_ID.toString());
+    	stmt.close();
+    	connection.commit();
+    	connection.setAutoCommit(true);
+    }
+
+    public synchronized void editIUComment(Integer IU_ID, String text)  throws Exception
+    {
+    	connection.setAutoCommit(false);
+    	Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+    	stmt.executeUpdate("UPDATE iu_comments SET comment='" + text + "' WHERE ID=" + IU_ID.toString());
+    	stmt.close();
+    	connection.commit();
+    	connection.setAutoCommit(true);
     }
 }

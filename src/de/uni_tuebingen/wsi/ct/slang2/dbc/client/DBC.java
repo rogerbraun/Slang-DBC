@@ -29,6 +29,7 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DirectSpeech;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DirectSpeeches;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.IllocutionUnitRoots;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Isotopes;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.IU_Comment;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.LiteraryCriticism1;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.LiteraryCriticism2;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Pattern;
@@ -1542,5 +1543,32 @@ public class DBC implements DBC_KeyAcceptor {
 			}
 		}
 		return criticisms;
+	}
+	
+	/* 
+	 * ==============================================
+	 * ================= IU_Comment =================
+	 * ==============================================
+	 */
+	
+	public ArrayList<IU_Comment> loadIUComments(int id) throws Exception
+	{
+		Message answer = connection.call(new Message(key, "loadIUComments", new Integer(id)));
+		return (ArrayList<IU_Comment>) answer.getArguments()[0];
+	}
+
+	public void saveIUComment(IU_Comment comment) throws Exception
+	{
+		connection.call(new Message(key, "saveIUComment", comment));
+	}
+
+	public void deleteIUComment(Integer IU_ID) throws Exception
+	{
+		connection.call(new Message(key, "deleteIUComment", IU_ID));
+	}
+
+	public void editIUComment(Integer IU_ID, String text) throws Exception
+	{
+		connection.call(new Message(key, "editIUComment", IU_ID, text));
 	}
 }

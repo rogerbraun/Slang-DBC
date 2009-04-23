@@ -20,9 +20,14 @@
 		<mkdir dir="${path.bin}"/>
 		<mkdir dir="${path.jar}"/>
 		<mkdir dir="${path.bin}/lib"/>
+		<mkdir dir="${path.bin}/src"/>
 		
 		<copy toDir="${path.bin}/lib">
 			<fileset dir="${path.lib}" />
+		</copy>
+		
+		<copy toDir="${path.bin}/src">
+			<fileset dir="${path.src}" />
 		</copy>
 				
 		<copy includeemptydirs="false" todir="${path.bin}">
@@ -61,6 +66,7 @@
 		</jar>
 		
 		<delete dir="${path.bin}/lib" />
+		<delete dir="${path.bin}/src" />
 	</target>
 
 	<target name="docs-init">

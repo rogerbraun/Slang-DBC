@@ -20,14 +20,9 @@
 		<mkdir dir="${path.bin}"/>
 		<mkdir dir="${path.jar}"/>
 		<mkdir dir="${path.bin}/lib"/>
-		<mkdir dir="${path.bin}/src"/>
 		
 		<copy toDir="${path.bin}/lib">
 			<fileset dir="${path.lib}" />
-		</copy>
-		
-		<copy toDir="${path.bin}/src">
-			<fileset dir="${path.src}" />
 		</copy>
 				
 		<copy includeemptydirs="false" todir="${path.bin}">
@@ -59,6 +54,13 @@
 		</delete>
 		
 		<jar destfile="${path.jar}/${ant.project.name}.jar" baseDir="${path.bin}">
+			<manifest>
+				<attribute name="Main-Class" value="${manifest.mainclass}" />
+				<attribute name="Class-Path" value="${manifest.classpath}" />
+			</manifest>
+		</jar>
+		
+		<jar destfile="${path.jar}/${ant.project.name}_src.jar" baseDir="${path.src}">
 			<manifest>
 				<attribute name="Main-Class" value="${manifest.mainclass}" />
 				<attribute name="Class-Path" value="${manifest.classpath}" />

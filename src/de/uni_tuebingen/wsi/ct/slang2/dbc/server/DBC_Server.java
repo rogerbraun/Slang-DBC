@@ -5,6 +5,7 @@
 package de.uni_tuebingen.wsi.ct.slang2.dbc.server;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
@@ -2717,12 +2718,12 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		    + "WHERE id = "
 		    + root.getIllocutionUnit().getDB_ID());
 	    if (res.next() && root.hasChanged()) {
-		res.updateInt("path", root.getPath());
-		res.updateInt("numerus_paths", root.getNumerusPath());
-		res.updateInt("phrastic", root.getPhrastic());
-		res.updateRow();
-		res.close();
-		root.resetState(key);
+			res.updateInt("path", root.getPath());
+			res.updateInt("numerus_paths", root.getNumerusPath());
+			res.updateInt("phrastic", root.getPhrastic());
+			res.updateRow();
+			res.close();
+			root.resetState(key);
 	    }
 
 	    res.close();
@@ -4831,39 +4832,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 //  return element;
 //  }
     
-    public Vector<String> loadWordsWithWortArt1(TR_Assignation.Wortart1 wortArt)
-    {
-    	Vector<String> words = new Vector<String>();
-    	byte[] wa1 = new byte[0];
-    	
-		if (wortArt != null)  	{
-    		wa1 = TR_Assignation.setBit(wa1, wortArt.ordinal(), true);
-        }
-		
-		try 
-    	{
-			PreparedStatement stmt = connection.prepareStatement(
-					"SELECT content FROM words WHERE words.id IN" +
-					"(SELECT word_id from word_list_elements where word_list_elements.assignation_id IN " +
-					"(SELECT id FROM assignations WHERE tr_tempus & wa1));",
-					ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-			stmt.setBytes(1, wa1);
-			ResultSet res = stmt.executeQuery();
-    		
-    		while (res.next()) 
-    		{
-    			words.add(res.getString("content"));
-    		}
-    		res.close();
-    		stmt.close();
-    	}
-		catch (SQLException e) 
-		{
-			e.printStackTrace();
-		}
-		return words;
-    }
-    
+
     public Vector<String> loadWordsWithAbbreviation(String abbr)
     {
     	Vector<String> words = new Vector<String>();
@@ -4907,12 +4876,22 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		
 		try 
     	{
+			// wandelt den byte array in ein int, da es bei der 
+			// setBytes Methode (s.u.) Probleme gab (byte wurde nicht als byte gesendet). 
+			int conjAsInt = 0;
+			for (int i = 0; i < conj.length; i++)
+			{
+				int n = (conj[i] < 0 ? (int)conj[i] + 256 : (int)conj[i]) << (8 * i);
+				conjAsInt += n;
+			}
 			PreparedStatement stmt = connection.prepareStatement(
-					"SELECT content FROM words WHERE id IN" +
+					"SELECT content FROM words WHERE id IN " +
 					"(SELECT word_id FROM word_list_elements WHERE assignation_id IN " +
-					"(SELECT id FROM assignations WHERE tr_conjugation & ?));",
+					"(SELECT id FROM assignations WHERE tr_conjugation & ? ));",
 					ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-			stmt.setBytes(1, conj);
+			//stmt.setBytes(1, conj);
+			stmt.setInt(1, conjAsInt);
+		
 			ResultSet res = stmt.executeQuery();
     		
     		while (res.next()) 
@@ -4938,6 +4917,14 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		if (pron != null) {
 			pro = TR_Assignation.setBit(pro, pron.ordinal(), true);
         }	
+		// wandelt den byte array in ein int, da es bei der 
+		// setBytes Methode (s.u.) Probleme gab (byte wurde nicht als byte gesendet). 
+		int proAsInt = 0;
+		for (int i = 0; i < pro.length; i++)
+		{
+			int n = (pro[i] < 0 ? (int)pro[i] + 256 : (int)pro[i]) << (8 * i);
+			proAsInt += n;
+		}
 		
 		try 
     	{
@@ -4946,7 +4933,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 					"(SELECT word_id from word_list_elements where word_list_elements.assignation_id IN " +
 					"(SELECT id FROM assignations WHERE tr_subclass_pronoun & ?));",
 					ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-			stmt.setBytes(1, pro);
+			//stmt.setBytes(1, pro);
+			stmt.setInt(1, proAsInt);
 			ResultSet res = stmt.executeQuery();
     		
     		while (res.next()) 
@@ -4963,27 +4951,76 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		return words;
     }
 
-    public WordListElement loadWordListElement(Integer id) throws SQLException {
+    public Vector<String> loadWordsWithWortArt1(TR_Assignation.Wortart1 wortArt)
+    {
+    	Vector<String> words = new Vector<String>();
+    	byte[] wa1 = new byte[0];
+    	
+		if (wortArt != null)  	{
+    		wa1 = TR_Assignation.setBit(wa1, wortArt.ordinal(), true);
+        }
+		// wandelt den byte array in ein int, da es bei der 
+		// setBytes Methode (s.u.) Probleme gab (byte wurde nicht als byte gesendet). 
+		int wortArt1AsInt = 0;
+		for (int i = 0; i < wa1.length; i++)
+		{
+			int n = (wa1[i] < 0 ? (int)wa1[i] + 256 : (int)wa1[i]) << (8 * i);
+			wortArt1AsInt += n;
+		}
+		try 
+    	{
+			PreparedStatement stmt = connection.prepareStatement(
+					"SELECT content FROM words WHERE words.id IN" +
+					"(SELECT word_id from word_list_elements where word_list_elements.assignation_id IN " +
+					"(SELECT id FROM assignations WHERE tr_tempus & wa1));",
+					ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+			//stmt.setBytes(1, wa1);
+			stmt.setInt(1, wortArt1AsInt);
+			ResultSet res = stmt.executeQuery();
+    		
+    		while (res.next()) 
+    		{
+    			words.add(res.getString("content"));
+    		}
+    		res.close();
+    		stmt.close();
+    	}
+		catch (SQLException e) 
+		{
+			e.printStackTrace();
+		}
+		return words;
+    }
+    
+    /**
+     * Load all complexes in chapter with ID <code>chapterID</code>
+     * @param chapterID
+     * @return a Vector of PronounComplex_DB. All elements are expected to get converted into PronounComplex on the client side.
+     * @throws Exception
+     */
+    public Vector<WorkingTranslation_DB> loadWorkingTranslations(Integer chapterID) throws Exception
+    {
+	Vector<WorkingTranslation_DB> result = new Vector<WorkingTranslation_DB>();
 	PreparedStatement stmt = null;
 	ResultSet res = null;
-	WordListElement element = null;
-	
+
 	try {
-	
-	    stmt = connection.prepareStatement("SELECT * FROM word_list_elements, words WHERE word_list_elements.id = ? AND word_list_elements.word_id = words.id");
-	    stmt.setInt(1, id);
-	
+	    stmt = connection.prepareStatement(
+
+		    "SELECT * FROM working_translation WHERE chapter_id = ? ORDER BY id"
+	    );
+	    stmt.setInt(1, chapterID);
 	    res = stmt.executeQuery();
-	    if(res.next()) {
-		try {
-		    element = new WordListElement(new String(res.getBytes("content"), "ISO-8859-1"), res.getString("language"));
-		} catch (UnsupportedEncodingException e) {
-		    logger.warning(e.getMessage());
-		}
-		if(res.getInt("assignation_id") != 0)
-		    element.setAssignation(loadAssignation(res.getInt("assignation_id")));
-		element.setDB_ID(key, id);
-		element.resetState(key);
+	    WorkingTranslation_DB complex = null;
+	    while(res.next()) {
+		complex = new WorkingTranslation(key).new WorkingTranslation_DB(key);
+		complex.setDB_ID(key, res.getInt("id"));
+		complex.chapterID = chapterID;
+		complex.setLanguage(res.getString("language"));
+		complex.setOrginal(res.getString("orginal"));
+		complex.setTranslation(res.getString("translation"));
+		complex.resetState(key);
+		result.add(complex);
 	    }
 	}
 	catch ( SQLException e ) {
@@ -4993,6 +5030,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	finally {
 	    try
 	    {
+		connection.setAutoCommit(true);
 		if (res  != null)
 		    res.close();
 		if (stmt  != null)
@@ -5003,8 +5041,9 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		logger.warning(e.getLocalizedMessage());
 	    }
 	}
-	return element;
-	}
+	return result;
+    }
+  
 
 //    /**
 //     * 
@@ -5102,6 +5141,48 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     	return element;
     }
  
+    public WordListElement loadWordListElement(Integer id) throws SQLException {
+		PreparedStatement stmt = null;
+		ResultSet res = null;
+		WordListElement element = null;
+		
+		try {
+		
+		    stmt = connection.prepareStatement("SELECT * FROM word_list_elements, words WHERE word_list_elements.id = ? AND word_list_elements.word_id = words.id");
+		    stmt.setInt(1, id);
+		
+		    res = stmt.executeQuery();
+		    if(res.next()) {
+			try {
+			    element = new WordListElement(new String(res.getBytes("content"), "ISO-8859-1"), res.getString("language"));
+			} catch (UnsupportedEncodingException e) {
+			    logger.warning(e.getMessage());
+			}
+			if(res.getInt("assignation_id") != 0)
+			    element.setAssignation(loadAssignation(res.getInt("assignation_id")));
+			element.setDB_ID(key, id);
+			element.resetState(key);
+		    }
+		}
+		catch ( SQLException e ) {
+		    logger.severe(e.getLocalizedMessage());
+		    throw e;
+		}
+		finally {
+		    try
+		    {
+			if (res  != null)
+			    res.close();
+			if (stmt  != null)
+			    stmt.close();
+		    }
+		    catch (SQLException e)
+		    {
+			logger.warning(e.getLocalizedMessage());
+		    }
+		}
+		return element;
+	}
     
 	/**
      * Inserts, updates or removes <code>assignations</code> in the Database dependent on their state.
@@ -5635,57 +5716,6 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	return translations;
     }
     
-    /**
-     * Load all complexes in chapter with ID <code>chapterID</code>
-     * @param chapterID
-     * @return a Vector of PronounComplex_DB. All elements are expected to get converted into PronounComplex on the client side.
-     * @throws Exception
-     */
-    public Vector<WorkingTranslation_DB> loadWorkingTranslations(Integer chapterID) throws Exception
-    {
-	Vector<WorkingTranslation_DB> result = new Vector<WorkingTranslation_DB>();
-	PreparedStatement stmt = null;
-	ResultSet res = null;
-
-	try {
-	    stmt = connection.prepareStatement(
-
-		    "SELECT * FROM working_translation WHERE chapter_id = ? ORDER BY id"
-	    );
-	    stmt.setInt(1, chapterID);
-	    res = stmt.executeQuery();
-	    WorkingTranslation_DB complex = null;
-	    while(res.next()) {
-		complex = new WorkingTranslation(key).new WorkingTranslation_DB(key);
-		complex.setDB_ID(key, res.getInt("id"));
-		complex.chapterID = chapterID;
-		complex.setLanguage(res.getString("language"));
-		complex.setOrginal(res.getString("orginal"));
-		complex.setTranslation(res.getString("translation"));
-		complex.resetState(key);
-		result.add(complex);
-	    }
-	}
-	catch ( SQLException e ) {
-	    logger.severe(e.getLocalizedMessage());
-	    throw e;
-	}
-	finally {
-	    try
-	    {
-		connection.setAutoCommit(true);
-		if (res  != null)
-		    res.close();
-		if (stmt  != null)
-		    stmt.close();
-	    }
-	    catch (SQLException e)
-	    {
-		logger.warning(e.getLocalizedMessage());
-	    }
-	}
-	return result;
-    }
     
     /**
      * save all of <code>criticisms</code> whose state indicates an "out of sync with DB" status.

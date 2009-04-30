@@ -46,7 +46,7 @@ public class Chapter
    private int               index;
    private String 			  date;
    private String            title;
-   private Vector            tokens;
+   private Vector<Token>     tokens;
    private Vector            paragraphs;
    private Vector<IllocutionUnit>            illocutionUnits;
    private String            content;

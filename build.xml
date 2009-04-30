@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project basedir="." default="jar" name="dbc">
+<project basedir="." default="cleanup" name="dbc">
 
 	<!-- Laden unserer Property-Datei für Zugriff auf Konstanten (Details folgen unten) -->
 	<property file="build.properties"/>
@@ -19,19 +19,11 @@
 		<tstamp/>
 		<mkdir dir="${path.bin}"/>
 		<mkdir dir="${path.jar}"/>
-		<mkdir dir="${path.bin}/lib"/>
 		
-		<copy toDir="${path.bin}/lib">
-			<fileset dir="${path.lib}" />
-		</copy>
-				
 		<copy includeemptydirs="false" todir="${path.bin}">
-			<fileset dir="${path.src}" excludes="**/*.launch, **/*.java"/>
+			<fileset dir="${path.src}" excludes="**/*.launch"/>
 		</copy>
-	</target>
-
-	<target name="clean">
-		<delete dir="${path.bin}"/>
+		
 	</target>
 
 	<target depends="init" name="build">
@@ -60,32 +52,13 @@
 			</manifest>
 		</jar>
 		
-		<jar destfile="${path.jar}/${ant.project.name}_src.jar" baseDir="${path.src}">
-			<manifest>
-				<attribute name="Main-Class" value="${manifest.mainclass}" />
-				<attribute name="Class-Path" value="${manifest.classpath}" />
-			</manifest>
-		</jar>
+		<copy verbose="on" toDir="${path.jar}">
+			<fileset dir="${path.lib}" />
+		</copy>
 		
-		<delete dir="${path.bin}/lib" />
-		<delete dir="${path.bin}/src" />
 	</target>
 
-	<target name="docs-init">
-		<mkdir dir="${path.doc}/api"/>
+	<target name="cleanup" depends="jar">
+		<delete dir="${path.bin}" />
 	</target>
-
-	<target name="docs-clean">
-		<delete dir="${path.doc}/api"/>
-	</target>
-
-	<target name="apidocs" depends="docs-init" description="Generate JavaDocs.">
-		<mkdir dir="${path.doc}/api"/>
-		<javadoc destdir="${path.doc}/api" sourcepathref="dbc.sourcepath" packagenames="*" windowtitle="DBC API">
-			<doctitle><![CDATA[<h1>${ant.project.name}</h1>]]></doctitle>
-		</javadoc>
-	</target>
-	
-	<target name="docs" depends="docs-init, apidocs"/>
-
 </project>

@@ -7,6 +7,7 @@ package de.uni_tuebingen.wsi.ct.slang2.dbc.client;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.sql.DataTruncation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Vector;
@@ -372,7 +373,11 @@ public class DBC implements DBC_KeyAcceptor {
 	
 	public void saveTargets(Chapter chapter, ArrayList<DialogTarget> targets) throws Exception
 	{
+		try {
 		connection.call(new Message(key, "saveTargets", new Integer(chapter.getDB_ID()), targets));
+		} catch (DBC_ConnectionException e){
+			throw new DBC_SaveException(e.getMessage());
+		}
 	}
 	
 	public void saveISignals(Chapter chapter, ArrayList<DialogISignal> signals) throws Exception

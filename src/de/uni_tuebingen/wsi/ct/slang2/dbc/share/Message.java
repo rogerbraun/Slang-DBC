@@ -44,7 +44,8 @@ public class Message
 	   }
    }
 
-   /**
+
+/**
     * @return the method
     */
    public String getMethod() {

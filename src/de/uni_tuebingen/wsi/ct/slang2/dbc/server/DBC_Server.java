@@ -5,7 +5,6 @@
 package de.uni_tuebingen.wsi.ct.slang2.dbc.server;
 
 import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;

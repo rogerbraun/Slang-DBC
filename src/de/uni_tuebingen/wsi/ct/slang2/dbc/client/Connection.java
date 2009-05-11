@@ -45,41 +45,47 @@ class Connection {
 
    synchronized Message call(Message output) throws Exception 
    {
-	   if(in != null && out != null && output != null) {
-
-		   try {
-			   out.writeObject(output);
-			   out.flush();
-		   } catch (IOException e1) {
-			   throw new DBC_ConnectionException("Could not write to ostream");
-		   }
-
-		   // warte bei der Close-Nachricht nicht auf eine Antwort
-		   if (output.getMethod().equals("close"))
-			   return null;
-
-		   try {
-			   Object answer_object = in.readObject();
-			   if(answer_object != null && answer_object instanceof Message) {
-				   Message answer = (Message) answer_object;
-				   if (answer.getMethod().equals("OK"))
-					   return answer;
-				   if (answer.getMethod().equals("ERROR")
-						   && answer.getArguments().length > 0
-						   && answer.getArguments()[0] instanceof Exception)
-					   throw (Exception) answer.getArguments()[0];
+	   try {
+		   if(in != null && out != null && output != null) {
+	
+			   try {
+				   out.writeObject(output);
+				   out.flush();
+			   } catch (IOException e1) {
+				   throw new DBC_ConnectionException("Could not write to ostream");
 			   }
-			   else
-				   throw new DBC_ConnectionException("");
-		   } catch (IOException e) {
-			   e.printStackTrace();
-			   throw new DBC_ConnectionException("Could not read from istream: "+e.getMessage());
-		   } catch (ClassNotFoundException e) {
-			   throw new DBC_ConnectionException("Returned message is not usable. This a server error!");
+	
+			   // warte bei der Close-Nachricht nicht auf eine Antwort
+			   if (output.getMethod().equals("close"))
+				   return null;
+	
+			   try {
+				   Object answer_object = in.readObject();
+				   if(answer_object != null && answer_object instanceof Message) {
+					   Message answer = (Message) answer_object;
+					   if (answer.getMethod().equals("OK"))
+						   return answer;
+					   if (answer.getMethod().equals("ERROR")
+							   && answer.getArguments().length > 0
+							   && answer.getArguments()[0] instanceof Exception)
+						   throw (Exception) answer.getArguments()[0];
+				   }
+				   else
+					   throw new DBC_ConnectionException("");
+			   } catch (IOException e) {
+				   e.printStackTrace();
+				   throw new DBC_ConnectionException("Could not read from istream: "+e.getMessage());
+			   } catch (ClassNotFoundException e) {
+				   throw new DBC_ConnectionException("Returned message is not usable. This a server error!");
+			   }
+			   
 		   }
-		   
+		   return null;
 	   }
-	   return null;
+	   // WELCHE EXCEPTION IS DES GENAU????
+	   catch (Exception e) {
+		   throw new DBC_ConnectionException(e.getLocalizedMessage());
+	   }
    }
 
    void close() throws IOException {

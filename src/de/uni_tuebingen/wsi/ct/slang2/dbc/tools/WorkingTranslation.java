@@ -1,18 +1,17 @@
-package de.uni_tuebingen.wsi.ct.slang2.dbc.data;
+package de.uni_tuebingen.wsi.ct.slang2.dbc.tools;
 
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Chapter;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DB_Element;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
 
-public class WorkingTranslation extends DB_Element {
+public class WorkingTranslation extends DB_Element/* implements ChapterElement */{
 
     /**
      * 
      */
     private static final long serialVersionUID = 1344211026581426603L;
-
     private String language;
-
     private String orginal;
-
     private String translation;
 
     public WorkingTranslation(DBC_Key key) {
@@ -48,8 +47,8 @@ public class WorkingTranslation extends DB_Element {
 
     @Override
     public boolean remove() {
-		changeState(REMOVE);
-		return true;
+    	changeState(REMOVE);
+    	return true;
     }
 
     public void setLanguage(String language) {
@@ -90,8 +89,8 @@ public class WorkingTranslation extends DB_Element {
 		     this.setTranslation(WorkingTranslation.this.getTranslation());
 		 }
     }
-	
-		@Override
+
+	@Override
 	public void setChapter(DBC_Key key, Chapter chapter) {
 		// TODO Auto-generated method stub	
 	}

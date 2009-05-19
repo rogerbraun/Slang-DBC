@@ -7,10 +7,11 @@ package de.uni_tuebingen.wsi.ct.slang2.dbc.client;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.sql.DataTruncation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Vector;
+
+import com.mysql.jdbc.MysqlDataTruncation;
 
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Book;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Chapter;
@@ -47,7 +48,6 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.data.LiteraryCriticism2.LiteraryCritic
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.PronounComplex.PronounComplex_DB;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Relation.Relation_DB;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.WorkingTranslation.WorkingTranslation_DB;
-import de.uni_tuebingen.wsi.ct.slang2.dbc.server.DBC_Server;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_Key;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_KeyAcceptor;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.Message;
@@ -190,11 +190,16 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @param book
 	 * @see DBC#loadBook(int)
 	 */
-	public void saveBook(DBC_Key key, Book book)
-	throws Exception {
-		key.unlock();
-		Book answer = (Book) connection.call(new Message(key, "saveBook", book)).getArguments()[0];
-		book.setDB_ID(key, answer.getDB_ID());
+	public void saveBook(DBC_Key key, Book book) throws Exception {
+		try {
+			key.unlock();
+			Book answer = (Book) connection.call(new Message(key, "saveBook", book)).getArguments()[0];
+			book.setDB_ID(key, answer.getDB_ID());
+		} catch (MysqlDataTruncation e){
+			throw new DBC_SaveException(e.getMessage());
+		} catch (Exception e){
+			throw new DBC_SaveException(e.getMessage());
+		}
 	}
 	
 	/**
@@ -224,9 +229,15 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @param Pattern pattern
 	 */
 	public void savePattern(Pattern pattern) throws Exception {
-	    Message answer = connection.call(new Message(key, "savePattern", pattern));
-	    Pattern pat = (Pattern) answer.getArguments()[0];
-	    pattern.setDB_ID(pat.getDB_ID());
+		try {
+		    Message answer = connection.call(new Message(key, "savePattern", pattern));
+		    Pattern pat = (Pattern) answer.getArguments()[0];
+		    pattern.setDB_ID(pat.getDB_ID());
+		} catch (MysqlDataTruncation e){
+			throw new DBC_SaveException(e.getMessage());
+		} catch (Exception e){
+			throw new DBC_SaveException(e.getMessage());
+		}
 	}
 
 	/**
@@ -248,12 +259,16 @@ public class DBC implements DBC_KeyAcceptor {
 	 * 
 	 * @see #loadChapter(int)
 	 */
-	public void saveChapter(DBC_Key key, Chapter chapter)
-	throws Exception {
-		key.unlock();
-		Chapter answer = (Chapter) connection.call(new Message(key,
-				"saveChapter", chapter)).getArguments()[0];
-		chapter.updateIDs(key, answer);
+	public void saveChapter(DBC_Key key, Chapter chapter) throws Exception {
+		try {
+			key.unlock();
+			Chapter answer = (Chapter) connection.call(new Message(key,	"saveChapter", chapter)).getArguments()[0];
+			chapter.updateIDs(key, answer);
+		} catch (MysqlDataTruncation e){
+			throw new DBC_SaveException(e.getMessage());
+		} catch (Exception e){
+			throw new DBC_SaveException(e.getMessage());
+		}
 	}
 
 	/**
@@ -312,10 +327,16 @@ public class DBC implements DBC_KeyAcceptor {
 
 	public void saveDirectSpeeches(Chapter chapter, DirectSpeeches newdirectSpeeches, DirectSpeeches olddirectSpeeches)
 	throws Exception {
-		DirectSpeeches answer = (DirectSpeeches) connection.call(new Message(key,
-				"saveDirectSpeeches", new Integer(chapter.getDB_ID()),
-				newdirectSpeeches, olddirectSpeeches)).getArguments()[0];
-		//newdirectSpeeches.updateIDs(key, answer);
+		try {
+			DirectSpeeches answer = (DirectSpeeches) connection.call(new Message(key,
+					"saveDirectSpeeches", new Integer(chapter.getDB_ID()),
+					newdirectSpeeches, olddirectSpeeches)).getArguments()[0];
+			//newdirectSpeeches.updateIDs(key, answer);
+		} catch (MysqlDataTruncation e){
+			throw new DBC_SaveException(e.getMessage());
+		} catch (Exception e){
+			throw new DBC_SaveException(e.getMessage());
+		}
 	}
 
 	/*public void saveDialogs(Chapter chapter, Dialogs dialogs)
@@ -328,9 +349,15 @@ public class DBC implements DBC_KeyAcceptor {
 	
 	public void saveDialogs(Chapter chapter, Dialogs oldDialogs, Dialogs newDialogs )
 	throws Exception {
-		Dialogs answer = (Dialogs) connection.call(new Message(key,
-				"saveDialogs", new Integer(chapter.getDB_ID()), oldDialogs, newDialogs)).getArguments()[0];
-		newDialogs.updateIDs(key, answer);
+		try {
+			Dialogs answer = (Dialogs) connection.call(new Message(key,
+					"saveDialogs", new Integer(chapter.getDB_ID()), oldDialogs, newDialogs)).getArguments()[0];
+			newDialogs.updateIDs(key, answer);
+		} catch (MysqlDataTruncation e){
+			throw new DBC_SaveException(e.getMessage());
+		} catch (Exception e){
+			throw new DBC_SaveException(e.getMessage());
+		}
 	}
 	
 	/**
@@ -351,48 +378,78 @@ public class DBC implements DBC_KeyAcceptor {
 
 	public void saveSpeakers(Chapter chapter, ArrayList<DialogSpeaker> speakers)
 	throws Exception {
-		ArrayList<DialogSpeaker> answer = (ArrayList<DialogSpeaker>) connection.call(new Message(key,
-				"saveSpeakers", new Integer(chapter.getDB_ID()), speakers)).getArguments()[0];
-		//speaker.updateIDs(key, answer);
-	}
-	
-	public void saveSpeakerChanges(Chapter chapter, ArrayList<DialogSpeakerChange> changes) throws Exception 
-	{
-		connection.call(new Message(key, "saveSpeakerChanges", new Integer(chapter.getDB_ID()), changes));
-	}
-	
-	public void saveD_Themat(Chapter chapter, ArrayList<DialogD_Themat> themats) throws Exception 
-	{
-		connection.call(new Message(key, "saveD_Themat", new Integer(chapter.getDB_ID()), themats));
-	}
-	
-	public void saveFaces(Chapter chapter, ArrayList<DialogFaces> faces) throws Exception
-	{
-		connection.call(new Message(key, "saveFaces", new Integer(chapter.getDB_ID()), faces));
-	}
-	
-	public void saveTargets(Chapter chapter, ArrayList<DialogTarget> targets) throws Exception
-	{
 		try {
-		connection.call(new Message(key, "saveTargets", new Integer(chapter.getDB_ID()), targets));
-		} catch (DBC_ConnectionException e){
+			ArrayList<DialogSpeaker> answer = (ArrayList<DialogSpeaker>) connection.call(new Message(key,
+					"saveSpeakers", new Integer(chapter.getDB_ID()), speakers)).getArguments()[0];
+			//speaker.updateIDs(key, answer);
+		} catch (MysqlDataTruncation e){
+			throw new DBC_SaveException(e.getMessage());
+		} catch (Exception e){
 			throw new DBC_SaveException(e.getMessage());
 		}
 	}
 	
-	public void saveISignals(Chapter chapter, ArrayList<DialogISignal> signals) throws Exception
-	{
-		connection.call(new Message(key, "saveISignals", new Integer(chapter.getDB_ID()), signals));
+	public void saveSpeakerChanges(Chapter chapter, ArrayList<DialogSpeakerChange> changes) throws Exception {
+		try {
+			connection.call(new Message(key, "saveSpeakerChanges", new Integer(chapter.getDB_ID()), changes));
+		} catch (MysqlDataTruncation e){
+			throw new DBC_SaveException(e.getMessage());
+		} catch (Exception e){
+			throw new DBC_SaveException(e.getMessage());
+		}
 	}
 	
-	public void saveComments(Chapter chapter, ArrayList<DialogComment> comments) throws Exception
-	{
-		connection.call(new Message(key, "saveComments", new Integer(chapter.getDB_ID()), comments));
+	public void saveD_Themat(Chapter chapter, ArrayList<DialogD_Themat> themats) throws Exception {
+		try {
+			connection.call(new Message(key, "saveD_Themat", new Integer(chapter.getDB_ID()), themats));
+		} catch (MysqlDataTruncation e){
+			throw new DBC_SaveException(e.getMessage());
+		} catch (Exception e){
+			throw new DBC_SaveException(e.getMessage());
+		}
 	}
 	
-	public ArrayList<DialogSpeaker> loadSpeakers(Chapter chapter, String typ)
-	throws Exception 
-	{
+	public void saveFaces(Chapter chapter, ArrayList<DialogFaces> faces) throws Exception {
+		try {
+			connection.call(new Message(key, "saveFaces", new Integer(chapter.getDB_ID()), faces));
+		} catch (MysqlDataTruncation e){
+			throw new DBC_SaveException(e.getMessage());
+		} catch (Exception e){
+			throw new DBC_SaveException(e.getMessage());
+		}
+	}
+	
+	public void saveTargets(Chapter chapter, ArrayList<DialogTarget> targets) throws Exception {
+		try {
+			connection.call(new Message(key, "saveTargets", new Integer(chapter.getDB_ID()), targets));
+		} catch (MysqlDataTruncation e){
+			throw new DBC_SaveException(e.getMessage());
+		} catch (Exception e){
+			throw new DBC_SaveException(e.getMessage());
+		}
+	}
+	
+	public void saveISignals(Chapter chapter, ArrayList<DialogISignal> signals) throws Exception {
+		try {
+			connection.call(new Message(key, "saveISignals", new Integer(chapter.getDB_ID()), signals));
+		} catch (MysqlDataTruncation e){
+			throw new DBC_SaveException(e.getMessage());
+		} catch (Exception e){
+			throw new DBC_SaveException(e.getMessage());
+		}
+	}
+	
+	public void saveComments(Chapter chapter, ArrayList<DialogComment> comments) throws Exception {
+		try {
+			connection.call(new Message(key, "saveComments", new Integer(chapter.getDB_ID()), comments));
+		} catch (MysqlDataTruncation e){
+			throw new DBC_SaveException(e.getMessage());
+		} catch (Exception e){
+			throw new DBC_SaveException(e.getMessage());
+		}
+	}
+	
+	public ArrayList<DialogSpeaker> loadSpeakers(Chapter chapter, String typ) throws Exception {
 		Message answer = connection.call(new Message(key, "loadSpeakers", new Integer(chapter.getDB_ID()), typ));
 		ArrayList<DialogSpeaker> speakers = (ArrayList<DialogSpeaker>) answer.getArguments()[0];
 		for (int i=0; i != speakers.size(); ++i)
@@ -403,8 +460,7 @@ public class DBC implements DBC_KeyAcceptor {
 		return speakers;
 	}
 	
-	public synchronized ArrayList<DialogSpeakerChange> loadSpeakerChanges (Chapter chapter, String typ) throws Exception 
-	{
+	public synchronized ArrayList<DialogSpeakerChange> loadSpeakerChanges (Chapter chapter, String typ) throws Exception {
 		Message answer = connection.call(new Message(key, "loadSpeakerChanges", new Integer(chapter.getDB_ID()), typ));
 		ArrayList<DialogSpeakerChange> changes = (ArrayList<DialogSpeakerChange>) answer.getArguments()[0];
 		for (int i=0; i != changes.size(); ++i)
@@ -415,8 +471,7 @@ public class DBC implements DBC_KeyAcceptor {
 		return changes;
 	}
 	
-	public synchronized ArrayList<DialogD_Themat> loadD_Themat (Chapter chapter) throws Exception
-	{
+	public synchronized ArrayList<DialogD_Themat> loadD_Themat (Chapter chapter) throws Exception {
 		Message answer = connection.call(new Message(key, "loadD_Themat", new Integer(chapter.getDB_ID())));
 		ArrayList<DialogD_Themat> d_themas = (ArrayList<DialogD_Themat>) answer.getArguments()[0];
 		for (int i=0; i != d_themas.size(); ++i)
@@ -427,8 +482,7 @@ public class DBC implements DBC_KeyAcceptor {
 		return d_themas;
 	}
 	
-	public synchronized ArrayList<DialogFaces> loadFaces (Chapter chapter) throws Exception 
-	{
+	public synchronized ArrayList<DialogFaces> loadFaces (Chapter chapter) throws Exception {
 		Message answer = connection.call(new Message(key, "loadFaces", new Integer(chapter.getDB_ID())));
 		ArrayList<DialogFaces> faces = (ArrayList<DialogFaces>) answer.getArguments()[0];
 		for (int i=0; i != faces.size(); ++i)
@@ -439,8 +493,7 @@ public class DBC implements DBC_KeyAcceptor {
 		return faces;
 	}
 	
-	public synchronized ArrayList<DialogTarget> loadTargets (Chapter chapter) throws Exception 
-	{
+	public synchronized ArrayList<DialogTarget> loadTargets (Chapter chapter) throws Exception {
 		Message answer = connection.call(new Message(key, "loadTargets", new Integer(chapter.getDB_ID())));
 		ArrayList<DialogTarget> targets = (ArrayList<DialogTarget>) answer.getArguments()[0];
 		for (int i=0; i != targets.size(); ++i)
@@ -451,8 +504,7 @@ public class DBC implements DBC_KeyAcceptor {
 		return targets;
 	}
 	
-	public synchronized ArrayList<DialogISignal> loadISignals (Chapter chapter) throws Exception 
-	{
+	public synchronized ArrayList<DialogISignal> loadISignals (Chapter chapter) throws Exception {
 		Message answer = connection.call(new Message(key, "loadISignals", new Integer(chapter.getDB_ID())));
 		ArrayList<DialogISignal> signals = (ArrayList<DialogISignal>) answer.getArguments()[0];
 		for (int i=0; i != signals.size(); ++i)
@@ -463,8 +515,7 @@ public class DBC implements DBC_KeyAcceptor {
 		return signals;
 	}
 	
-	public synchronized ArrayList<DialogComment> loadComments (Chapter chapter) throws Exception
-	{
+	public synchronized ArrayList<DialogComment> loadComments (Chapter chapter) throws Exception {
 		Message answer = connection.call(new Message(key, "loadComments", new Integer(chapter.getDB_ID())));
 		ArrayList<DialogComment> comments = (ArrayList<DialogComment>) answer.getArguments()[0];
 		for (int i=0; i != comments.size(); ++i)
@@ -486,8 +537,7 @@ public class DBC implements DBC_KeyAcceptor {
 	 *         eine leere Wurzel erzeugt.
 	 * @see #saveIllocutionUnitRoots(IllocutionUnitRoots)
 	 */
-	public IllocutionUnitRoots loadIllocutionUnitRoots(Chapter chapter)
-	throws Exception {
+	public IllocutionUnitRoots loadIllocutionUnitRoots(Chapter chapter)	throws Exception {
 		Message answer = connection.call(new Message(key,"loadIllocutionUnitRoots", new Integer(chapter.getDB_ID())));
 		IllocutionUnitRoots roots = (IllocutionUnitRoots) answer.getArguments()[0];
 		roots.setChapter(key, chapter);
@@ -500,74 +550,69 @@ public class DBC implements DBC_KeyAcceptor {
 	 * 
 	 * @see #loadIllocutionUnitRoots(Chapter)
 	 */
-	public void saveIllocutionUnitRoots(IllocutionUnitRoots iurs)
-	throws Exception {
-		IllocutionUnitRoots answer = (IllocutionUnitRoots) connection
-		.call(new Message(key, "saveIllocutionUnitRoots", new Integer(iurs
-				.getChapter().getDB_ID()), iurs)).getArguments()[0];
-		iurs.updateIDs(key, answer);
+	public void saveIllocutionUnitRoots(IllocutionUnitRoots iurs) throws Exception {
+		try {
+			IllocutionUnitRoots answer = (IllocutionUnitRoots) connection.call(new Message(key, "saveIllocutionUnitRoots", new Integer(iurs
+					.getChapter().getDB_ID()), iurs)).getArguments()[0];
+			iurs.updateIDs(key, answer);
+		} catch (MysqlDataTruncation e){
+			throw new DBC_SaveException(e.getMessage());
+		} catch (Exception e){
+			throw new DBC_SaveException(e.getMessage());
+		}
 	}
 
 	/**
 	 * Alle Funktionswï¿½rter, ohne Zusammenhang zu dem Text. Deswegen nur Strings
 	 */
-	public Vector loadFunctionWords()
-	throws Exception {
+	public Vector loadFunctionWords() throws Exception {
 		Vector answer = (Vector) connection.call(new Message(key,
 		"loadFunctionWords")).getArguments()[0];
 		return answer;
 	}
 
 	/**
-	 * Alle Kategorien der Funktionswï¿½rter
+	 * Alle Kategorien der Funktionswörter
 	 */
-	public Vector loadFunctionWordsCategories()
-	throws Exception {
+	public Vector loadFunctionWordsCategories()	throws Exception {
 		Vector answer = (Vector) connection.call(new Message(key,
 		"loadFunctionWordsCategories")).getArguments()[0];
 		return answer;
 	}
 
 	/**
-	 * Alle semantisch konstitutiven Wï¿½rter ohne Zusammenhang zum Text. Deswegen
+	 * Alle semantisch konstitutiven Wörter ohne Zusammenhang zum Text. Deswegen
 	 * nur Strings.
 	 */
-	public Vector loadConstitutiveWords()
-	throws Exception {
-		Vector answer = (Vector) connection.call(new Message(key,
-		"loadConstitutiveWords")).getArguments()[0];
+	public Vector loadConstitutiveWords() throws Exception {
+		Vector answer = (Vector) connection.call(new Message(key, "loadConstitutiveWords")).getArguments()[0];
 		return answer;
 	}
 
 	/**
-	 * Die extrem wichtigen, ï¿½ber alles benï¿½tigten Pfade
+	 * Die extrem wichtigen, über alles benötigten Pfade
 	 */
-	public PathNode getPaths()
-	throws Exception {
-		return (PathNode) connection.call(new Message(key, "getPaths"))
-		.getArguments()[0];
+	public PathNode getPaths() throws Exception {
+		return (PathNode) connection.call(new Message(key, "getPaths")).getArguments()[0];
 	}
 
 	/**
 	 * Die Numerus-Pfade
 	 */
-	public PathNode getNumerusPaths()
-	throws Exception {
-	    return (PathNode) connection.call(new Message(key, "getNumerusPaths"))
-	    .getArguments()[0];
+	public PathNode getNumerusPaths() throws Exception {
+	    return (PathNode) connection.call(new Message(key, "getNumerusPaths")).getArguments()[0];
 	}
 
 	/**
-	 * ï¿½berprï¿½ft, ob zu diesem Wort in einem Kapitel ein Funktionswort
-	 * gespeichert wurde. Dabei werden keine Teilwï¿½rter beachtet. Bei dem Wort
+	 * überprüft, ob zu diesem Wort in einem Kapitel ein Funktionswort
+	 * gespeichert wurde. Dabei werden keine Teilwörter beachtet. Bei dem Wort
 	 * ist nur der Content wichtig, die Position im Kapitel spielt keine Rolle.
 	 * 
 	 * @param word
 	 *        Das zu ï¿½berprï¿½fende Wort
 	 * @return true, falls ein Funktionswort zu diesem Wort angelegt wurde.
 	 */
-	public boolean existsFunctionWord(Word word)
-	throws Exception {
+	public boolean existsFunctionWord(Word word) throws Exception {
 		Message answer = connection.call(new Message(key, "existsFunctionWord",
 				new Integer(word.getDB_ID()), new Integer(word.getEndPosition()
 						- word.getStartPosition())));
@@ -583,8 +628,7 @@ public class DBC implements DBC_KeyAcceptor {
 	 *        Das zu ï¿½berprï¿½fende Wort
 	 * @return true, falls ein Konstitutives Wort zu diesem Wort angelegt wurde.
 	 */
-	public boolean existsConstitutiveWord(Word word)
-	throws Exception {
+	public boolean existsConstitutiveWord(Word word) throws Exception {
 		Message answer = connection.call(new Message(key,
 				"existsConstitutiveWord", new Integer(word.getDB_ID()),
 				new Integer(word.getEndPosition() - word.getStartPosition())));
@@ -612,10 +656,8 @@ public class DBC implements DBC_KeyAcceptor {
 	 *         <li><b>tr_diathese (byte)</b>Diathese oder Genus Verbi</li>
 	 *         </ul>
 	 */
-	public Vector getAllConstitutiveWords(String language)
-	throws Exception {
-		Message answer = connection.call(new Message(key,
-				"getAllConstitutiveWords", language));
+	public Vector getAllConstitutiveWords(String language) throws Exception {
+		Message answer = connection.call(new Message(key, "getAllConstitutiveWords", language));
 		return (Vector) answer.getArguments()[0];
 	}
 
@@ -627,10 +669,8 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @return Ein Vector mit Strings
 	 * @throws Exception
 	 */
-	public Vector getAllFunctionWords(String language)
-	throws Exception {
-		Message answer = connection.call(new Message(key, "getAllFunctionWords",
-				language));
+	public Vector getAllFunctionWords(String language) throws Exception {
+		Message answer = connection.call(new Message(key, "getAllFunctionWords", language));
 		return (Vector) answer.getArguments()[0];
 	}
 
@@ -670,8 +710,7 @@ public class DBC implements DBC_KeyAcceptor {
 	 *         </ul>
 	 * @throws Exception
 	 */
-	public Vector getConstitutiveWords(Word word)
-	throws Exception {
+	public Vector getConstitutiveWords(Word word) throws Exception {
 		Message answer = connection.call(new Message(key, "getConstitutiveWords",
 				word.getContent(), word.getLanguage()));
 		return (Vector) answer.getArguments()[0];
@@ -719,8 +758,7 @@ public class DBC implements DBC_KeyAcceptor {
 	 *         </ul>
 	 * @throws Exception
 	 */
-	public Vector<DB_Tupel> getConstitutiveWords(String content, String language)
-	throws Exception {
+	public Vector<DB_Tupel> getConstitutiveWords(String content, String language) throws Exception {
 		Message answer = connection.call(new Message(key, "getConstitutiveWords",
 				content, language));
 		return (Vector<DB_Tupel>) answer.getArguments()[0];
@@ -752,8 +790,7 @@ public class DBC implements DBC_KeyAcceptor {
 	 *         </ul>
 	 * @throws Exception
 	 */
-	public Vector getFunctionWords(Word word)
-	throws Exception {
+	public Vector getFunctionWords(Word word) throws Exception {
 		Message answer = connection.call(new Message(key, "getFunctionWords",
 				word.getContent(), word.getLanguage()));
 		return (Vector) answer.getArguments()[0];
@@ -787,8 +824,7 @@ public class DBC implements DBC_KeyAcceptor {
 	 *         </ul>
 	 * @throws Exception
 	 */
-	public Vector getFunctionWords(String content, String language)
-	throws Exception {
+	public Vector getFunctionWords(String content, String language) throws Exception {
 		Message answer = connection.call(new Message(key, "getFunctionWords",
 				content, language));
 		return (Vector) answer.getArguments()[0];
@@ -805,10 +841,14 @@ public class DBC implements DBC_KeyAcceptor {
 	 *        Ein Vektor mit Themas
 	 * @throws Exception
 	 */
-	public void saveThemas(Chapter chapter, Vector themas)
-	throws Exception {
-		connection.call(new Message(key, "saveThemas", new Integer(chapter
-				.getDB_ID()), themas));
+	public void saveThemas(Chapter chapter, Vector themas) throws Exception {
+		try {
+			connection.call(new Message(key, "saveThemas", new Integer(chapter.getDB_ID()), themas));
+		} catch (MysqlDataTruncation e){
+			throw new DBC_SaveException(e.getMessage());
+		} catch (Exception e){
+			throw new DBC_SaveException(e.getMessage());
+		}
 	}
 
 	/**
@@ -818,8 +858,7 @@ public class DBC implements DBC_KeyAcceptor {
 	 *        Das Kapitel, vondem die Themas geladen werden sollen.
 	 * @throws Exception
 	 */
-	public Vector loadThemas(Chapter chapter)
-	throws Exception {
+	public Vector loadThemas(Chapter chapter) throws Exception {
 		Message answer = connection.call(new Message(key, "loadThemas",
 				new Integer(chapter.getDB_ID())));
 		Vector themas = (Vector) answer.getArguments()[0];
@@ -834,8 +873,7 @@ public class DBC implements DBC_KeyAcceptor {
 	 * Erstellt eine Isotopie-Sammlung ï¿½ber alle in diesem Kapitel vorkommenden
 	 * Isotopien.
 	 */
-	public Isotopes loadIsotopes(Chapter chapter)
-	throws Exception {
+	public Isotopes loadIsotopes(Chapter chapter) throws Exception {
 		Message answer = connection.call(new Message(key, "loadIsotopes",
 				new Integer(chapter.getDB_ID())));
 		Isotopes isotopes = (Isotopes) answer.getArguments()[0];
@@ -848,12 +886,17 @@ public class DBC implements DBC_KeyAcceptor {
 	 * 
 	 * @throws DBC_SaveException
 	 */
-	public void saveIsotopes(Isotopes isotopes)
-	throws Exception {
-		Isotopes answer = (Isotopes) connection.call(new Message(key,
-				"saveIsotopes", isotopes, new Integer(isotopes.getChapter()
-						.getDB_ID()))).getArguments()[0];
-		isotopes.updateIDs(key, answer);
+	public void saveIsotopes(Isotopes isotopes) throws Exception {
+		try {
+			Isotopes answer = (Isotopes) connection.call(new Message(key,
+					"saveIsotopes", isotopes, new Integer(isotopes.getChapter()
+							.getDB_ID()))).getArguments()[0];
+			isotopes.updateIDs(key, answer);
+		} catch (MysqlDataTruncation e){
+			throw new DBC_SaveException(e.getMessage());
+		} catch (Exception e){
+			throw new DBC_SaveException(e.getMessage());
+		}
 	}
 
 	/**
@@ -867,10 +910,14 @@ public class DBC implements DBC_KeyAcceptor {
 	 *        gespeichert. Die maximale Grï¿½ï¿½e des serialisierten vektors darf
 	 *        65535 Zeichen nicht ï¿½berschreiten.
 	 */
-	public void saveIsotopeHierachy(Chapter chapter, Vector hierachy)
-	throws Exception {
-		connection.call(new Message(key, "saveIsotopeHierachy", new Integer(
-				chapter.getDB_ID()), hierachy));
+	public void saveIsotopeHierachy(Chapter chapter, Vector hierachy) throws Exception {
+		try {
+			connection.call(new Message(key, "saveIsotopeHierachy", new Integer(chapter.getDB_ID()), hierachy));
+		} catch (MysqlDataTruncation e){
+			throw new DBC_SaveException(e.getMessage());
+		} catch (Exception e){
+			throw new DBC_SaveException(e.getMessage());
+		}
 	}
 
 	/**
@@ -880,8 +927,7 @@ public class DBC implements DBC_KeyAcceptor {
 	 *        Das Kapitel, dessen Isotopien-Hierachie geladen werden soll.
 	 * @return Ein Vektor, der die Hierachie reprï¿½sentiert.
 	 */
-	public Vector loadIsotopeHierachy(Chapter chapter)
-	throws Exception {
+	public Vector loadIsotopeHierachy(Chapter chapter) throws Exception {
 		return (Vector) connection.call(new Message(key, "loadIsotopeHierachy",
 				new Integer(chapter.getDB_ID()))).getArguments()[0];
 	}
@@ -891,8 +937,7 @@ public class DBC implements DBC_KeyAcceptor {
 	 * 
 	 * @return Ein Vektor mit Lï¿½nderkï¿½rzeln wie "DE" oder "EN"
 	 */
-	public Vector getLanguages()
-	throws Exception {
+	public Vector getLanguages() throws Exception {
 		return (Vector) connection.call(new Message(key, "getLanguages"))
 		.getArguments()[0];
 	}
@@ -908,8 +953,7 @@ public class DBC implements DBC_KeyAcceptor {
 	 *        Das Kapitel, in dem die ï¿½uï¿½erungseinheiten stehen
 	 * @throws Exception
 	 */
-	public void loadIllocutionUnitComments(Comments comments, Chapter chapter)
-	throws Exception {
+	public void loadIllocutionUnitComments(Comments comments, Chapter chapter) throws Exception {
 		comments.add(loadComments(chapter, Comments.CLASS_CODE_ILLOCUTION_UNIT));
 	}
 
@@ -924,8 +968,7 @@ public class DBC implements DBC_KeyAcceptor {
 	 *        Das Kapitel, in dem die direkten Reden stehen
 	 * @throws Exception
 	 */
-	public void loadDirectSpeechComments(Comments comments, Chapter chapter)
-	throws Exception {
+	public void loadDirectSpeechComments(Comments comments, Chapter chapter) throws Exception {
 		comments.add(loadComments(chapter, Comments.CLASS_CODE_DIRECT_SPEECH));
 	}
 
@@ -940,16 +983,14 @@ public class DBC implements DBC_KeyAcceptor {
 	 *        Das Kapitel, in dem die Dialoge stehen
 	 * @throws Exception
 	 */
-	public void loadDialogComments(Comments comments, Chapter chapter)
-	throws Exception {
+	public void loadDialogComments(Comments comments, Chapter chapter) throws Exception {
 		comments.add(loadComments(chapter, Comments.CLASS_CODE_DIALOG));
 		comments.add(loadComments(chapter, Comments.CLASS_CODE_DIALOG_COSMOLOGIES));
 		//comments.add(loadComments(chapter, Comments.CLASS_CODE_DIALOG_FOLLOWUP));
 		//comments.add(loadComments(chapter, Comments.CLASS_CODE_DIALOG_RUNUP));
 	}
 
-	private Comments loadComments(Chapter chapter, int ownerClassCode)
-	throws Exception {
+	private Comments loadComments(Chapter chapter, int ownerClassCode) throws Exception {
 		return (Comments) connection.call(new Message(key, "loadComments",
 				new Integer(chapter.getDB_ID()), new Integer(ownerClassCode)))
 				.getArguments()[0];
@@ -961,10 +1002,15 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @param comments
 	 * @throws Exception
 	 */
-	public void saveComments(Comments comments)
-	throws Exception {
-		connection.call(new Message(key, "saveComments", comments));
-		comments.resetChange(key);
+	public void saveComments(Comments comments)	throws Exception {
+		try {
+			connection.call(new Message(key, "saveComments", comments));
+			comments.resetChange(key);
+		} catch (MysqlDataTruncation e){
+			throw new DBC_SaveException(e.getMessage());
+		} catch (Exception e){
+			throw new DBC_SaveException(e.getMessage());
+		}
 	}
 
 	/**
@@ -972,8 +1018,7 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @param complexes
 	 * @throws Exception
 	 */
-	public void saveComplexes(Collection<? extends PronounComplex> complexes) throws Exception
-	{	
+	public void saveComplexes(Collection<? extends PronounComplex> complexes) throws Exception {	
 		// get all complexes that have changed as DB Version
 		ArrayList<PronounComplex> complexes_oos = new ArrayList<PronounComplex>();
 		ArrayList<PronounComplex_DB> complexes_db = new ArrayList<PronounComplex_DB>();
@@ -984,11 +1029,16 @@ public class DBC implements DBC_KeyAcceptor {
 			//TODO: check for unsaved references and ...?
 			}
 		}
-		
+		ArrayList<PronounComplex_DB> answer;
 		// save
-		ArrayList<PronounComplex_DB> answer = (ArrayList<PronounComplex_DB>) connection.call(
+		try {
+			answer = (ArrayList<PronounComplex_DB>) connection.call(
 				new Message(key, "saveComplexes", complexes_db)).getArguments()[0];
-		
+		} catch (MysqlDataTruncation e){
+			throw new DBC_SaveException(e.getMessage());
+		} catch (Exception e){
+			throw new DBC_SaveException(e.getMessage());
+		}		
 		// update
 		if(answer.size() != complexes_db.size()) {
 			for (PronounComplex_DB pronounComplex_DB : complexes_db) {
@@ -996,11 +1046,12 @@ public class DBC implements DBC_KeyAcceptor {
 			}
 			throw new DBC_SaveException("Complexes could (probably) be saved but server did not return all of them");
 		}
-		else
+		else {
 			for (int i = 0; i < answer.size(); i++) {
 				complexes_oos.get(i).setDB_ID(key, answer.toArray(new PronounComplex_DB[0])[i].getDB_ID());
 				complexes_oos.get(i).changeState(key, DB_Element.NORMAL);
 			}
+		}
 	}
 
 	/**
@@ -1008,8 +1059,7 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @return
 	 * @throws Exception
 	 */
-	public Vector<PronounComplex> loadComplexes(IllocutionUnitRoots roots) throws Exception
-	{
+	public Vector<PronounComplex> loadComplexes(IllocutionUnitRoots roots) throws Exception {
 		Message answer = connection.call(new Message(key, "loadComplexes", new Integer(roots.getChapter().getDB_ID())));
 		
 		Vector<PronounComplex> complexes = new Vector<PronounComplex>();
@@ -1026,21 +1076,24 @@ public class DBC implements DBC_KeyAcceptor {
 		return complexes;
 	}
 
-	public void saveRenominalisations(Renominalisations renominalisations)
-	throws Exception {
-		Renominalisations answer = (Renominalisations) connection
-		.call(new Message(key, "saveRenominalisations", renominalisations,
-				new Integer(renominalisations.getChapter().getDB_ID())))
-				.getArguments()[0];
-		renominalisations.updateIDs(key, answer);
+	public void saveRenominalisations(Renominalisations renominalisations) throws Exception {
+		try {
+			Renominalisations answer = (Renominalisations) connection.call(new Message(key, "saveRenominalisations", renominalisations,
+					new Integer(renominalisations.getChapter().getDB_ID())))
+					.getArguments()[0];
+			renominalisations.updateIDs(key, answer);
+		} catch (MysqlDataTruncation e){
+			throw new DBC_SaveException(e.getMessage());
+		} catch (Exception e){
+			throw new DBC_SaveException(e.getMessage());
+		}
 	}
 
 	/**
 	 * Erstellt eine Isotopie-Sammlung Ã¼ber alle in diesem Kapitel vorkommenden
 	 * Isotopien.
 	 */
-	public Renominalisations loadRenominalisations(Chapter chapter)
-	throws Exception {
+	public Renominalisations loadRenominalisations(Chapter chapter) throws Exception {
 		Message answer = connection.call(new Message(key,
 				"loadRenominalisations", new Integer(chapter.getDB_ID())));
 		Renominalisations renominalisations = (Renominalisations) answer
@@ -1180,9 +1233,15 @@ public class DBC implements DBC_KeyAcceptor {
 	 */
 	public void saveWordListElements(WordListElement ... element) throws Exception {
 		//key.unlock();
-		WordListElement[] answer = (WordListElement[]) connection.call(new Message(key, "saveWordListElements", new Object[] {(Object[]) element}))
-		.getArguments()[0];
-
+		WordListElement[] answer;
+		try {
+			answer = (WordListElement[]) connection.call(new Message(key, "saveWordListElements", new Object[] {(Object[]) element}))
+			.getArguments()[0];
+		} catch (MysqlDataTruncation e){
+			throw new DBC_SaveException(e.getMessage());
+		} catch (Exception e){
+			throw new DBC_SaveException(e.getMessage());
+		}
 		for(int i = 0; i != answer.length; i++){
 			element[i].updateIDs(key, answer[i]);
 			if(element[i].getAssignation() != null)
@@ -1243,11 +1302,9 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @return 
 	 * @throws Exception
 	 */
-	public Vector<String> loadWordsWithWortArt1(TR_Assignation.Wortart1 wortArt) throws Exception
-    {
+	public Vector<String> loadWordsWithWortArt1(TR_Assignation.Wortart1 wortArt) throws Exception {
 		Message message = new Message(key, "loadWordsWithWortArt1", wortArt);
 		Message mes = connection.call(message);
-		
 		return (Vector<String>)mes.getArguments()[0];
     }
 	
@@ -1257,8 +1314,7 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @return 
 	 * @throws Exception
 	 */
-	public Vector<String> loadWordsWithAbbreviation(String abbr) throws Exception
-    {
+	public Vector<String> loadWordsWithAbbreviation(String abbr) throws Exception {
 		Message message = new Message(key, "loadWordsWithAbbreviation", abbr);
 		Message mes = connection.call(message);
 		
@@ -1271,8 +1327,7 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @return 
 	 * @throws Exception
 	 */
-	public Vector<String> loadWordsWithConjugation(TR_Assignation.Conjugation conjug) throws Exception
-	{
+	public Vector<String> loadWordsWithConjugation(TR_Assignation.Conjugation conjug) throws Exception {
 		Message message = new Message(key, "loadWordsWithConjugation", conjug);
 		Message mes = connection.call(message);
 			
@@ -1285,16 +1340,14 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @return 
 	 * @throws Exception
 	 */
-	public Vector<String> loadWordsWithPronoun(TR_Assignation.WordsubclassPronoun pron) throws Exception
-	{
+	public Vector<String> loadWordsWithPronoun(TR_Assignation.WordsubclassPronoun pron) throws Exception {
 		 Message message = new Message(key, "loadWordsWithPronoun", pron);
 		 Message mes = connection.call(message);
 				
 		 return (Vector<String>)mes.getArguments()[0];
 	}
 	
-	public Vector loadWordClasses(Vector contents)
-	throws Exception {
+	public Vector loadWordClasses(Vector contents) throws Exception {
 		//key.unlock();
 		Vector answer = (Vector) connection.call(new Message(key, "loadWordClasses", contents))
 		.getArguments()[0];
@@ -1313,8 +1366,14 @@ public class DBC implements DBC_KeyAcceptor {
 			//TODO: check for unsaved references and ...?
 		}
 		//key.unlock();
-		Relation[] answer = (Relation[]) connection.call(new Message(key, "saveRelation", relations_db.toArray())).getArguments()[0];
-		
+		Relation[] answer;
+		try {
+			answer = (Relation[]) connection.call(new Message(key, "saveRelation", relations_db.toArray())).getArguments()[0];		
+		} catch (MysqlDataTruncation e){
+			throw new DBC_SaveException(e.getMessage());
+		} catch (Exception e){
+			throw new DBC_SaveException(e.getMessage());
+		}
 		// update
 		if(answer.length != relations_db.size()) {
 			for (Relation_DB relation : relations_db) {
@@ -1322,11 +1381,12 @@ public class DBC implements DBC_KeyAcceptor {
 			}
 			throw new DBC_SaveException("Complexes could (probably) be saved but server did not return all of them");
 		}
-		else
+		else {
 			for (int i = 0; i < answer.length; i++) {
 				relations_oos.get(i).setDB_ID(key, answer[i].getDB_ID());
 				relations_oos.get(i).changeState(key, DB_Element.NORMAL);
 			}
+		}
 	}
 	
 	/**
@@ -1375,7 +1435,7 @@ public class DBC implements DBC_KeyAcceptor {
 //		return answer;
 //	}
 
-	public boolean isEdited(Chapter c, int category) throws Exception{
+	public boolean isEdited(Chapter c, int category) throws Exception {
 		boolean answer = (Boolean)connection.call(new Message(key,"isEdited",c,category)).getArguments()[0];
 		return answer;
 	}
@@ -1384,8 +1444,7 @@ public class DBC implements DBC_KeyAcceptor {
 	    DBC.key = key;
 	}
 	
-	public Vector<Vector<String>> loadText_Raw (String strTitle, String strId, String strCreator, String strLang, String strDate) throws Exception
-	{
+	public Vector<Vector<String>> loadText_Raw (String strTitle, String strId, String strCreator, String strLang, String strDate) throws Exception {
 	    Message answer = connection.call(new Message(key, "loadText_Raw", strTitle, strId, strCreator, strLang, strDate));
 	    return (Vector<Vector<String>>) answer.getArguments()[0];
 
@@ -1396,29 +1455,36 @@ public class DBC implements DBC_KeyAcceptor {
 	    ArrayList<WorkingTranslation> translations_oos = new ArrayList<WorkingTranslation>();
 	    ArrayList<WorkingTranslation_DB> translations_db = new ArrayList<WorkingTranslation_DB>();
 	    for (WorkingTranslation translation : translations) {
-		if( translation.isOutOfSync() ) {
-		    translations_oos.add(translation);
-		    translations_db.add(translation.new WorkingTranslation_DB(key));
-		    //TODO: check for unsaved references and ...?
-		}
+			if( translation.isOutOfSync() ) {
+			    translations_oos.add(translation);
+			    translations_db.add(translation.new WorkingTranslation_DB(key));
+			    //TODO: check for unsaved references and ...?
+			}
 	    }
 
 	    // save
-	    ArrayList<WorkingTranslation_DB> answer = (ArrayList<WorkingTranslation_DB>) connection.call(
-		    new Message(key, "saveWorkingTranslations", translations_db)).getArguments()[0];
-
+	    ArrayList<WorkingTranslation_DB> answer;
+	    try {
+			answer = (ArrayList<WorkingTranslation_DB>) connection.call(
+				    new Message(key, "saveWorkingTranslations", translations_db)).getArguments()[0];
+		} catch (MysqlDataTruncation e){
+			throw new DBC_SaveException(e.getMessage());
+		} catch (Exception e){
+			throw new DBC_SaveException(e.getMessage());
+		}
 	    // update
 	    if(answer.size() != translations_db.size()) {
-		for (WorkingTranslation_DB workingTranslation_DB : translations_db) {
-		    workingTranslation_DB.changeState(key, DB_Element.ERROR);
-		}
-		throw new DBC_SaveException("WorkingTranslation could (probably) be saved but server did not return all of them");
+			for (WorkingTranslation_DB workingTranslation_DB : translations_db) {
+			    workingTranslation_DB.changeState(key, DB_Element.ERROR);
+			}
+			throw new DBC_SaveException("WorkingTranslation could (probably) be saved but server did not return all of them");
 	    }
-	    else
-		for (int i = 0; i < answer.size(); i++) {
-		    translations_oos.get(i).setDB_ID(key, answer.toArray(new WorkingTranslation_DB[0])[i].getDB_ID());
-		    translations_oos.get(i).changeState(key, DB_Element.NORMAL);
-		}
+	    else {
+			for (int i = 0; i < answer.size(); i++) {
+			    translations_oos.get(i).setDB_ID(key, answer.toArray(new WorkingTranslation_DB[0])[i].getDB_ID());
+			    translations_oos.get(i).changeState(key, DB_Element.NORMAL);
+			}
+	    }	
 	}
 	
 	/**
@@ -1426,40 +1492,55 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @return
 	 * @throws Exception
 	 */
-	public Vector<WorkingTranslation> loadWorkingTranslations(Chapter chapter) throws Exception
+	public Vector<WorkingTranslation> loadWorkingTranslations(String pLg, String pOriginal) throws Exception
 	{
-		Message answer = connection.call(new Message(key, "loadWorkingTranslations", new Integer(chapter.getDB_ID())));
+		Message answer = connection.call(new Message(key, "loadWorkingTranslations", pLg, pOriginal));
 		
 		Vector<WorkingTranslation> translations = new Vector<WorkingTranslation>();
 		
 		// materialize complexes
 		for (WorkingTranslation_DB pronounComplex : (Vector<WorkingTranslation_DB>) answer.getArguments()[0]) {
 			try {
-				translations.add(new WorkingTranslation(key, chapter, pronounComplex));
+				translations.add(new WorkingTranslation(key, pronounComplex));
 			}
 			catch (Exception e) {
-				// TODO: handle exception
+				
 			}
 		}
 		return translations;
 	}
+	
+	//@SuppressWarnings("unchecked")
+    public Vector<String> loadWorkingTranslationsLanguage() throws Exception
+    {
+        Message answer = connection.call(new Message(key, "loadWorkingTranslationsLanguage"));
+        Vector<String> lgs = (Vector<String>)answer.getArguments()[0];
+        return lgs;   
+    }
+
 	
 	public void saveLiteraryCriticism1(LiteraryCriticism1 ... criticisms) throws Exception {
 	    // get all complexes that have changed as DB Version
 	    ArrayList<LiteraryCriticism1> criticisms_oos = new ArrayList<LiteraryCriticism1>();
 	    ArrayList<LiteraryCriticism1_DB> criticisms_db = new ArrayList<LiteraryCriticism1_DB>();
 	    for (LiteraryCriticism1 criticism : criticisms) {
-		if( criticism.isOutOfSync() ) {
-		    criticisms_oos.add(criticism);
-		    criticisms_db.add(criticism.new LiteraryCriticism1_DB(key));
-		    //TODO: check for unsaved references and ...?
-		}
+			if( criticism.isOutOfSync() ) {
+			    criticisms_oos.add(criticism);
+			    criticisms_db.add(criticism.new LiteraryCriticism1_DB(key));
+			    //TODO: check for unsaved references and ...?
+			}
 	    }
 
 	    // save
-	    ArrayList<LiteraryCriticism1_DB> answer = (ArrayList<LiteraryCriticism1_DB>) connection.call(
-		    new Message(key, "saveLiteraryCriticism1", criticisms_db)).getArguments()[0];
-
+	    ArrayList<LiteraryCriticism1_DB> answer;
+	    try {
+			answer = (ArrayList<LiteraryCriticism1_DB>) connection.call(
+				    new Message(key, "saveLiteraryCriticism1", criticisms_db)).getArguments()[0];	
+		} catch (MysqlDataTruncation e){
+	    	throw new DBC_SaveException(e.getMessage());
+		} catch (Exception e){
+			throw new DBC_SaveException(e.getMessage());
+		}
 	    // update
 	    if(answer.size() != criticisms_db.size()) {
 		for (LiteraryCriticism1_DB criticism_DB : criticisms_db) {
@@ -1467,11 +1548,12 @@ public class DBC implements DBC_KeyAcceptor {
 		}
 		throw new DBC_SaveException("LiteraryCriticism1 could (probably) be saved but server did not return all of them");
 	    }
-	    else
-		for (int i = 0; i < answer.size(); i++) {
-		    criticisms_oos.get(i).setDB_ID(key, answer.toArray(new LiteraryCriticism1_DB[0])[i].getDB_ID());
-		    criticisms_oos.get(i).changeState(key, DB_Element.NORMAL);
-		}
+	    else {
+			for (int i = 0; i < answer.size(); i++) {
+			    criticisms_oos.get(i).setDB_ID(key, answer.toArray(new LiteraryCriticism1_DB[0])[i].getDB_ID());
+			    criticisms_oos.get(i).changeState(key, DB_Element.NORMAL);
+			}
+	    }
 	}
 	
 	/**
@@ -1479,10 +1561,8 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @return
 	 * @throws Exception
 	 */
-	public Vector<LiteraryCriticism1> loadLiteraryCriticism1(Chapter chapter) throws Exception
-	{
+	public Vector<LiteraryCriticism1> loadLiteraryCriticism1(Chapter chapter) throws Exception {
 		Message answer = connection.call(new Message(key, "loadLiteraryCriticism1", new Integer(chapter.getDB_ID())));
-		
 		Vector<LiteraryCriticism1> criticisms = new Vector<LiteraryCriticism1>();
 		
 		// materialize complexes
@@ -1502,29 +1582,37 @@ public class DBC implements DBC_KeyAcceptor {
 	    ArrayList<LiteraryCriticism2> criticisms_oos = new ArrayList<LiteraryCriticism2>();
 	    ArrayList<LiteraryCriticism2_DB> criticisms_db = new ArrayList<LiteraryCriticism2_DB>();
 	    for (LiteraryCriticism2 criticism : criticisms) {
-		if( criticism.isOutOfSync() ) {
-		    criticisms_oos.add(criticism);
-		    criticisms_db.add(criticism.new LiteraryCriticism2_DB(key));
-		    //TODO: check for unsaved references and ...?
-		}
+			if( criticism.isOutOfSync() ) {
+			    criticisms_oos.add(criticism);
+			    criticisms_db.add(criticism.new LiteraryCriticism2_DB(key));
+			    //TODO: check for unsaved references and ...?
+			}
 	    }
 
 	    // save
-	    ArrayList<LiteraryCriticism2_DB> answer = (ArrayList<LiteraryCriticism2_DB>) connection.call(
-		    new Message(key, "saveLiteraryCriticism2", criticisms_db)).getArguments()[0];
-
+	    ArrayList<LiteraryCriticism2_DB> answer;
+		try {
+			answer = (ArrayList<LiteraryCriticism2_DB>) connection.call(
+				    new Message(key, "saveLiteraryCriticism2", criticisms_db)).getArguments()[0];
+		} catch (MysqlDataTruncation e){
+			throw new DBC_SaveException(e.getMessage());
+		} catch (Exception e){
+			throw new DBC_SaveException(e.getMessage());
+		}	    
+	   
 	    // update
 	    if(answer.size() != criticisms_db.size()) {
-		for (LiteraryCriticism2_DB criticism_DB : criticisms_db) {
-		    criticism_DB.changeState(key, DB_Element.ERROR);
-		}
-		throw new DBC_SaveException("LiteraryCriticism2 could (probably) be saved but server did not return all of them");
+			for (LiteraryCriticism2_DB criticism_DB : criticisms_db) {
+			    criticism_DB.changeState(key, DB_Element.ERROR);
+			}
+			throw new DBC_SaveException("LiteraryCriticism2 could (probably) be saved but server did not return all of them");
 	    }
-	    else
-		for (int i = 0; i < answer.size(); i++) {
-		    criticisms_oos.get(i).setDB_ID(key, answer.toArray(new LiteraryCriticism2_DB[0])[i].getDB_ID());
-		    criticisms_oos.get(i).changeState(key, DB_Element.NORMAL);
-		}
+	    else {
+			for (int i = 0; i < answer.size(); i++) {
+			    criticisms_oos.get(i).setDB_ID(key, answer.toArray(new LiteraryCriticism2_DB[0])[i].getDB_ID());
+			    criticisms_oos.get(i).changeState(key, DB_Element.NORMAL);
+			}
+	    }
 	}
 	
 	/**
@@ -1532,10 +1620,8 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @return
 	 * @throws Exception
 	 */
-	public Vector<LiteraryCriticism2> loadLiteraryCriticism2(Chapter chapter) throws Exception
-	{
+	public Vector<LiteraryCriticism2> loadLiteraryCriticism2(Chapter chapter) throws Exception {
 		Message answer = connection.call(new Message(key, "loadLiteraryCriticism2", new Integer(chapter.getDB_ID())));
-		
 		Vector<LiteraryCriticism2> criticisms = new Vector<LiteraryCriticism2>();
 		
 		// materialize complexes
@@ -1556,24 +1642,26 @@ public class DBC implements DBC_KeyAcceptor {
 	 * ==============================================
 	 */
 	
-	public ArrayList<IU_Comment> loadIUComments(int id) throws Exception
-	{
+	public ArrayList<IU_Comment> loadIUComments(int id) throws Exception {
 		Message answer = connection.call(new Message(key, "loadIUComments", new Integer(id)));
 		return (ArrayList<IU_Comment>) answer.getArguments()[0];
 	}
 
-	public void saveIUComment(IU_Comment comment) throws Exception
-	{
-		connection.call(new Message(key, "saveIUComment", comment));
+	public void saveIUComment(IU_Comment comment) throws Exception {
+		try {
+			connection.call(new Message(key, "saveIUComment", comment));
+		} catch (MysqlDataTruncation e){
+			throw new DBC_SaveException(e.getMessage());
+		} catch (Exception e){
+			throw new DBC_SaveException(e.getMessage());
+		}
 	}
 
-	public void deleteIUComment(Integer IU_ID) throws Exception
-	{
+	public void deleteIUComment(Integer IU_ID) throws Exception {
 		connection.call(new Message(key, "deleteIUComment", IU_ID));
 	}
 
-	public void editIUComment(Integer IU_ID, String text) throws Exception
-	{
+	public void editIUComment(Integer IU_ID, String text) throws Exception {
 		connection.call(new Message(key, "editIUComment", IU_ID, text));
 	}
 }

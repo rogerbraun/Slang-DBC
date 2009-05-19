@@ -4992,58 +4992,83 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     }
     
     /**
-     * Load all complexes in chapter with ID <code>chapterID</code>
-     * @param chapterID
-     * @return a Vector of PronounComplex_DB. All elements are expected to get converted into PronounComplex on the client side.
+     * TODO: Vernünftigen Kommentar schreiben :)
      * @throws Exception
      */
-    public Vector<WorkingTranslation_DB> loadWorkingTranslations(Integer chapterID) throws Exception
-    {
-	Vector<WorkingTranslation_DB> result = new Vector<WorkingTranslation_DB>();
-	PreparedStatement stmt = null;
-	ResultSet res = null;
+	public Vector<WorkingTranslation_DB> loadWorkingTranslations(String pLg,
+			String pOriginal) throws Exception {
+		Vector<WorkingTranslation_DB> result = new Vector<WorkingTranslation_DB>();
+		PreparedStatement stmt = null;
+		ResultSet res = null;
 
-	try {
-	    stmt = connection.prepareStatement(
+		try {
+			stmt = connection
+					.prepareStatement(
 
-		    "SELECT * FROM working_translation WHERE chapter_id = ? ORDER BY id"
-	    );
-	    stmt.setInt(1, chapterID);
-	    res = stmt.executeQuery();
-	    WorkingTranslation_DB complex = null;
-	    while(res.next()) {
-		complex = new WorkingTranslation(key).new WorkingTranslation_DB(key);
-		complex.setDB_ID(key, res.getInt("id"));
-		complex.chapterID = chapterID;
-		complex.setLanguage(res.getString("language"));
-		complex.setOrginal(res.getString("orginal"));
-		complex.setTranslation(res.getString("translation"));
-		complex.resetState(key);
-		result.add(complex);
-	    }
+					"SELECT * FROM working_translation WHERE language = ? and original = ? ORDER BY translation ASC");
+			stmt.setString(1, pLg);
+			stmt.setString(2, pOriginal);
+			res = stmt.executeQuery();
+			WorkingTranslation_DB complex = null;
+			while (res.next()) {
+				complex = new WorkingTranslation(key).new WorkingTranslation_DB(
+						key);
+				complex.setDB_ID(key, res.getInt("id"));
+				complex.setLanguage(res.getString("language"));
+				complex.setOrginal(res.getString("original"));
+				complex.setTranslation(res.getString("translation"));
+				complex.resetState(key);
+				result.add(complex);
+				
+			}
+		} catch (SQLException e) {
+			logger.severe(e.getLocalizedMessage());
+			throw e;
+		} finally {
+			try {
+				connection.setAutoCommit(true);
+				if (res != null)
+					res.close();
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				logger.warning(e.getLocalizedMessage());
+			}
+		}
+		return result;
 	}
-	catch ( SQLException e ) {
-	    logger.severe(e.getLocalizedMessage());
-	    throw e;
-	}
-	finally {
-	    try
-	    {
-		connection.setAutoCommit(true);
-		if (res  != null)
-		    res.close();
-		if (stmt  != null)
-		    stmt.close();
-	    }
-	    catch (SQLException e)
-	    {
-		logger.warning(e.getLocalizedMessage());
-	    }
-	}
-	return result;
+
+	public Vector<String> loadWorkingTranslationsLanguage() throws Exception {
+
+        Vector<String> result = new Vector<String>();
+        Statement stmt = null;
+        ResultSet res = null;
+        try {
+            stmt = connection.createStatement();
+           
+            res = stmt.executeQuery("SELECT distinct language FROM working_translation ORDER BY language DESC");
+           
+            while (res.next())
+                result.add(res.getString("language"));
+           
+        } catch (SQLException e) {
+            logger.severe(e.getLocalizedMessage());
+            throw e;
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+                if (res != null)
+                    res.close();
+                if (stmt != null)
+                    stmt.close();
+            } catch (SQLException e) {
+                logger.warning(e.getLocalizedMessage());
+            }
+        }
+        return result;
     }
-  
 
+	
 //    /**
 //     * 
 //     * @param assigID
@@ -5636,85 +5661,77 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
      * @return <code>translations</code> with updated states and DB_IDs
      * @throws SQLException
      */
-    public synchronized ArrayList<WorkingTranslation_DB> saveWorkingTranslations( ArrayList<WorkingTranslation_DB> translations) throws SQLException
-    {
-	connection.setAutoCommit(false);
-	PreparedStatement stmt_insert = null, stmt_delete = null, stmt_max_id = null;
-	ResultSet res = null;
-	int max_id = 0;
+    public synchronized ArrayList<WorkingTranslation_DB> saveWorkingTranslations(
+			ArrayList<WorkingTranslation_DB> translations) throws SQLException {
+		connection.setAutoCommit(false);
+		PreparedStatement stmt_insert = null, stmt_delete = null, stmt_max_id = null, stmt_count = null;
+		ResultSet res = null;
+		int max_id = 0;
 
-	try {
-	    // compute free id value for insertion
-	    stmt_max_id = connection.prepareStatement("SELECT MAX(id) FROM working_translation");
-	    res = stmt_max_id.executeQuery();
-	    connection.commit();
-	    if( res.next()) {
-		max_id = res.getInt(1);
-	    }
+		try {			
+			stmt_count = connection.prepareStatement("SELECT count(*) FROM working_translation WHERE language = ? AND translation = ?");
+			stmt_insert = connection.prepareStatement(
+				"INSERT INTO working_translation (id, language, original, translation) VALUES (null, ?, ?, ?)");
+			stmt_delete = connection.prepareStatement(
+				"DELETE FROM working_translation WHERE id = ?");
 
-	    stmt_insert = connection.prepareStatement(
+			for (WorkingTranslation_DB translation_DB : translations) {
 
-		    "INSERT INTO working_translation (id, chapter_id, char_pos_start, char_pos_end, translation) VALUES (?, ?, ?, ?, ?)"
-	    );
-	    stmt_delete = connection.prepareStatement(
+				if (translation_DB.getStateAsInt() == WorkingTranslation_DB.NEW) {
+					translation_DB.setDB_ID(key, ++max_id);
+				}
+				// remove existing entries
+				if (translation_DB.getStateAsInt() == WorkingTranslation_DB.REMOVE
+						|| translation_DB.getStateAsInt() == WorkingTranslation_DB.CHANGE) {
+					stmt_delete.setInt(1, translation_DB.getDB_ID());
+					stmt_delete.addBatch();
+				}
+				if (translation_DB.getStateAsInt() == WorkingTranslation_DB.NEW
+						|| translation_DB.getStateAsInt() == WorkingTranslation_DB.CHANGE) {
+					
+					// check if translation exists
+					stmt_count.setString(1, translation_DB.getLanguage());
+					stmt_count.setString(2, translation_DB.getTranslation());
+					res = stmt_count.executeQuery();
+					res.next();
+					int count = res.getInt(1);
+					if (count > 0)
+						continue;
+					
+					// add noun
+					stmt_insert.setString(1, translation_DB.getLanguage());
+					stmt_insert.setString(2, translation_DB.getOrginal());
+					stmt_insert.setString(3, translation_DB.getTranslation());
+					stmt_insert.addBatch();
 
-		    "DELETE FROM working_translation WHERE id = ?"
-	    );
-
-	    for (WorkingTranslation_DB translation_DB : translations) {
-
-		if(translation_DB.getStateAsInt() == WorkingTranslation_DB.NEW) {
-		    translation_DB.setDB_ID(key, ++max_id);
+					translation_DB.resetState(key);
+				}
+			}
+			stmt_delete.executeBatch();
+			stmt_insert.executeBatch();
+			connection.commit();
+		} catch (SQLException e) {
+			connection.rollback();
+			logger.severe(e.getLocalizedMessage());
+			throw e;
+		} finally {
+			try {
+				connection.setAutoCommit(true);
+				if (res != null)
+					res.close();
+				if (stmt_insert != null)
+					stmt_insert.close();
+				if (stmt_delete != null)
+					stmt_delete.close();
+				if (stmt_max_id != null)
+					stmt_max_id.close();
+			} catch (SQLException e) {
+				logger.warning(e.getLocalizedMessage());
+			}
 		}
-		// remove existing entries
-		if(translation_DB.getStateAsInt() == WorkingTranslation_DB.REMOVE
-			|| translation_DB.getStateAsInt() == WorkingTranslation_DB.CHANGE) {
-		    stmt_delete.setInt(1, translation_DB.getDB_ID());
-		    stmt_delete.addBatch();
-		}
-		if(translation_DB.getStateAsInt() == WorkingTranslation_DB.NEW
-			|| translation_DB.getStateAsInt() == WorkingTranslation_DB.CHANGE) {
-		    // add noun
-		    stmt_insert.setInt(1, translation_DB.getDB_ID());
-		    stmt_insert.setInt(2, translation_DB.chapterID);
-		    stmt_insert.setString(3, translation_DB.getLanguage());
-		    stmt_insert.setString(4, translation_DB.getOrginal());
-		    stmt_insert.setString(5, translation_DB.getTranslation());
-		    stmt_insert.addBatch();
+		return translations;
+	}
 
-		    translation_DB.resetState(key);
-		}
-	    }
-	    stmt_delete.executeBatch();
-	    stmt_insert.executeBatch();
-	    connection.commit();
-	}
-	catch ( SQLException e ) {
-	    connection.rollback();
-	    logger.severe(e.getLocalizedMessage());
-	    throw e;
-	}
-	finally {
-	    try
-	    {
-		connection.setAutoCommit(true);
-		if (res  != null)
-		    res.close();
-		if (stmt_insert  != null)
-		    stmt_insert.close();
-		if (stmt_delete  != null)
-		    stmt_delete.close();
-		if (stmt_max_id  != null)
-		    stmt_max_id.close();
-	    }
-	    catch (SQLException e)
-	    {
-		logger.warning(e.getLocalizedMessage());
-	    }
-	}
-	return translations;
-    }
-    
     
     /**
      * save all of <code>criticisms</code> whose state indicates an "out of sync with DB" status.

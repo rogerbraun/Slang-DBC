@@ -9,6 +9,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
+import com.mysql.jdbc.MysqlDataTruncation;
+
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.Message;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.share.exceptions.DBC_ConnectionException;
 
@@ -81,10 +83,11 @@ class Connection {
 			   
 		   }
 		   return null;
-	   }
-	   // WELCHE EXCEPTION IS DES GENAU????
-	   catch (Exception e) {
-		   throw new DBC_ConnectionException(e.getLocalizedMessage());
+	   } catch (MysqlDataTruncation e) {
+		   // Die Daten größer als die vorhergesehene Größe der Spalte in der DB
+		   throw e;
+	   } catch (Exception e) {
+		   throw e;
 	   }
    }
 

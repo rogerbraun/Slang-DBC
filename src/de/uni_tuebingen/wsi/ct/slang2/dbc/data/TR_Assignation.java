@@ -214,7 +214,7 @@ Serializable {
 	PREPOSITION ("Präposition"),
 	PARTICLE ("Partikel"),
 	ADVERB ("Adverb"),
-	CONJUNCTION ("Konjuktion"),
+	CONJUNCTION ("Konjunktion"),
 	INTERJECTION ("Interjektion"),
 	PRONOUN ("Pronomen"),
 	NEGATION ("Negation"),

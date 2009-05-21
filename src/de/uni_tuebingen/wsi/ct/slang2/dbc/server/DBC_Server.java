@@ -595,8 +595,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     /*
      * TODO: Der Rückgabewert sollte nur die Chapter ID sein, da alles andere gleich bleibt. (CAVE: Vermutung)
      */
-    public synchronized Chapter saveChapter(Chapter chapter) throws DBC_SaveException, SQLException
-    {
+    public synchronized Chapter saveChapter(Chapter chapter) throws DBC_SaveException, SQLException {
 	if(chapter==null)
 	    throw new NullPointerException();
 	
@@ -3452,8 +3451,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     throws Exception {
 	Vector result = new Vector();
 	Statement stmt = connection.createStatement();
-	ResultSet res = stmt
-	.executeQuery("SELECT DISTINCT "
+	String query = "SELECT DISTINCT "
 		+ "SUBSTRING(CAST(content AS CHAR), start-position+1, end-position+1) AS content "
 		+ "FROM constitutive_words AS cws, words, words_in_chapter AS winc "
 		+ "WHERE words.id = cws.word "
@@ -3463,7 +3461,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		+ "AND cws.end <= winc.position + length(content) "
 		+ "AND words.language = '"
 		+ language
-		+ "' ORDER BY content");
+		+ "' ORDER BY content";
+	ResultSet res = stmt.executeQuery(query);
 
 	while (res.next()) {
 	    DB_Tupel tupel = new DB_Tupel();

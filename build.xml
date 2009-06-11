@@ -23,7 +23,7 @@
 		<copy includeemptydirs="false" todir="${path.bin}">
 			<fileset dir="${path.src}" excludes="**/*.launch"/>
 		</copy>
-		
+
 	</target>
 
 	<target depends="init" name="build">

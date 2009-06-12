@@ -23,14 +23,7 @@
 		<copy includeemptydirs="false" todir="${path.bin}">
 			<fileset dir="${path.src}" excludes="**/*.launch"/>
 		</copy>
-<<<<<<< build.xml
-	</target>
-	
-	<target name="clean">
-		<delete dir="${path.bin}"/>
-=======
-		
->>>>>>> 1.12
+
 	</target>
 
 	<target depends="init" name="build">

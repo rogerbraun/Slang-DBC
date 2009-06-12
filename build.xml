@@ -25,6 +25,10 @@
 		</copy>
 
 	</target>
+	
+	<target name="clean">
+		<delete dir="${path.bin}"/>
+	</target>
 
 	<target depends="init" name="build">
 		<javac destdir="${path.bin}">

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project basedir="." default="cleanup" name="dbc">
+<project basedir="." default="jar" name="dbc">
 
 	<!-- Laden unserer Property-Datei für Zugriff auf Konstanten (Details folgen unten) -->
 	<property file="build.properties"/>
@@ -23,11 +23,7 @@
 		<copy includeemptydirs="false" todir="${path.bin}">
 			<fileset dir="${path.src}" excludes="**/*.launch"/>
 		</copy>
-
-	</target>
-	
-	<target name="clean">
-		<delete dir="${path.bin}"/>
+		
 	</target>
 
 	<target depends="init" name="build">
@@ -60,9 +56,5 @@
 			<fileset dir="${path.lib}" />
 		</copy>
 		
-	</target>
-
-	<target name="cleanup" depends="jar">
-		<delete dir="${path.bin}" />
 	</target>
 </project>

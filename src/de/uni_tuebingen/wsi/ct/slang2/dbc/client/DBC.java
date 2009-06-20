@@ -94,6 +94,9 @@ public class DBC implements DBC_KeyAcceptor {
 		open();
 	}
 
+	public DBC_Key getKey() {
+		return key;
+	}
 	/**
 	 * Öffnet eine geschlossene Verbindung.
 	 * 

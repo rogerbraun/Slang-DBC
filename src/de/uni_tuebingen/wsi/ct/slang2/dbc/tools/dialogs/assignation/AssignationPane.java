@@ -15,7 +15,6 @@ import javax.swing.JPanel;
 
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation.Case;
-import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation.Conjugation;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation.Determination;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation.Diathese;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation.Genus;
@@ -25,10 +24,8 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation.Tempus;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation.Type;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation.Wordclass;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation.WordsubclassAdjective;
-import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation.WordsubclassConnector;
-import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation.WordsubclassPreposition;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation.WordsubclassPronoun;
-import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation.WordsubclassSign;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation.WordsubclassPunctuationMark;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation.WordsubclassVerb;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation.Wortart1;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.TR_Assignation.Wortart2;
@@ -77,10 +74,9 @@ public class AssignationPane extends JPanel implements ActionListener, Saveable 
 	switch (variant) {
 	case CW:
 	    constants = new Enum<?>[][] { assignation.getNumeri(), assignation.getGenera(), assignation.getCases(), assignation.getWordclasses(),
-		    assignation.getTypes(), assignation.getDeterminations(), assignation.getPersons(), assignation.getConjugations(),
-		    assignation.getTempora(), assignation.getDiatheses(), assignation.getWordsubclassesAdjective(), assignation.getWordsubclassesConnector(),
-		    assignation.getWordsubclassesPreposition(), assignation.getWordsubclassesPronoun(), assignation.getWordsubclassesSign(),
-		    assignation.getWordsubclassesVerb()
+		    assignation.getTypes(), assignation.getDeterminations(), assignation.getPersons(), assignation.getTempora(), assignation.getDiatheses(),
+		    assignation.getWordsubclassesAdjective(), assignation.getWordsubclassesPronoun(),
+		    assignation.getWordsubclassesPunctuationMark(), assignation.getWordsubclassesVerb()
 		    };
 	    break;
 	case FW:
@@ -91,9 +87,9 @@ public class AssignationPane extends JPanel implements ActionListener, Saveable 
 	case WLE:
 	default:
 	    constants = new Enum<?>[][] { assignation.getNumeri(), assignation.getGenera(), assignation.getCases(), assignation.getWordclasses(),
-		assignation.getTypes(), assignation.getDeterminations(), assignation.getPersons(), assignation.getConjugations(),
-		assignation.getTempora(), assignation.getDiatheses(), assignation.getWordsubclassesAdjective(), assignation.getWordsubclassesConnector(),
-		    assignation.getWordsubclassesPreposition(), assignation.getWordsubclassesPronoun(), assignation.getWordsubclassesSign(),
+		assignation.getTypes(), assignation.getDeterminations(), assignation.getPersons(),
+		assignation.getTempora(), assignation.getDiatheses(), assignation.getWordsubclassesAdjective(),
+		    assignation.getWordsubclassesPronoun(), assignation.getWordsubclassesPunctuationMark(),
 		    assignation.getWordsubclassesVerb(),
 		    assignation.getWortarten1(),  assignation.getWortarten2(), assignation.getWortarten3(),  assignation.getWortarten4() };
 	    break;
@@ -184,12 +180,6 @@ public class AssignationPane extends JPanel implements ActionListener, Saveable 
 		    else
 			assi.setPersons( new Person[0] );
 
-		else if( enums[i].equals(Conjugation.class) )
-		    if(comboboxes[i].getSelectedIndex() != 0)
-			assi.setConjugations( (Conjugation) comboboxes[i].getSelectedItem() );
-		    else
-			assi.setConjugations( new Conjugation[0] );
-
 		else if( enums[i].equals(Tempus.class) )
 		    if(comboboxes[i].getSelectedIndex() != 0)
 			assi.setTempora( (Tempus) comboboxes[i].getSelectedItem() );
@@ -208,13 +198,6 @@ public class AssignationPane extends JPanel implements ActionListener, Saveable 
 		    else
 			assi.setWordclasses( new Wordclass[0] );
 
-		else if( enums[i].equals(WordsubclassConnector.class) )
-		    if(comboboxes[i].getSelectedIndex() != 0)
-			assi.setWordsubclassesConnector( (WordsubclassConnector) comboboxes[i].getSelectedItem() );
-		    else
-			assi.setWordsubclassesConnector( new WordsubclassConnector[0] );
-
-
 		else if( enums[i].equals(WordsubclassVerb.class) )
 		    if(comboboxes[i].getSelectedIndex() != 0)
 			assi.setWordsubclassesVerb( (WordsubclassVerb) comboboxes[i].getSelectedItem() );
@@ -227,23 +210,17 @@ public class AssignationPane extends JPanel implements ActionListener, Saveable 
 		    else
 			assi.setWordsubclassesAdjective( new WordsubclassAdjective[0] );
 
-		else if( enums[i].equals(WordsubclassPreposition.class) )
-		    if(comboboxes[i].getSelectedIndex() != 0)
-			assi.setWordsubclassesPreposition( (WordsubclassPreposition) comboboxes[i].getSelectedItem() );
-		    else
-			assi.setWordsubclassesPreposition( new WordsubclassPreposition[0] );
-
 		else if( enums[i].equals(WordsubclassPronoun.class) )
 		    if(comboboxes[i].getSelectedIndex() != 0)
 			assi.setWordsubclassesPronoun( (WordsubclassPronoun) comboboxes[i].getSelectedItem() );
 		    else
 			assi.setWordsubclassesPronoun( new WordsubclassPronoun[0] );
 
-		else if( enums[i].equals(WordsubclassSign.class) )
+		else if( enums[i].equals(WordsubclassPunctuationMark.class) )
 		    if(comboboxes[i].getSelectedIndex() != 0)
-			assi.setWordsubclassesSign( (WordsubclassSign) comboboxes[i].getSelectedItem() );
+			assi.setWordsubclassesPunctuationMark( (WordsubclassPunctuationMark) comboboxes[i].getSelectedItem() );
 		    else
-			assi.setWordsubclassesSign( new WordsubclassSign[0] );
+			assi.setWordsubclassesPunctuationMark( new WordsubclassPunctuationMark[0] );
 
 		else if( enums[i].equals(Wortart1.class) )
 		    if(comboboxes[i].getSelectedIndex() != 0)

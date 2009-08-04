@@ -2442,8 +2442,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				assignation = new TR_Assignation().new TR_Assignation_DB();
 				assignation.setTypesBinary(res.getBytes("tr_type"));
 				assignation.setCasesBinary( res.getBytes("tr_case"));
-				assignation.setConjugationsBinary(res.getBytes("tr_conjugation"));
 				assignation.setDeterminationsBinary(res.getBytes("tr_determination"));
+				assignation.setKonjugationBinary(res.getBytes("tr_konjugation"));
 				assignation.setDiathesesBinary(res.getBytes("tr_diathese"));
 				assignation.setGeneraBinary(res.getBytes("tr_genus"));
 				assignation.setNumeriBinary(res.getBytes("tr_numerus"));
@@ -2456,8 +2456,6 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				assignation.setWortarten4Binary(res.getBytes("tr_wortart4"));
 				assignation.setWordsubclassesAdjectiveBinary(res.getBytes("tr_subclass_adjective"));
 				assignation.setWordsubclassesVerbBinary(res.getBytes("tr_subclass_verb"));
-				assignation.setWordsubclassesConnectorBinary(res.getBytes("tr_subclass_connector"));
-				assignation.setWordsubclassesPrepositionBinary(res.getBytes("tr_subclass_preposition"));
 				assignation.setWordsubclassesPronounBinary(res.getBytes("tr_subclass_pronoun"));
 				//TODO: add other columns
 				assignation.setDB_ID(key, res.getInt("id"));
@@ -4760,8 +4758,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 //  wordSubClasses.add(assi.getWordsubclassPrepositionsBinary());
 //  else if (assi.getWordsubclassPronounsBinary()     != 0)
 //  wordSubClasses.add(assi.getWordsubclassPronounsBinary());
-//  else if (assi.getWordsubclassSignsBinary()        != 0)
-//  wordSubClasses.add(assi.getWordsubclassSignsBinary());
+//  else if (assi.getWordsubclassPunctuationMarksBinary()        != 0)
+//  wordSubClasses.add(assi.getWordsubclassPunctuationMarksBinary());
 //  else if (assi.getWordsubclassVerbsBinary()        != 0)
 //  wordSubClasses.add(assi.getWordsubclassVerbsBinary());
 //  else 
@@ -4862,7 +4860,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		return words;
     }
     
-    public Vector<String> loadWordsWithConjugation(TR_Assignation.Conjugation conjug)
+/*    public Vector<String> loadWordsWithConjugation(TR_Assignation.Conjugation conjug)
     {
     	Vector<String> words = new Vector<String>();
     	
@@ -4905,7 +4903,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		}
 		return words;
     }
-    
+*/    
     public Vector<String> loadWordsWithPronoun(TR_Assignation.WordsubclassPronoun pron)
     {
     	Vector<String> words = new Vector<String>();
@@ -5263,20 +5261,18 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			    res.updateBytes("tr_determination", assignation_db.getDeterminationsBinary());
 			    res.updateBytes("tr_case", assignation_db.getCasesBinary());
 			    res.updateBytes("tr_person", assignation_db.getPersonsBinary());
-			    res.updateBytes("tr_conjugation", assignation_db.getConjugationsBinary());
 			    res.updateBytes("tr_tempus", assignation_db.getTemporaBinary());
+			    res.updateBytes("tr_konjugation", assignation_db.getKonjugationBinary());
 			    res.updateBytes("tr_diathese", assignation_db.getDiathesesBinary());
 			    res.updateBytes("tr_wordclass", assignation_db.getWordclassesBinary());
 			    res.updateBytes("tr_wortart1", assignation_db.getWortarten1Binary());
 			    res.updateBytes("tr_wortart2", assignation_db.getWortarten2Binary());
 			    res.updateBytes("tr_wortart3", assignation_db.getWortarten3Binary());
 			    res.updateBytes("tr_wortart4", assignation_db.getWortarten4Binary());
-			    res.updateBytes("tr_subclass_connector", assignation_db.getWordsubclassesConnectorBinary());
 			    res.updateBytes("tr_subclass_verb", assignation_db.getWordsubclassesVerbBinary());
 			    res.updateBytes("tr_subclass_adjective", assignation_db.getWordsubclassesAdjectiveBinary());
-			    res.updateBytes("tr_subclass_preposition", assignation_db.getWordsubclassesPrepositionBinary());
 			    res.updateBytes("tr_subclass_pronoun", assignation_db.getWordsubclassesPronounBinary());
-			    res.updateBytes("tr_subclass_sign", assignation_db.getWordsubclassesSignBinary());
+			    res.updateBytes("tr_subclass_sign", assignation_db.getWordsubclassesPunctuationMarkBinary());
 
 			    res.updateString("description", assignation_db.getDescription());
 			    res.updateString("etymol", assignation_db.getEtymol());

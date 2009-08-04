@@ -1330,12 +1330,12 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @return 
 	 * @throws Exception
 	 */
-	public Vector<String> loadWordsWithConjugation(TR_Assignation.Conjugation conjug) throws Exception {
+/*	public Vector<String> loadWordsWithConjugation(TR_Assignation.Conjugation conjug) throws Exception {
 		Message message = new Message(key, "loadWordsWithConjugation", conjug);
 		Message mes = connection.call(message);
 			
 		return (Vector<String>)mes.getArguments()[0];
-	}
+	}*/
 	
 	/**
 	 * Load the Words appropriated to the given Pronoun.

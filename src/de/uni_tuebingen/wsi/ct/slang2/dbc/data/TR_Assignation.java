@@ -107,7 +107,7 @@ Serializable {
 	ABSOLUTIV ("Absolutiv"),
 	ADESSIV ("Adessiv"),		
 	ALLATIV ("Allativ"),
-	DELIMATIV ("Delimativ"),
+	DELIMITATIV ("Delimitativ"),
 	ELATIV ("Elativ"),
 	ERGATIV ("Ergativ"),
 	ESSIV ("Essiv"),		
@@ -155,28 +155,6 @@ Serializable {
 	}
     };
 
-
-    public static enum Conjugation {
-	COMPARATIVE ("Comparative"),
-	CONSECUTIVE ("Consecutive"),
-	CAUSAL ("Causal"),
-	CONZESSIVE ("Conzessive"),
-	CONDITIONAL ("Conditional"),
-	FINAL ("Final"),
-	KNOWLEDGE ("Knowledge"),
-	TEMPORAL ("Temporal"),
-	LOCATIVE ("Locative"),
-	OTHER ("Other");
-	private String name;
-	public String toString() {
-	    return this.name;
-	}
-	private Conjugation(String s) {
-	    this.name = s;
-	}
-    };
-
-
     public static enum Tempus {
 	PAST ("Past"),
 	PRESENT ("Presence"),
@@ -189,6 +167,20 @@ Serializable {
 	    this.name = s;
 	}
     };
+
+    public static enum Konjugation {
+    	INDIKATIV ("Indikativ"),
+    	KONJUNKTIV ("Konjunktiv"),
+    	IMPERATIV ("Imperativ");
+    	private String name;
+    	public String toString() {
+    	    return this.name;
+    	}
+    	private Konjugation(String s) {
+    	    this.name = s;
+    	}
+        };
+
 
 
     public static enum Diathese {
@@ -203,22 +195,19 @@ Serializable {
 	}
     };
 
-
-
     public static enum Wordclass {
 	CONNECTOR ("Connector"),	   
 	VERB ("Verb"),
 	NOUN ("Nomen"),
 	ADJECTIVE ("Adjektiv"),
 	ARTICLE ("Artikel"),
-	PREPOSITION ("Präposition"),
 	PARTICLE ("Partikel"),
 	ADVERB ("Adverb"),
 	CONJUNCTION ("Konjunktion"),
 	INTERJECTION ("Interjektion"),
 	PRONOUN ("Pronomen"),
 	NEGATION ("Negation"),
-	SIGN ("Satzzeichen");
+	PUNCTUATIONMARK ("Satzzeichen");
 	private String name;
 	public String toString() {
 	    return this.name;
@@ -227,25 +216,6 @@ Serializable {
 	    this.name = s;
 	}
     };
-
-
-
-
-    public static enum WordsubclassConnector {
-	KOPULATIV ("Kopulativ"),
-	DISJUNKTIV ("Disjunktiv"),
-	DVERSATIV ("Adversativ"),
-	NEKTIV ("Nektiv");
-	private String name;
-	protected static final Wordclass parent = Wordclass.CONNECTOR;
-	public String toString() {
-	    return this.name;
-	}
-	private WordsubclassConnector(String s) {
-	    this.name = s;
-	}
-    }
-
 
     public static enum WordsubclassVerb {
 	STRONG ("Starkes Verb"),
@@ -261,11 +231,24 @@ Serializable {
 	}
     }
 
+    public static enum SubclassVerbModification {
+    	PTZP ("Partizip Perfekt"),
+    	INF ("Infinitiv");
+    	private String name;
+    	protected static final Wordclass parent = Wordclass.VERB;
+    	public String toString() {
+    	    return this.name;
+    	}
+    	private SubclassVerbModification(String s) {
+    	    this.name = s;
+    	}
+    }
 
     public static enum WordsubclassAdjective {
 	POSITIV ("Positiv"),
 	KOMPARATIV ("Komparativ"),
-	SUPERLATIV ("Superlativ");
+	SUPERLATIV ("Superlativ"),
+	NUM ("Num");
 	private String name;
 	protected static final Wordclass parent = Wordclass.ADJECTIVE;
 	public String toString() {
@@ -276,27 +259,14 @@ Serializable {
 	}
     }
 
-
-    public static enum WordsubclassPreposition {
-	TEMPORAL ("Temporal"),
-	LOCATIVE ("Locative");
-	private String name;
-	protected static final Wordclass parent = Wordclass.PREPOSITION;
-	public String toString() {
-	    return this.name;
-	}
-	private WordsubclassPreposition(String s) {
-	    this.name = s;
-	}
-    }
-
     public static enum WordsubclassPronoun {
 	PERSONAL ("Personal"),
 	POSSESSIVE ("Possessive"),
 	DEMONSTRATIVE ("Demonstrative"),
 	RELATIVE ("Relative"),
-	RELATIVE2 ("Relative2"),
-	DEICTICON ("Deicticon");
+	INDEFINITE ("Indefinite"),
+	DEICTICON ("Deicticon"),
+	NEGATIVE ("Negative");
 	private String name;
 	protected static final Wordclass parent = Wordclass.PRONOUN;
 	public String toString() {
@@ -307,7 +277,7 @@ Serializable {
 	}
     }
 
-    public static enum WordsubclassSign {
+    public static enum WordsubclassPunctuationMark {
 	SEPARATOR ("Separator"),
 	SEPARATOR_STRONG ("Separator strong"),
 	SEPARATOR_QUOTATION ("Separator quotation"),
@@ -315,11 +285,11 @@ Serializable {
 	DASH ("Dash"),
 	WHITESPACE ("Whitespace");
 	private String name;
-	protected static final Wordclass parent = Wordclass.SIGN;
+	protected static final Wordclass parent = Wordclass.PUNCTUATIONMARK;
 	public String toString() {
 	    return this.name;
 	}
-	private WordsubclassSign(String s) {
+	private WordsubclassPunctuationMark(String s) {
 	    this.name = s;
 	}
     }
@@ -397,14 +367,15 @@ Serializable {
      * cases
      */
     protected byte[] ca;
-    /**
-     * Conjugation
-     */
-    protected byte[] co;
+ 
     /**
      * Determination
      */
     protected byte[] de;
+    /**
+     * Konjugation
+     */
+    protected byte[] ko;
     /**
      * Diathese
      */
@@ -439,11 +410,11 @@ Serializable {
      * 
      */
     protected byte[] wsa;
-    protected byte[] wsc;
-    protected byte[] wspre;
     protected byte[] wspro;
     protected byte[] wss;
     protected byte[] wsv;
+    // subclassverbmodifikation
+    protected byte[] svm;
 
     // Function Word characterisations
     protected byte[] wa1;
@@ -515,60 +486,6 @@ Serializable {
 	return getBit(this.ca, c.ordinal());
     }
 
-
-
-    // *********** conjugation *************  
-
-    /**
-     * Clears and sets new cases
-     * @param conjugations
-     */
-    public void setConjugations(Conjugation ... conjugations) {
-	this.co = null;
-	if(conjugations == null)
-	    return;
-	for (int i = 0; i < conjugations.length; i++) {
-	    this.co = setBit(this.co, conjugations[i].ordinal());
-	}
-	this.changeState(CHANGE);
-    }
-
-    /**
-     * Sets a Conjugation
-     * @param c The Conjugation
-     * @param b Indicates whether to set or remove the Conjugation
-     */
-    public void setConjugation(Conjugation c, boolean b) {
-	if( c == null || b == false && ! this.hasConjugation(c))
-	    return;
-	this.co = setBit(this.co, c.ordinal(), b);
-	this.changeState(CHANGE);
-    }
-
-    /**
-     * Get the Conjugations
-     * @return All Conjugations that have been set
-     */
-    public Conjugation[] getConjugations() {
-	if( this.co == null )
-	    return new Conjugation[0];
-	Enum<?>[] ea = filterConstants(Conjugation.values(), this.co);
-	Conjugation[] ret = new Conjugation[ea.length];
-	System.arraycopy(ea, 0, ret, 0, ea.length);
-	return ret;
-    }
-
-    /**
-     * Check if Conjugation is set
-     * @param c
-     * @return <code>true</code> if Conjugation is enabled, <code>false</code> otherwise
-     */
-    public boolean hasConjugation(Conjugation c) {
-	if( this.co == null || c == null)
-	    return false;
-	return getBit(this.co, c.ordinal());
-    }
-
     // *********** determination *************  
 
     /**
@@ -621,7 +538,60 @@ Serializable {
 	return getBit(this.de, c.ordinal());
     }
 
+ // *********** konjugation *************  
 
+    /**
+     * Clears and sets new Konjugation
+     * @param Konjugation
+     */
+    public void setKonjugation(Konjugation ... konjugation) {
+	this.ko = null;
+	if(konjugation == null)
+	    return;
+	for (int i = 0; i < konjugation.length; i++) {
+	    this.ko = setBit(this.ko, konjugation[i].ordinal());
+	}
+	this.changeState(CHANGE);
+    }
+
+    /**
+     * Sets a Konjugation
+     * @param c The Konjugation
+     * @param b Indicates whether to set or remove the Konjugation
+     */
+    public void setKonjugation(Konjugation c, boolean b) {
+	if( c == null || b == false && ! this.hasKonjugation(c))
+	    return;
+	this.ko = setBit(this.ko, c.ordinal(), b);
+	this.changeState(CHANGE);
+    }
+
+    /**
+     * Get the Diatheses
+     * @return All Diatheses that have been set
+     */
+    public Konjugation[] getKonjugation() {
+	if( this.ko == null )
+	    return new Konjugation[0];
+	Enum<?>[] ea = filterConstants(Konjugation.values(), this.ko);
+	Konjugation[] ret = new Konjugation[ea.length];
+	System.arraycopy(ea, 0, ret, 0, ea.length);
+	return ret;
+    }
+
+    /**
+     * Check if Konjugation is set
+     * @param c
+     * @return <code>true</code> if Konjugation is enabled, <code>false</code> otherwise
+     */
+    public boolean hasKonjugation(Konjugation c) {
+	if( this.ko == null || c == null)
+	    return false;
+	return getBit(this.ko, c.ordinal());
+    }
+
+    
+    
     // *********** diathese *************  
 
     /**
@@ -1040,110 +1010,6 @@ Serializable {
 	return getBit(this.wsa, c.ordinal());
     }
 
-    // *********** WordsubclassConnector *************  
-
-    /**
-     * Clears and sets new cases
-     * @param WordsubclassesConnector
-     */
-    public void setWordsubclassesConnector(WordsubclassConnector ... WordsubclassesConnector) {
-	this.wsc = null;
-	if(WordsubclassesConnector == null)
-	    return;
-	for (int i = 0; i < WordsubclassesConnector.length; i++) {
-	    this.wsc = setBit(this.wsc, WordsubclassesConnector[i].ordinal());
-	}
-	this.changeState(CHANGE);
-    }
-
-    /**
-     * Sets a WordsubclassConnector
-     * @param c The WordsubclassConnector
-     * @param b Indicates whether to set or remove the WordsubclassConnector
-     */
-    public void setWordsubclassConnector(WordsubclassConnector c, boolean b) {
-	if( c == null || b == false && ! this.hasWordsubclassConnector(c))
-	    return;
-	this.wsc = setBit(this.wsc, c.ordinal(), b);
-	this.changeState(CHANGE);
-    }
-
-    /**
-     * Get the WordsubclassesConnector
-     * @return All WordsubclassesConnector that have been set
-     */
-    public WordsubclassConnector[] getWordsubclassesConnector() {
-	if( this.wsc == null )
-	    return new WordsubclassConnector[0];
-	Enum<?>[] ea = filterConstants(WordsubclassConnector.values(), this.wsc);
-	WordsubclassConnector[] ret = new WordsubclassConnector[ea.length];
-	System.arraycopy(ea, 0, ret, 0, ea.length);
-	return ret;
-    }
-
-    /**
-     * Check if WordsubclassConnector is set
-     * @param c
-     * @return <code>true</code> if WordsubclassConnector is enabled, <code>false</code> otherwise
-     */
-    public boolean hasWordsubclassConnector(WordsubclassConnector c) {
-	if( this.wsc == null || c == null)
-	    return false;
-	return getBit(this.wsc, c.ordinal());
-    }
-
-    // *********** WordsubclassPreposition *************  
-
-    /**
-     * Clears and sets new cases
-     * @param WordsubclassesPreposition
-     */
-    public void setWordsubclassesPreposition(WordsubclassPreposition ... WordsubclassesPreposition) {
-	this.wspre = null;
-	if(WordsubclassesPreposition == null)
-	    return;
-	for (int i = 0; i < WordsubclassesPreposition.length; i++) {
-	    this.wspre = setBit(this.wspre, WordsubclassesPreposition[i].ordinal());
-	}
-	this.changeState(CHANGE);
-    }
-
-    /**
-     * Sets a WordsubclassPreposition
-     * @param c The WordsubclassPreposition
-     * @param b Indicates whether to set or remove the WordsubclassPreposition
-     */
-    public void setWordsubclassPreposition(WordsubclassPreposition c, boolean b) {
-	if( c == null || b == false && ! this.hasWordsubclassPreposition(c))
-	    return;
-	this.wspre = setBit(this.wspre, c.ordinal(), b);
-	this.changeState(CHANGE);
-    }
-
-    /**
-     * Get the WordsubclassesPreposition
-     * @return All WordsubclassesPreposition that have been set
-     */
-    public WordsubclassPreposition[] getWordsubclassesPreposition() {
-	if( this.wspre == null )
-	    return new WordsubclassPreposition[0];
-	Enum<?>[] ea = filterConstants(WordsubclassPreposition.values(), this.wspre);
-	WordsubclassPreposition[] ret = new WordsubclassPreposition[ea.length];
-	System.arraycopy(ea, 0, ret, 0, ea.length);
-	return ret;
-    }
-
-    /**
-     * Check if WordsubclassPreposition is set
-     * @param c
-     * @return <code>true</code> if WordsubclassPreposition is enabled, <code>false</code> otherwise
-     */
-    public boolean hasWordsubclassPreposition(WordsubclassPreposition c) {
-	if( this.wspre == null || c == null)
-	    return false;
-	return getBit(this.wspre, c.ordinal());
-    }
-
     // *********** WordsubclassPronoun *************  
 
     /**
@@ -1196,53 +1062,53 @@ Serializable {
 	return getBit(this.wspro, c.ordinal());
     }
 
-    // *********** WordsubclassSign *************  
+    // *********** WordsubclassPunctuationMark *************  
 
     /**
      * Clears and sets new cases
-     * @param WordsubclassesSign
+     * @param WordsubclassesPunctuationMark
      */
-    public void setWordsubclassesSign(WordsubclassSign ... WordsubclassesSign) {
+    public void setWordsubclassesPunctuationMark(WordsubclassPunctuationMark ... WordsubclassesPunctuationMark) {
 	this.wss = null;
-	if(WordsubclassesSign == null)
+	if(WordsubclassesPunctuationMark == null)
 	    return;
-	for (int i = 0; i < WordsubclassesSign.length; i++) {
-	    this.wss = setBit(this.wss, WordsubclassesSign[i].ordinal());
+	for (int i = 0; i < WordsubclassesPunctuationMark.length; i++) {
+	    this.wss = setBit(this.wss, WordsubclassesPunctuationMark[i].ordinal());
 	}
 	this.changeState(CHANGE);
     }
 
     /**
-     * Sets a WordsubclassSign
-     * @param c The WordsubclassSign
-     * @param b Indicates whether to set or remove the WordsubclassSign
+     * Sets a WordsubclassPunctuationMark
+     * @param c The WordsubclassPunctuationMark
+     * @param b Indicates whether to set or remove the WordsubclassPunctuationMark
      */
-    public void setWordsubclassSign(WordsubclassSign c, boolean b) {
-	if( c == null || b == false && ! this.hasWordsubclassSign(c))
+    public void setWordsubclassPunctuationMark(WordsubclassPunctuationMark c, boolean b) {
+	if( c == null || b == false && ! this.hasWordsubclassPunctuationMark(c))
 	    return;
 	this.wss = setBit(this.wss, c.ordinal(), b);
 	this.changeState(CHANGE);
     }
 
     /**
-     * Get the WordsubclassesSign
-     * @return All WordsubclassesSign that have been set
+     * Get the WordsubclassesPunctuationMark
+     * @return All WordsubclassesPunctuationMark that have been set
      */
-    public WordsubclassSign[] getWordsubclassesSign() {
+    public WordsubclassPunctuationMark[] getWordsubclassesPunctuationMark() {
 	if( this.wss == null )
-	    return new WordsubclassSign[0];
-	Enum<?>[] ea = filterConstants(WordsubclassSign.values(), this.wss);
-	WordsubclassSign[] ret = new WordsubclassSign[ea.length];
+	    return new WordsubclassPunctuationMark[0];
+	Enum<?>[] ea = filterConstants(WordsubclassPunctuationMark.values(), this.wss);
+	WordsubclassPunctuationMark[] ret = new WordsubclassPunctuationMark[ea.length];
 	System.arraycopy(ea, 0, ret, 0, ea.length);
 	return ret;
     }
 
     /**
-     * Check if WordsubclassSign is set
+     * Check if WordsubclassPunctuationMark is set
      * @param c
-     * @return <code>true</code> if WordsubclassSign is enabled, <code>false</code> otherwise
+     * @return <code>true</code> if WordsubclassPunctuationMark is enabled, <code>false</code> otherwise
      */
-    public boolean hasWordsubclassSign(WordsubclassSign c) {
+    public boolean hasWordsubclassPunctuationMark(WordsubclassPunctuationMark c) {
 	if( this.wss == null || c == null)
 	    return false;
 	return getBit(this.wss, c.ordinal());
@@ -1300,6 +1166,58 @@ Serializable {
 	return getBit(this.wsv, c.ordinal());
     }
 
+    // *********** WordsubclassVerb *************  
+
+    /**
+     * Clears and sets new cases
+     * @param SubclassVerbModification
+     */
+    public void setSubclassesVerbModification(SubclassVerbModification ... SubclassesVerbModification) {
+	this.svm = null;
+	if(SubclassesVerbModification == null)
+	    return;
+	for (int i = 0; i < SubclassesVerbModification.length; i++) {
+	    this.svm = setBit(this.svm, SubclassesVerbModification[i].ordinal());
+	}
+	this.changeState(CHANGE);
+    }
+
+    /**
+     * Sets a SubclassVerbModification
+     * @param c The SubclassVerbModification
+     * @param b Indicates whether to set or remove the SubclassVerbModification
+     */
+    public void setSubclassVerbModification(SubclassVerbModification c, boolean b) {
+	if( c == null || b == false && ! this.hasSubclassVerbModification(c))
+	    return;
+	this.svm = setBit(this.svm, c.ordinal(), b);
+	this.changeState(CHANGE);
+    }
+
+    /**
+     * Get the WordsubclassesVerb
+     * @return All WordsubclassesVerb that have been set
+     */
+    public SubclassVerbModification[] getSubclassesVerbModification() {
+	if( this.svm == null )
+	    return new SubclassVerbModification[0];
+	Enum<?>[] ea = filterConstants(SubclassVerbModification.values(), this.svm);
+	SubclassVerbModification[] ret = new SubclassVerbModification[ea.length];
+	System.arraycopy(ea, 0, ret, 0, ea.length);
+	return ret;
+    }
+
+    /**
+     * Check if SubclassVerbModification is set
+     * @param c
+     * @return <code>true</code> if SubclassVerbModification is enabled, <code>false</code> otherwise
+     */
+    public boolean hasSubclassVerbModification(SubclassVerbModification c) {
+	if( this.svm == null || c == null)
+	    return false;
+	return getBit(this.svm, c.ordinal());
+    }
+    
     // *********** Wortart1 *************  
 
     /**
@@ -1667,8 +1585,8 @@ Serializable {
 
 	    // TR_Assignation
 	    this.ca = TR_Assignation.this.ca;
-	    this.co = TR_Assignation.this.co;
 	    this.de = TR_Assignation.this.de;
+	    this.ko = TR_Assignation.this.ko;
 	    this.di = TR_Assignation.this.di;
 	    this.g = TR_Assignation.this.g;
 	    this.n = TR_Assignation.this.n;
@@ -1681,11 +1599,11 @@ Serializable {
 	    this.wa4 = TR_Assignation.this.wa4;
 	    this.wc = TR_Assignation.this.wc;
 	    this.wsa = TR_Assignation.this.wsa;
-	    this.wsc = TR_Assignation.this.wsc;
-	    this.wspre = TR_Assignation.this.wspre;
 	    this.wspro = TR_Assignation.this.wspro;
 	    this.wss = TR_Assignation.this.wss;
 	    this.wsv = TR_Assignation.this.wsv;
+	    this.svm = TR_Assignation.this.svm;
+	    
 	    this.setEtymol(TR_Assignation.this.getEtymol());
 	    this.setAbbreviation(TR_Assignation.this.getAbbreviation());
 	    this.setDescription(TR_Assignation.this.getDescription());
@@ -1715,27 +1633,6 @@ Serializable {
 	    this.changeState(CHANGE);
 	}
 
-
-	/**
-	 * Direct value access for DBC_Server
-	 * @param key
-	 * @return
-	 */
-	public byte[] getConjugationsBinary() {
-	    return (this.co == null) ? new byte[0] : this.co;
-	}
-
-	/**
-	 * Direct value access for DBC_Server
-	 * @param key
-	 * @param binary
-	 */
-	public void setConjugationsBinary(byte[] binary) {
-
-	    this.co = binary;
-	    this.changeState(CHANGE);
-	}
-
 	/**
 	 * Direct value access for DBC_Server
 	 * @param key
@@ -1756,6 +1653,25 @@ Serializable {
 	    this.changeState(CHANGE);
 	}
 
+	/**
+	 * Direct value access for DBC_Server
+	 * @param key
+	 * @return
+	 */
+	public byte[] getKonjugationBinary() {
+	    return (this.ko == null) ? new byte[0] : this.ko;
+	}
+
+	/**
+	 * Direct value access for DBC_Server
+	 * @param key
+	 * @param binary
+	 */
+	public void setKonjugationBinary(byte[] binary) {
+
+	    this.ko = binary;
+	    this.changeState(CHANGE);
+	}
 
 	/**
 	 * Direct value access for DBC_Server
@@ -1923,49 +1839,6 @@ Serializable {
 	    this.changeState(CHANGE);
 	}
 
-
-	/**
-	 * Direct value access for DBC_Server
-	 * @param key
-	 * @return
-	 */
-	public byte[] getWordsubclassesConnectorBinary() {
-	    return (this.wsc == null) ? new byte[0] : this.wsc;
-	}
-
-	/**
-	 * Direct value access for DBC_Server
-	 * @param key
-	 * @param binary
-	 */
-	public void setWordsubclassesConnectorBinary(byte[] binary) {
-
-	    this.wsa = binary;
-	    this.changeState(CHANGE);
-	}
-
-
-	/**
-	 * Direct value access for DBC_Server
-	 * @param key
-	 * @return
-	 */
-	public byte[] getWordsubclassesPrepositionBinary() {
-	    return (this.wspre == null) ? new byte[0] : this.wspre;
-	}
-
-	/**
-	 * Direct value access for DBC_Server
-	 * @param key
-	 * @param binary
-	 */
-	public void setWordsubclassesPrepositionBinary(byte[] binary) {
-
-	    this.wspre = binary;
-	    this.changeState(CHANGE);
-	}
-
-
 	/**
 	 * Direct value access for DBC_Server
 	 * @param key
@@ -1992,7 +1865,7 @@ Serializable {
 	 * @param key
 	 * @return
 	 */
-	public byte[] getWordsubclassesSignBinary() {
+	public byte[] getWordsubclassesPunctuationMarkBinary() {
 	    return (this.wss == null) ? new byte[0] : this.wss;
 	}
 
@@ -2001,7 +1874,7 @@ Serializable {
 	 * @param key
 	 * @param binary
 	 */
-	public void setWordsubclassesSignBinary(byte[] binary) {
+	public void setWordsubclassesPunctuationMarkBinary(byte[] binary) {
 
 	    this.wss = binary;
 	    this.changeState(CHANGE);
@@ -2028,6 +1901,25 @@ Serializable {
 	    this.changeState(CHANGE);
 	}
 
+	/**
+	 * Direct value access for DBC_Server
+	 * @param key
+	 * @return
+	 */
+	public byte[] getSubclassesVerbModificationBinary() {
+	    return (this.svm == null) ? new byte[0] : this.svm;
+	}
+
+	/**
+	 * Direct value access for DBC_Server
+	 * @param key
+	 * @param binary
+	 */
+	public void setSubclassesVerbModificationBinary(byte[] binary) {
+
+	    this.svm = binary;
+	    this.changeState(CHANGE);
+	}
 
 	/**
 	 * Direct value access for DBC_Server

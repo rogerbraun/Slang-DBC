@@ -21,7 +21,7 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.share.DBC_KeyAcceptor;
  * Dient zur Zusammenfassung aller Analysen eines Kapitels. Diese
  * Zusammenfassung kann dann in eine Datei geschrieben werden.
  * 
- * @author Volker Klöbb
+ * @author Volker Klöbb & W. Jurczyk (minor changes)
  */
 public class CompleteAnalyse
       implements
@@ -36,21 +36,28 @@ public class CompleteAnalyse
    private Vector<PronounComplex>              complexes;
    private Vector              themas;
    private DBC_Key key;
-
-   public CompleteAnalyse(String server, int chapterID) throws Exception {
+   
+   /**
+    * 
+    * @param server
+    * @param chapterID
+    * @param level	Ebene des Dialogs. Diese Klasse ist nur für level=0 geschrieben, also auch nur 0 übergeben!
+    * @throws Exception
+    */
+   public CompleteAnalyse(String server, int chapterID, int level) throws Exception {
       DBC dbc = new DBC(server);
 
       chapter = dbc.loadChapter(chapterID);
       roots = dbc.loadIllocutionUnitRoots(chapter);
-      directSpeeches = dbc.loadDirectSpeeches(chapter);
-      dialogs = dbc.loadDialogs(chapter);
+      directSpeeches = dbc.loadDirectSpeeches(chapter, level);
+      dialogs = dbc.loadDialogs(chapter, level);
       isotopes = dbc.loadIsotopes(chapter);
       complexes = dbc.loadComplexes(roots);
       themas = dbc.loadThemas(chapter);
 
-      dbc.loadDialogComments(comments, chapter);
-      dbc.loadDirectSpeechComments(comments, chapter);
-      dbc.loadIllocutionUnitComments(comments, chapter);
+      dbc.loadDialogComments(comments, chapter, level);
+      dbc.loadDirectSpeechComments(comments, chapter, level);
+      dbc.loadIllocutionUnitComments(comments, chapter, level);
 
       dbc.close();
    }
@@ -90,7 +97,7 @@ public class CompleteAnalyse
          ((Thema_DB) themas.get(i)).id = -1;
    }
 
-   public void save(String server, boolean saveChapter)
+   public void save(String server, boolean saveChapter, int level)
          throws Exception {
       DBC dbc = new DBC(server);
 
@@ -99,12 +106,12 @@ public class CompleteAnalyse
          dbc.saveChapter(key, chapter);
       }
       dbc.saveIllocutionUnitRoots(roots);
-      dbc.saveDirectSpeeches(chapter, directSpeeches, directSpeeches);
-      dbc.saveDialogs(chapter, dialogs, dialogs);
+      dbc.saveDirectSpeeches(chapter, directSpeeches, directSpeeches, level);
+      dbc.saveDialogs(chapter, dialogs, dialogs, level);
       dbc.saveIsotopes(isotopes);
       dbc.saveComplexes(complexes);
       dbc.saveThemas(chapter, themas);
-      dbc.saveComments(comments);
+      dbc.saveComments(comments, level);
 
       dbc.close();
    }

@@ -305,35 +305,26 @@ public class DBC implements DBC_KeyAcceptor {
 	 * L�dt alle Direkten Reden aus der Datenbank, die zu diesem Kapitel
 	 * gespeichert wurden.
 	 * 
-	 * @param chapter
-	 *        das Kapitel
+	 * @param chapter, das Kapitel
+	 * 			level
 	 * @see DirectSpeech
 	 */
-	public DirectSpeeches loadDirectSpeeches(Chapter chapter)
+	public DirectSpeeches loadDirectSpeeches(Chapter chapter, int level)
 	throws Exception {
 		Message answer = connection.call(new Message(key, "loadDirectSpeeches",
-				new Integer(chapter.getDB_ID())));
+				new Integer(chapter.getDB_ID()), level));
 		DirectSpeeches dss = (DirectSpeeches) answer.getArguments()[0];
 		dss.setChapter(key, chapter);
 		return dss;
 	}
 
-	/* 
-   public void saveDirectSpeeches(Chapter chapter, DirectSpeeches directSpeeches)
-         throws Exception {
-      DirectSpeeches answer = (DirectSpeeches) connection.call(new Message(key,
-            "saveDirectSpeeches", new Integer(chapter.getDB_ID()),
-            directSpeeches)).getArguments()[0];
-      directSpeeches.updateIDs(key, answer);
-   }
-	 */
 
-	public void saveDirectSpeeches(Chapter chapter, DirectSpeeches newdirectSpeeches, DirectSpeeches olddirectSpeeches)
+	public void saveDirectSpeeches(Chapter chapter, DirectSpeeches newdirectSpeeches, DirectSpeeches olddirectSpeeches, int level)
 	throws Exception {
 		try {
 			DirectSpeeches answer = (DirectSpeeches) connection.call(new Message(key,
-					"saveDirectSpeeches", new Integer(chapter.getDB_ID()),
-					newdirectSpeeches, olddirectSpeeches)).getArguments()[0];
+				"saveDirectSpeeches", new Integer(chapter.getDB_ID()),
+				newdirectSpeeches, olddirectSpeeches, level)).getArguments()[0];
 			//newdirectSpeeches.updateIDs(key, answer);
 		} catch (MysqlDataTruncation e){
 			throw new DBC_SaveException(e.getMessage());
@@ -341,20 +332,12 @@ public class DBC implements DBC_KeyAcceptor {
 			throw new DBC_SaveException(e.getMessage());
 		}
 	}
-
-	/*public void saveDialogs(Chapter chapter, Dialogs dialogs)
-	throws Exception {
-		Dialogs answer = (Dialogs) connection.call(new Message(key,
-				"saveDialogs", new Integer(chapter.getDB_ID()), dialogs))
-				.getArguments()[0];
-		dialogs.updateIDs(key, answer);
-	}*/
 	
-	public void saveDialogs(Chapter chapter, Dialogs oldDialogs, Dialogs newDialogs )
+	public void saveDialogs(Chapter chapter, Dialogs oldDialogs, Dialogs newDialogs, int level )
 	throws Exception {
 		try {
 			Dialogs answer = (Dialogs) connection.call(new Message(key,
-					"saveDialogs", new Integer(chapter.getDB_ID()), oldDialogs, newDialogs)).getArguments()[0];
+					"saveDialogs", new Integer(chapter.getDB_ID()), oldDialogs, newDialogs, level)).getArguments()[0];
 			newDialogs.updateIDs(key, answer);
 		} catch (MysqlDataTruncation e){
 			throw new DBC_SaveException(e.getMessage());
@@ -366,24 +349,24 @@ public class DBC implements DBC_KeyAcceptor {
 	/**
 	 * L�dt alle Dialoge des Kapitels aus der Datenbank.
 	 * 
-	 * @param chapter
-	 *        Das Kapitel, dessen Dialoge geladen werden sollen
+	 * @param chapter - das Kapitel, dessen Dialoge geladen werden sollen
+	 *        level
 	 * @see Dialog
 	 */
-	public Dialogs loadDialogs(Chapter chapter)
+	public Dialogs loadDialogs(Chapter chapter, int level)
 	throws Exception {
 		Message answer = connection.call(new Message(key, "loadDialogs",
-				new Integer(chapter.getDB_ID())));
+				new Integer(chapter.getDB_ID()), level));
 		Dialogs ds = (Dialogs) answer.getArguments()[0];
 		ds.setChapter(key, chapter);
 		return ds;
 	}
 
-	public void saveSpeakers(Chapter chapter, ArrayList<DialogSpeaker> speakers)
+	public void saveSpeakers(Chapter chapter, ArrayList<DialogSpeaker> speakers, int level)
 	throws Exception {
 		try {
 			ArrayList<DialogSpeaker> answer = (ArrayList<DialogSpeaker>) connection.call(new Message(key,
-					"saveSpeakers", new Integer(chapter.getDB_ID()), speakers)).getArguments()[0];
+					"saveSpeakers", new Integer(chapter.getDB_ID()), speakers, level)).getArguments()[0];
 			//speaker.updateIDs(key, answer);
 		} catch (MysqlDataTruncation e){
 			throw new DBC_SaveException(e.getMessage());
@@ -392,9 +375,9 @@ public class DBC implements DBC_KeyAcceptor {
 		}
 	}
 	
-	public void saveSpeakerChanges(Chapter chapter, ArrayList<DialogSpeakerChange> changes) throws Exception {
+	public void saveSpeakerChanges(Chapter chapter, ArrayList<DialogSpeakerChange> changes, int level) throws Exception {
 		try {
-			connection.call(new Message(key, "saveSpeakerChanges", new Integer(chapter.getDB_ID()), changes));
+			connection.call(new Message(key, "saveSpeakerChanges", new Integer(chapter.getDB_ID()), changes, level));
 		} catch (MysqlDataTruncation e){
 			throw new DBC_SaveException(e.getMessage());
 		} catch (Exception e){
@@ -402,9 +385,9 @@ public class DBC implements DBC_KeyAcceptor {
 		}
 	}
 	
-	public void saveD_Themat(Chapter chapter, ArrayList<DialogD_Themat> themats) throws Exception {
+	public void saveD_Themat(Chapter chapter, ArrayList<DialogD_Themat> themats, int level) throws Exception {
 		try {
-			connection.call(new Message(key, "saveD_Themat", new Integer(chapter.getDB_ID()), themats));
+			connection.call(new Message(key, "saveD_Themat", new Integer(chapter.getDB_ID()), themats, level));
 		} catch (MysqlDataTruncation e){
 			throw new DBC_SaveException(e.getMessage());
 		} catch (Exception e){
@@ -412,9 +395,9 @@ public class DBC implements DBC_KeyAcceptor {
 		}
 	}
 	
-	public void saveFaces(Chapter chapter, ArrayList<DialogFaces> faces) throws Exception {
+	public void saveFaces(Chapter chapter, ArrayList<DialogFaces> faces, int level) throws Exception {
 		try {
-			connection.call(new Message(key, "saveFaces", new Integer(chapter.getDB_ID()), faces));
+			connection.call(new Message(key, "saveFaces", new Integer(chapter.getDB_ID()), faces, level));
 		} catch (MysqlDataTruncation e){
 			throw new DBC_SaveException(e.getMessage());
 		} catch (Exception e){
@@ -422,9 +405,9 @@ public class DBC implements DBC_KeyAcceptor {
 		}
 	}
 	
-	public void saveTargets(Chapter chapter, ArrayList<DialogTarget> targets) throws Exception {
+	public void saveTargets(Chapter chapter, ArrayList<DialogTarget> targets, int level) throws Exception {
 		try {
-			connection.call(new Message(key, "saveTargets", new Integer(chapter.getDB_ID()), targets));
+			connection.call(new Message(key, "saveTargets", new Integer(chapter.getDB_ID()), targets, level));
 		} catch (MysqlDataTruncation e){
 			throw new DBC_SaveException(e.getMessage());
 		} catch (Exception e){
@@ -432,9 +415,9 @@ public class DBC implements DBC_KeyAcceptor {
 		}
 	}
 	
-	public void saveISignals(Chapter chapter, ArrayList<DialogISignal> signals) throws Exception {
+	public void saveISignals(Chapter chapter, ArrayList<DialogISignal> signals, int level) throws Exception {
 		try {
-			connection.call(new Message(key, "saveISignals", new Integer(chapter.getDB_ID()), signals));
+			connection.call(new Message(key, "saveISignals", new Integer(chapter.getDB_ID()), signals, level));
 		} catch (MysqlDataTruncation e){
 			throw new DBC_SaveException(e.getMessage());
 		} catch (Exception e){
@@ -442,18 +425,19 @@ public class DBC implements DBC_KeyAcceptor {
 		}
 	}
 	
-	public void saveComments(Chapter chapter, ArrayList<DialogComment> comments) throws Exception {
+	public void saveComments(Chapter chapter, ArrayList<DialogComment> comments, int level) throws Exception {
 		try {
-			connection.call(new Message(key, "saveComments", new Integer(chapter.getDB_ID()), comments));
+			connection.call(new Message(key, "saveComments", new Integer(chapter.getDB_ID()), comments, level));
 		} catch (MysqlDataTruncation e){
 			throw new DBC_SaveException(e.getMessage());
 		} catch (Exception e){
 			throw new DBC_SaveException(e.getMessage());
 		}
 	}
-	
-	public ArrayList<DialogSpeaker> loadSpeakers(Chapter chapter, String typ) throws Exception {
-		Message answer = connection.call(new Message(key, "loadSpeakers", new Integer(chapter.getDB_ID()), typ));
+	public ArrayList<DialogSpeaker> loadSpeakers(Chapter chapter, String typ, int level)
+	throws Exception 
+	{
+		Message answer = connection.call(new Message(key, "loadSpeakers", new Integer(chapter.getDB_ID()), typ, level));
 		ArrayList<DialogSpeaker> speakers = (ArrayList<DialogSpeaker>) answer.getArguments()[0];
 		for (int i=0; i != speakers.size(); ++i)
 		{
@@ -462,9 +446,10 @@ public class DBC implements DBC_KeyAcceptor {
 		}
 		return speakers;
 	}
-	
-	public synchronized ArrayList<DialogSpeakerChange> loadSpeakerChanges (Chapter chapter, String typ) throws Exception {
-		Message answer = connection.call(new Message(key, "loadSpeakerChanges", new Integer(chapter.getDB_ID()), typ));
+
+	public synchronized ArrayList<DialogSpeakerChange> loadSpeakerChanges (Chapter chapter, String typ, int level) throws Exception 
+	{
+		Message answer = connection.call(new Message(key, "loadSpeakerChanges", new Integer(chapter.getDB_ID()), typ, level));
 		ArrayList<DialogSpeakerChange> changes = (ArrayList<DialogSpeakerChange>) answer.getArguments()[0];
 		for (int i=0; i != changes.size(); ++i)
 		{
@@ -473,9 +458,10 @@ public class DBC implements DBC_KeyAcceptor {
 		}
 		return changes;
 	}
-	
-	public synchronized ArrayList<DialogD_Themat> loadD_Themat (Chapter chapter) throws Exception {
-		Message answer = connection.call(new Message(key, "loadD_Themat", new Integer(chapter.getDB_ID())));
+
+	public synchronized ArrayList<DialogD_Themat> loadD_Themat (Chapter chapter, int level) throws Exception
+	{
+		Message answer = connection.call(new Message(key, "loadD_Themat", new Integer(chapter.getDB_ID()), level));
 		ArrayList<DialogD_Themat> d_themas = (ArrayList<DialogD_Themat>) answer.getArguments()[0];
 		for (int i=0; i != d_themas.size(); ++i)
 		{
@@ -484,9 +470,11 @@ public class DBC implements DBC_KeyAcceptor {
 		}
 		return d_themas;
 	}
+
 	
-	public synchronized ArrayList<DialogFaces> loadFaces (Chapter chapter) throws Exception {
-		Message answer = connection.call(new Message(key, "loadFaces", new Integer(chapter.getDB_ID())));
+	public synchronized ArrayList<DialogFaces> loadFaces (Chapter chapter, int level) throws Exception 
+	{
+		Message answer = connection.call(new Message(key, "loadFaces", new Integer(chapter.getDB_ID()), level));
 		ArrayList<DialogFaces> faces = (ArrayList<DialogFaces>) answer.getArguments()[0];
 		for (int i=0; i != faces.size(); ++i)
 		{
@@ -495,9 +483,10 @@ public class DBC implements DBC_KeyAcceptor {
 		}
 		return faces;
 	}
-	
-	public synchronized ArrayList<DialogTarget> loadTargets (Chapter chapter) throws Exception {
-		Message answer = connection.call(new Message(key, "loadTargets", new Integer(chapter.getDB_ID())));
+
+	public synchronized ArrayList<DialogTarget> loadTargets (Chapter chapter, int level) throws Exception 
+	{
+		Message answer = connection.call(new Message(key, "loadTargets", new Integer(chapter.getDB_ID()), level));
 		ArrayList<DialogTarget> targets = (ArrayList<DialogTarget>) answer.getArguments()[0];
 		for (int i=0; i != targets.size(); ++i)
 		{
@@ -506,9 +495,10 @@ public class DBC implements DBC_KeyAcceptor {
 		}
 		return targets;
 	}
-	
-	public synchronized ArrayList<DialogISignal> loadISignals (Chapter chapter) throws Exception {
-		Message answer = connection.call(new Message(key, "loadISignals", new Integer(chapter.getDB_ID())));
+
+	public synchronized ArrayList<DialogISignal> loadISignals (Chapter chapter, int level) throws Exception 
+	{
+		Message answer = connection.call(new Message(key, "loadISignals", new Integer(chapter.getDB_ID()), level));
 		ArrayList<DialogISignal> signals = (ArrayList<DialogISignal>) answer.getArguments()[0];
 		for (int i=0; i != signals.size(); ++i)
 		{
@@ -518,8 +508,9 @@ public class DBC implements DBC_KeyAcceptor {
 		return signals;
 	}
 	
-	public synchronized ArrayList<DialogComment> loadComments (Chapter chapter) throws Exception {
-		Message answer = connection.call(new Message(key, "loadComments", new Integer(chapter.getDB_ID())));
+	public synchronized ArrayList<DialogComment> loadComments (Chapter chapter, int level) throws Exception
+	{
+		Message answer = connection.call(new Message(key, "loadComments", new Integer(chapter.getDB_ID()), level));
 		ArrayList<DialogComment> comments = (ArrayList<DialogComment>) answer.getArguments()[0];
 		for (int i=0; i != comments.size(); ++i)
 		{
@@ -528,7 +519,7 @@ public class DBC implements DBC_KeyAcceptor {
 		}
 		return comments;
 	}
-	
+
 	/**
 	 * L�dt eine Unterart der �u�erungseinheit, der Sememegruppen, Semantische
 	 * Einheiten und isolierte Funktionsw�rter usw. untergeordnet sind.
@@ -956,8 +947,8 @@ public class DBC implements DBC_KeyAcceptor {
 	 *        Das Kapitel, in dem die �u�erungseinheiten stehen
 	 * @throws Exception
 	 */
-	public void loadIllocutionUnitComments(Comments comments, Chapter chapter) throws Exception {
-		comments.add(loadComments(chapter, Comments.CLASS_CODE_ILLOCUTION_UNIT));
+	public void loadIllocutionUnitComments(Comments comments, Chapter chapter, int level) throws Exception {
+		comments.add(loadComments(chapter, Comments.CLASS_CODE_ILLOCUTION_UNIT, level));
 	}
 
 	/**
@@ -971,9 +962,11 @@ public class DBC implements DBC_KeyAcceptor {
 	 *        Das Kapitel, in dem die direkten Reden stehen
 	 * @throws Exception
 	 */
-	public void loadDirectSpeechComments(Comments comments, Chapter chapter) throws Exception {
-		comments.add(loadComments(chapter, Comments.CLASS_CODE_DIRECT_SPEECH));
+	public void loadDirectSpeechComments(Comments comments, Chapter chapter, int level)
+	throws Exception {
+		comments.add(loadComments(chapter, Comments.CLASS_CODE_DIRECT_SPEECH, level));
 	}
+
 
 	/**
 	 * L�dt alle Kommentare, die zu Dialogen eines Kapitels abgespeichert wurden.
@@ -986,16 +979,18 @@ public class DBC implements DBC_KeyAcceptor {
 	 *        Das Kapitel, in dem die Dialoge stehen
 	 * @throws Exception
 	 */
-	public void loadDialogComments(Comments comments, Chapter chapter) throws Exception {
-		comments.add(loadComments(chapter, Comments.CLASS_CODE_DIALOG));
-		comments.add(loadComments(chapter, Comments.CLASS_CODE_DIALOG_COSMOLOGIES));
+	public void loadDialogComments(Comments comments, Chapter chapter, int level)
+	throws Exception {
+		comments.add(loadComments(chapter, Comments.CLASS_CODE_DIALOG, level));
+		comments.add(loadComments(chapter, Comments.CLASS_CODE_DIALOG_COSMOLOGIES, level));
 		//comments.add(loadComments(chapter, Comments.CLASS_CODE_DIALOG_FOLLOWUP));
 		//comments.add(loadComments(chapter, Comments.CLASS_CODE_DIALOG_RUNUP));
 	}
 
-	private Comments loadComments(Chapter chapter, int ownerClassCode) throws Exception {
+	private Comments loadComments(Chapter chapter, int ownerClassCode, int level)
+	throws Exception {
 		return (Comments) connection.call(new Message(key, "loadComments",
-				new Integer(chapter.getDB_ID()), new Integer(ownerClassCode)))
+				new Integer(chapter.getDB_ID()), new Integer(ownerClassCode), level))
 				.getArguments()[0];
 	}
 
@@ -1005,9 +1000,9 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @param comments
 	 * @throws Exception
 	 */
-	public void saveComments(Comments comments)	throws Exception {
+	public void saveComments(Comments comments, int level)	throws Exception {
 		try {
-			connection.call(new Message(key, "saveComments", comments));
+			connection.call(new Message(key, "saveComments", comments, level));
 			comments.resetChange(key);
 		} catch (MysqlDataTruncation e){
 			throw new DBC_SaveException(e.getMessage());

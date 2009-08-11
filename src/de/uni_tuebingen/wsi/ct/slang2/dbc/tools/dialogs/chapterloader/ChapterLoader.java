@@ -255,9 +255,9 @@ public class ChapterLoader extends JComponent
 	  DBC dbc = null;
 	  try {
 	      //TODO: Das Laden ist überflüssig! Das Kopieren sollte der Server Seite überlassen werden.
-	      CompleteAnalyse ca = new CompleteAnalyse(server, chapterID);
+	      CompleteAnalyse ca = new CompleteAnalyse(server, chapterID, 0);
 	      ca.resetIDs();
-	      ca.save(server, true);
+	      ca.save(server, true, 0);
 
 	      // refreh list
 	      bookList.clearSelection();
@@ -307,7 +307,7 @@ public class ChapterLoader extends JComponent
             if (fc.showDialog(this, "import") == JFileChooser.APPROVE_OPTION) {
                File file = fc.getSelectedFile();
                CompleteAnalyse ca = new CompleteAnalyse(file);
-               ca.save(server, false);
+               ca.save(server, false, 0);
             }
          }
          catch (Exception e1) {
@@ -319,7 +319,7 @@ public class ChapterLoader extends JComponent
             JFileChooser fc = new JFileChooser();
             if (fc.showDialog(this, "export") == JFileChooser.APPROVE_OPTION) {
                File file = fc.getSelectedFile();
-               CompleteAnalyse ca = new CompleteAnalyse(server, chapterID);
+               CompleteAnalyse ca = new CompleteAnalyse(server, chapterID, 0);
                ca.export(file);
             }
          }

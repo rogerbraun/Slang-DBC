@@ -179,56 +179,56 @@ Serializable {
     	private Konjugation(String s) {
     	    this.name = s;
     	}
-        };
+    };
 
 
 
     public static enum Diathese {
-	ACTIVE ("Active"),
-	PASSIVE ("Passive");
-	private String name;
-	public String toString() {
-	    return this.name;
-	}
-	private Diathese(String s) {
-	    this.name = s;
-	}
+		ACTIVE ("Active"),
+		PASSIVE ("Passive");
+		private String name;
+		public String toString() {
+		    return this.name;
+		}
+		private Diathese(String s) {
+		    this.name = s;
+		}
     };
 
     public static enum Wordclass {
-	CONNECTOR ("Connector"),	   
-	VERB ("Verb"),
-	NOUN ("Nomen"),
-	ADJECTIVE ("Adjektiv"),
-	ARTICLE ("Artikel"),
-	PARTICLE ("Partikel"),
-	ADVERB ("Adverb"),
-	CONJUNCTION ("Konjunktion"),
-	INTERJECTION ("Interjektion"),
-	PRONOUN ("Pronomen"),
-	NEGATION ("Negation"),
-	PUNCTUATIONMARK ("Satzzeichen");
-	private String name;
-	public String toString() {
-	    return this.name;
-	}
-	private Wordclass(String s) {
-	    this.name = s;
-	}
+//		CONNECTOR ("Connector"),	   
+		VERB ("Verb"),
+		NOUN ("Nomen"),
+		ADJECTIVE ("Adjektiv"),
+//		ARTICLE ("Artikel"),
+//		PARTICLE ("Partikel"),
+		ADVERB ("Adverb"),
+//		CONJUNCTION ("Konjunktion"),
+//		INTERJECTION ("Interjektion"),
+		PRONOUN ("Pronomen");//,
+//		NEGATION ("Negation"),
+//		PUNCTUATIONMARK ("Satzzeichen");
+		private String name;
+		public String toString() {
+		    return this.name;
+		}
+		private Wordclass(String s) {
+		    this.name = s;
+		}
     };
 
     public static enum WordsubclassVerb {
-	STRONG ("Starkes Verb"),
-	WEAK ("Schwaches Verb"),
-	AUXILIARY ("Auxiliarverb");
-	private String name;
-	protected static final Wordclass parent = Wordclass.VERB;
-	public String toString() {
-	    return this.name;
-	}
-	private WordsubclassVerb(String s) {
-	    this.name = s;
-	}
+		STRONG ("Starkes Verb"),
+		WEAK ("Schwaches Verb"),
+		AUXILIARY ("Auxiliarverb");
+		private String name;
+		protected static final Wordclass parent = Wordclass.VERB;
+		public String toString() {
+		    return this.name;
+		}
+		private WordsubclassVerb(String s) {
+		    this.name = s;
+		}
     }
 
     public static enum SubclassVerbModification {
@@ -245,120 +245,120 @@ Serializable {
     }
 
     public static enum WordsubclassAdjective {
-	POSITIV ("Positiv"),
-	KOMPARATIV ("Komparativ"),
-	SUPERLATIV ("Superlativ"),
-	NUM ("Num");
-	private String name;
-	protected static final Wordclass parent = Wordclass.ADJECTIVE;
-	public String toString() {
-	    return this.name;
-	}
-	private WordsubclassAdjective(String s) {
-	    this.name = s;
-	}
+		POSITIV ("Positiv"),
+		KOMPARATIV ("Komparativ"),
+		SUPERLATIV ("Superlativ"),
+		NUM ("Num");
+		private String name;
+		protected static final Wordclass parent = Wordclass.ADJECTIVE;
+		public String toString() {
+		    return this.name;
+		}
+		private WordsubclassAdjective(String s) {
+		    this.name = s;
+		}
     }
 
     public static enum WordsubclassPronoun {
-	PERSONAL ("Personal"),
-	POSSESSIVE ("Possessive"),
-	DEMONSTRATIVE ("Demonstrative"),
-	RELATIVE ("Relative"),
-	INDEFINITE ("Indefinite"),
-	DEICTICON ("Deicticon"),
-	NEGATIVE ("Negative");
-	private String name;
-	protected static final Wordclass parent = Wordclass.PRONOUN;
-	public String toString() {
-	    return this.name;
-	}
-	private WordsubclassPronoun(String s) {
-	    this.name = s;
-	}
+		PERSONAL ("Personal"),
+		POSSESSIVE ("Possessive"),
+		DEMONSTRATIVE ("Demonstrative"),
+		RELATIVE ("Relative"),
+		INDEFINITE ("Indefinite"),
+		DEICTICON ("Deicticon"),
+		NEGATIVE ("Negative");
+		private String name;
+//		protected static final Wordclass parent = Wordclass.PRONOUN;
+		public String toString() {
+		    return this.name;
+		}
+		private WordsubclassPronoun(String s) {
+		    this.name = s;
+		}
     }
 
     public static enum WordsubclassPunctuationMark {
-	SEPARATOR ("Separator"),
-	SEPARATOR_STRONG ("Separator strong"),
-	SEPARATOR_QUOTATION ("Separator quotation"),
-	COMMA ("Comma"),
-	DASH ("Dash"),
-	WHITESPACE ("Whitespace");
-	private String name;
-	protected static final Wordclass parent = Wordclass.PUNCTUATIONMARK;
-	public String toString() {
-	    return this.name;
-	}
-	private WordsubclassPunctuationMark(String s) {
-	    this.name = s;
-	}
+		SEPARATOR ("Separator"),
+		SEPARATOR_STRONG ("Separator strong"),
+		SEPARATOR_QUOTATION ("Separator quotation"),
+		COMMA ("Comma"),
+		DASH ("Dash"),
+		WHITESPACE ("Whitespace");
+		private String name;
+//		protected static final Wordclass parent = Wordclass.PUNCTUATIONMARK;
+		public String toString() {
+		    return this.name;
+		}
+		private WordsubclassPunctuationMark(String s) {
+		    this.name = s;
+		}
     }
 
     // Bestimmungen für FW
 
     public static enum Wortart1 {
-	PRAEPOSITION ("Praeposition"),
-	KONJUNKTION ("Konjunktion"),
-	ARTIKEL ("Artikel"),
-	INTERJEKTION ("Interjektion"),
-	NEGATIONSWORT ("Negationswort"),
-	HILFSVERB ("Hilfsverb"),
-	PARTIKEL ("Partikel"),
-	CONNECTOR ("Connector");
-	private String name;
-	public String toString() {
-	    return this.name;
-	}
-	private Wortart1(String s) {
-	    this.name = s;
-	}
+		PRAEPOSITION ("Praeposition"),
+		KONJUNKTION ("Konjunktion"),
+		ARTIKEL ("Artikel"),
+		INTERJEKTION ("Interjektion"),
+		NEGATIONSWORT ("Negationswort"),
+		HILFSVERB ("Hilfsverb"),
+		PARTIKEL ("Partikel"),
+		CONNECTOR ("Connector");
+		private String name;
+		public String toString() {
+		    return this.name;
+		}
+		private Wortart1(String s) {
+		    this.name = s;
+		}
     }
 
     public static enum Wortart2 {
-	CONCESSIVE ("Concessive"),
-	CAUSAL ("Causal"),
-	FINAL ("Final"),
-	CONSECUTIVE ("Consecutive"),
-	COMPARATIVE ("Comparative"),
-	CONDITIONAL ("Conditional"),
-	INDIRECT_KNOWLEDGE ("Indirect knowledge"),
-	TEMPORAL ("Temporal"),
-	LOCATIVE ("Locative"),
-	OTHERS ("Others");
-	private String name;
-	public String toString() {
-	    return this.name;
-	}
-	private Wortart2(String s) {
-	    this.name = s;
-	}
+		CONCESSIVE ("Concessive"),
+		CAUSAL ("Causal"),
+		FINAL ("Final"),
+		CONSECUTIVE ("Consecutive"),
+		COMPARATIVE ("Comparative"),
+		CONDITIONAL ("Conditional"),
+		INDIRECT_KNOWLEDGE ("Indirect knowledge"),
+		TEMPORAL ("Temporal"),
+		LOCATIVE ("Locative"),
+		OTHERS ("Others");
+		private String name;
+		public String toString() {
+		    return this.name;
+		}
+		private Wortart2(String s) {
+		    this.name = s;
+		}
     }
 
 
     public static enum Wortart3 {
-	KOPULATIV ("Kopulativ"),
-	DISJUNKTIV ("Disjunktiv"),
-	ADVERSATIV ("Adversativ"),
-	NEKTIV ("Nektiv");
-	private String name;
-	public String toString() {
-	    return this.name;
-	}
-	private Wortart3(String s) {
-	    this.name = s;
-	}
+		KOPULATIV ("Kopulativ"),
+		DISJUNKTIV ("Disjunktiv"),
+		ADVERSATIV ("Adversativ"),
+		NEKTIV ("Nektiv");
+		private String name;
+		public String toString() {
+		    return this.name;
+		}
+		private Wortart3(String s) {
+		    this.name = s;
+		}
     }
 
     public static enum Wortart4 {
-	EXPLICATIVE ("Explicative"),
-	EMPHATIC ("Emphatic");
-	private String name;
-	public String toString() {
-	    return this.name;
-	}
-	private Wortart4(String s) {
-	    this.name = s;
-	}
+		EXPLICATIVE ("Explicative"),
+		EMPHATIC ("Emphatic");
+		private String name;
+		public String toString() {
+		    return this.name;
+		}
+		private Wortart4(String s) {
+		    this.name = s;
+		}
     }
 
     // short variable names => small objects

@@ -946,282 +946,168 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	 * @return ein Vektor mit den entsprechenden Direkten Reden.
 	 * @see DirectSpeech
 	 */
-	public synchronized DirectSpeeches loadDirectSpeeches(Integer chapterID)
-			throws Exception {
-
+    public synchronized DirectSpeeches loadDirectSpeeches(Integer chapterID, Integer level)
+	throws Exception {
 		Chapter chapter = getChapter(chapterID.intValue());
-
+		
 		DirectSpeeches directSpeeches = new DirectSpeeches();
 		Vector speeches = new Vector();
 		Statement stmt = connection.createStatement();
 		ResultSet res;
-
+		
 		// Grunddaten der direkten Reden einlesen.
 		res = stmt.executeQuery("SELECT * "
 				+ "FROM direct_speeches WHERE chapter = " + chapter.getDB_ID()
+				+ " AND level = " + level
 				+ " ORDER BY `index`");
-
+		
 		while (res.next())
 			speeches.add(new DirectSpeech(key, res.getInt("id"), chapter, res
 					.getInt("index"), res.getInt("depth"), res
 					.getBoolean("accepted"), res.getInt("possible_question")));
-
+		
 		// ï¿½uï¿½erungseinheiten zu den direkten Reeden einlesen.
 		for (int i = 0; i < speeches.size(); i++) {
 			DirectSpeech ds = (DirectSpeech) speeches.get(i);
 			res = stmt.executeQuery("SELECT illocution_unit "
 					+ "FROM ius_from_direct_speeches "
 					+ "WHERE direct_speech = " + ds.getDB_ID()
+					+ " AND level = " + level
 					+ " ORDER BY illocution_unit");
-
+		
 			while (res.next())
 				ds.setIllocutionUnit(key, res.getInt("illocution_unit"));
-
+		
 			directSpeeches.add(ds);
 		}
-
+		
 		for (int i = 0; i < speeches.size(); i++) {
 			DirectSpeech ds = (DirectSpeech) speeches.get(i);
 			int id = ds.getPossibleQuestionID();
 			if (id > 0)
 				ds.setPossibleQuestion(directSpeeches.getDirectSpeechWithID(id));
 		}
-
+		
 		res.close();
 		stmt.close();
 		return directSpeeches;
-	}
-
-    public synchronized DirectSpeeches saveDirectSpeeches (Integer chapterID,
-	    DirectSpeeches oldDirectSpeeches,
-	    DirectSpeeches newDirectSpeeches)
-    throws Exception 
-    {
-	Chapter chapter = getChapter(chapterID.intValue());
-
-	Vector oldDss = oldDirectSpeeches.getAllDirectSpeeches(key);
-	Vector newDss = newDirectSpeeches.getAllDirectSpeeches(key);
-
-	oldDirectSpeeches.setChapter(key, chapter);
-	newDirectSpeeches.setChapter(key, chapter);
-
-	connection.setAutoCommit(false);
-	Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
-		ResultSet.CONCUR_UPDATABLE);
-
-	ResultSet res;
-
-	//lösche alle Direct Speeches des chapters in der Datenbank
-	for (int i = 0; i < oldDss.size(); i++) 
-	{
-	    DirectSpeech ds = (DirectSpeech) oldDss.get(i);
-
-	    //lösche alle direct_speeches Einträge aus oldDss die bereits in der Datenbank gespeichert sind
-	    res = stmt.executeQuery("SELECT * "
-		    + "FROM direct_speeches "
-		    + "WHERE id = "
-		    + ds.getDB_ID());
-
-	    if(res.next())
-	    	res.deleteRow();
-
-	    //lösche alle ius_FROM_direct_speeches Einträge aus oldDss die bereits in der Datenbank gespeichert
-	    res = stmt.executeQuery("SELECT * "
-		    + "FROM ius_from_direct_speeches "
-		    + "WHERE direct_speech = "
-		    + ds.getDB_ID());
-
-	    if(res.next())
-	    	res.deleteRow();
-	}
-
-	// speichere alle aktuellen Direct Speeches des chapters
-	for (int i = 0; i < newDss.size(); i++)	
-	{
-	    DirectSpeech ds = (DirectSpeech) newDss.get(i);
-
-	    res = stmt.executeQuery("SELECT * "
-		    + "FROM direct_speeches "
-		    + "WHERE id = "
-		    + ds.getDB_ID());
-
-	    //wenn Eintrag nicht in Datenbank vorhanden
-	    if (ds.getDB_ID() == -1) 
-	    {
-		res.moveToInsertRow();
-		res.updateInt("chapter", chapter.getDB_ID());
-		res.updateInt("index", ds.getIndex());
-		res.updateInt("depth", ds.getDepth());
-		res.updateBoolean("accepted", ds.isAccepted());
-
-		if (ds.getPossibleQuestionID() > 0)
-		    res.updateInt("possible_question", ds.getPossibleQuestionID());
-		else
-		    res.updateNull("possible_question");
-
-		res.insertRow();
-		res.close();
-		ds.resetState(key);
-
-		res = stmt.executeQuery("SELECT id "
-			+ "FROM direct_speeches WHERE chapter = "
-			+ chapter.getDB_ID()
-			+ " and `index` = "
-			+ ds.getIndex()
-			+ " and depth = "
-			+ ds.getDepth());
-
-		if (res.next())
-		    ds.setDB_ID(key, res.getInt("id"));
-		else
-		    throw new DBC_SaveException("Direkte Rede "
-			    + ds
-			    + "konnte nicht angelegt werden");
-
-		res.close();
-
-		res = stmt.executeQuery("SELECT * FROM ius_from_direct_speeches");
-		Vector ius = ds.getIllocutionUnits();
-
-		for (int j = 0; j < ius.size(); j++) 
-		{
-		    IllocutionUnit iu = (IllocutionUnit) ius.get(j);
-
-		    res.moveToInsertRow();
-		    res.updateInt("direct_speech", ds.getDB_ID());
-		    res.updateInt("illocution_unit", iu.getDB_ID());
-		    res.insertRow();
 		}
-		res.close();
-	    }
+		
+	public synchronized DirectSpeeches saveDirectSpeeches (Integer chapterID, DirectSpeeches oldDirectSpeeches, DirectSpeeches newDirectSpeeches, Integer level)
+	throws Exception {
+		Chapter chapter = getChapter(chapterID.intValue());
+		
+		Vector oldDss = oldDirectSpeeches.getAllDirectSpeeches(key);
+		Vector newDss = newDirectSpeeches.getAllDirectSpeeches(key);
+		
+		oldDirectSpeeches.setChapter(key, chapter);
+		newDirectSpeeches.setChapter(key, chapter);
+		
+		connection.setAutoCommit(false);
+		Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+		ResultSet.CONCUR_UPDATABLE);
+		
+		ResultSet res;
+		
+		//lösche alle Direct Speeches des chapters in der Datenbank
+		for (int i = 0; i < oldDss.size(); i++) 
+		{
+		DirectSpeech ds = (DirectSpeech) oldDss.get(i);
+		
+		//lösche alle direct_speeches Einträge aus oldDss die bereits in der Datenbank gespeichert sind
+		res = stmt.executeQuery("SELECT * "
+			+ "FROM direct_speeches "
+			+ "WHERE id = "
+			+ ds.getDB_ID()
+			+ " AND level = " + level);
+		
+		if(res.next())
+			res.deleteRow();
+		
+		//lösche alle ius_FROM_direct_speeches Einträge aus oldDss die bereits in der Datenbank gespeichert
+		res = stmt.executeQuery("SELECT * "
+			+ "FROM ius_from_direct_speeches "
+			+ "WHERE direct_speech = "
+			+ ds.getDB_ID()
+			+ " AND level = " + level);
+		
+		if(res.next())
+			res.deleteRow();
+		}
+		
+		//speichere alle aktuellen Direct Speeches des chapters
+		for (int i = 0; i < newDss.size(); i++)	
+			{
+			DirectSpeech ds = (DirectSpeech) newDss.get(i);
+			
+			res = stmt.executeQuery("SELECT * "
+				+ "FROM direct_speeches "
+				+ "WHERE id = "
+				+ ds.getDB_ID()
+				+ " AND level = " + level);
+			
+			//wenn Eintrag nicht in Datenbank vorhanden
+			if (ds.getDB_ID() == -1) 
+			{
+				res.moveToInsertRow();
+				res.updateInt("chapter", chapter.getDB_ID());
+				res.updateInt("index", ds.getIndex());
+				res.updateInt("depth", ds.getDepth());
+				res.updateBoolean("accepted", ds.isAccepted());
+				res.updateInt("level", level);
+				
+				if (ds.getPossibleQuestionID() > 0)
+					res.updateInt("possible_question", ds.getPossibleQuestionID());
+				else
+					res.updateNull("possible_question");
+				
+				res.insertRow();
+				res.close();
+				ds.resetState(key);
+				
+				res = stmt.executeQuery("SELECT id "
+					+ "FROM direct_speeches WHERE chapter = "
+					+ chapter.getDB_ID()
+					+ " and `index` = "
+					+ ds.getIndex()
+					+ " and depth = "
+					+ ds.getDepth()
+					+ " AND level = " + level);
+				
+				if (res.next())
+					ds.setDB_ID(key, res.getInt("id"));
+				else
+					throw new DBC_SaveException("Direkte Rede "
+						+ ds
+						+ "konnte nicht angelegt werden");
+				
+				res.close();
+				
+				res = stmt.executeQuery("SELECT * FROM ius_from_direct_speeches WHERE level = " + level);
+				Vector ius = ds.getIllocutionUnits();
+				
+				for (int j = 0; j < ius.size(); j++) 
+				{
+					IllocutionUnit iu = (IllocutionUnit) ius.get(j);
+				
+					res.moveToInsertRow();
+					res.updateInt("direct_speech", ds.getDB_ID());
+					res.updateInt("illocution_unit", iu.getDB_ID());
+					res.updateInt("level", level);
+					res.insertRow();
+				}
+				res.close();
+			}
+		}
+		
+		connection.commit();
+		connection.setAutoCommit(true);
+		stmt.close();
+		
+		return newDirectSpeeches;
 	}
-
-	connection.commit();
-	connection.setAutoCommit(true);
-	stmt.close();
-
-	return newDirectSpeeches;
-    }
-
-
-    /*   public synchronized DirectSpeeches saveDirectSpeeches(Integer chapterID,
-         DirectSpeeches directSpeeches)
-         throws Exception {
-
-      Chapter chapter = getChapter(chapterID.intValue());
-      Vector dss = directSpeeches.getAllDirectSpeeches(key);
-      directSpeeches.setChapter(key, chapter);
-
-      connection.setAutoCommit(false);
-      Statement stmt = connection
-            .createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
-            				 ResultSet.CONCUR_UPDATABLE);
-      ResultSet res;
-
-      for (int i = 0; i < dss.size(); i++) {
-         DirectSpeech ds = (DirectSpeech) dss.get(i);
-
-         res = stmt.executeQuery("SELECT * "
-               + "FROM direct_speeches "
-               + "WHERE id = "
-               + ds.getDB_ID());
-
-         if (res.next() && ds.getDB_ID() != -1) {
-            if (ds.hasChanged()) {
-               res.updateInt("chapter", chapter.getDB_ID());
-               res.updateInt("index", ds.getIndex());
-               res.updateInt("depth", ds.getDepth());
-               res.updateBoolean("accepted", ds.isAccepted());
-               if (ds.getPossibleQuestionID() > 0)
-                  res
-                        .updateInt("possible_question", ds
-                              .getPossibleQuestionID());
-               else
-                  res.updateNull("possible_question");
-               res.updateRow();
-               ds.resetState(key);
-
-               Vector ius = ds.getIllocutionUnits();
-               Vector existingIUs = new Vector();
-               res = stmt
-                     .executeQuery("SELECT * FROM ius_FROM_direct_speeches "
-                           + "WHERE direct_speech = "
-                           + ds.getDB_ID());
-
-               while (res.next()) {
-                  int iuID = res.getInt("illocution_unit");
-                  IllocutionUnit iu = (IllocutionUnit) getElement(iuID, ius);
-                  if (iu == null)
-                     res.deleteRow();
-                  else
-                     existingIUs.add(iu);
-               }
-
-               for (int j = 0; j < ius.size(); j++) {
-                  IllocutionUnit iu = (IllocutionUnit) ius.get(j);
-                  if (!existingIUs.contains(iu)) {
-                     res.moveToInsertRow();
-                     res.updateInt("direct_speech", ds.getDB_ID());
-                     res.updateInt("illocution_unit", iu.getDB_ID());
-                     res.insertRow();
-                  }
-               }
-            }
-            else if (ds.isRemoved()) {
-               res.deleteRow();
-            }
-         }
-
-         else if (!ds.isRemoved() && ds.getDB_ID() == -1) {
-            res.moveToInsertRow();
-            res.updateInt("chapter", chapter.getDB_ID());
-            res.updateInt("index", ds.getIndex());
-            res.updateInt("depth", ds.getDepth());
-            res.updateBoolean("accepted", ds.isAccepted());
-            if (ds.getPossibleQuestionID() > 0)
-               res.updateInt("possible_question", ds.getPossibleQuestionID());
-            else
-               res.updateNull("possible_question");
-            res.insertRow();
-            res.close();
-            ds.resetState(key);
-
-            res = stmt.executeQuery("SELECT id "
-                  + "FROM direct_speeches WHERE chapter = "
-                  + chapter.getDB_ID()
-                  + " and `index` = "
-                  + ds.getIndex()
-                  + " and depth = "
-                  + ds.getDepth());
-
-            if (res.next())
-               ds.setDB_ID(key, res.getInt("id"));
-            else
-               throw new DBC_SaveException("Direkte Rede "
-                     + ds
-                     + "konnte nicht angelegt werden");
-
-            res.close();
-            res = stmt.executeQuery("SELECT * FROM ius_FROM_direct_speeches");
-            Vector ius = ds.getIllocutionUnits();
-            for (int j = 0; j < ius.size(); j++) {
-               IllocutionUnit iu = (IllocutionUnit) ius.get(j);
-               res.moveToInsertRow();
-               res.updateInt("direct_speech", ds.getDB_ID());
-               res.updateInt("illocution_unit", iu.getDB_ID());
-               res.insertRow();
-            }
-         }
-         res.close();
-         connection.commit();
-      }
-      connection.setAutoCommit(true);
-      stmt.close();
-      return directSpeeches;
-   }
-     */
-
-    public synchronized Dialogs saveDialogs(Integer chapterID, Dialogs oldDialogs, Dialogs newDialogs )
+ 
+	public synchronized Dialogs saveDialogs(Integer chapterID, Dialogs oldDialogs, Dialogs newDialogs, Integer level )
 	throws Exception 
 	{
 		Chapter chapter = getChapter(chapterID.intValue());
@@ -1240,7 +1126,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		for (int i = 0; i < oldDs.size(); i++) {
 			Dialog ds = (Dialog) oldDs.get(i);
 			
-			res = stmt.executeQuery("SELECT * " + "FROM dialogs " + "WHERE id = " + ds.getDB_ID());
+			res = stmt.executeQuery("SELECT * " + "FROM dialogs " + "WHERE id = " + ds.getDB_ID()
+					+ " AND level = " + level);
 
 			if (res.next())
 				res.deleteRow();
@@ -1252,7 +1139,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			Dialog d = (Dialog) newDs.get(i);
 
 			res = stmt.executeQuery("SELECT * " + "FROM dialogs "
-					+ "WHERE id = " + d.getDB_ID());
+					+ "WHERE id = " + d.getDB_ID()
+					+ " AND level = " + level);
 		
 			if (res.next() && d.getDB_ID() != -1) 
 			{
@@ -1263,11 +1151,13 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				res.updateInt("start", d.getDialogStart().getDB_ID());
 				res.updateInt("end", d.getDialogEnd().getDB_ID());
 				res.updateBoolean("accepted", d.isAccepted());
+				res.updateInt("level", level);
 				res.updateRow();
 				d.resetState(key);
 				res.close();
-	
-				res = stmt.executeQuery("SELECT * FROM cosmologies WHERE dialog = " + d.getDB_ID());
+
+				res = stmt.executeQuery("SELECT * FROM cosmologies WHERE dialog = " + d.getDB_ID()
+						+ " AND level = " + level);
 				int j = 0;
 				while (res.next()) 
 				{
@@ -1276,6 +1166,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 						res.updateInt("start", d.getCosmologies().get(j).getStartIndex());
 						res.updateInt("end", d.getCosmologies().get(j).getEndIndex());
 						res.updateString("description", d.getCosmologies().get(j).getDescription());
+						res.updateInt("level", level);
 						res.updateRow();
 						++j;
 					} else
@@ -1292,6 +1183,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				res.updateInt("start", d.getDialogStart().getDB_ID());
 				res.updateInt("end", d.getDialogEnd().getDB_ID());
 				res.updateBoolean("accepted", d.isAccepted());
+				res.updateInt("level", level);
 				res.insertRow();
 				res.close();
 				d.resetState(key);
@@ -1299,7 +1191,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				res = stmt.executeQuery("SELECT id "
 						+ "FROM dialogs WHERE chapter = " + chapter.getDB_ID()
 						+ " and `index` = " + d.getIndex() + " and depth = "
-						+ d.getDepth());
+						+ d.getDepth()
+						+ " AND level = " + level);
 		
 				if (res.next())
 					d.setDB_ID(key, res.getInt("id"));
@@ -1317,6 +1210,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 					res.updateInt("start", cosmol.getStartIndex());
 					res.updateInt("end", cosmol.getEndIndex());
 					res.updateString("description", cosmol.getDescription());
+					res.updateInt("level", level);
 					res.insertRow();
 					res.close();
 				}
@@ -1327,144 +1221,15 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		connection.setAutoCommit(true);
 		stmt.close();
 		
-		//saveSpeakerChanges(dialogs);
-		
 		return newDialogs;
 	}
-    
-    /*
-    public synchronized Dialogs saveDialogs(Integer chapterID, Dialogs dialogs)
-    throws Exception {
-
-	logger.info("******* SAVE *******");
-	Chapter chapter = getChapter(chapterID.intValue());
-	Vector ds = dialogs.getAllDialogs(key);
-	dialogs.setChapter(key, chapter);
-
-	connection.setAutoCommit(false);
-	Statement stmt = connection
-	.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
-		ResultSet.CONCUR_UPDATABLE);
-	ResultSet res;
-
-	for (int i = 0; i < ds.size(); i++) {
-	    Dialog d = (Dialog) ds.get(i);
-
-	    res = stmt.executeQuery("SELECT * "
-		    + "FROM dialogs "
-		    + "WHERE id = "
-		    + d.getDB_ID());
-
-	    if (res.next() && d.getDB_ID() != -1) {
-		if (d.hasChanged()) {
-		    res.updateInt("chapter", chapter.getDB_ID());
-		    res.updateInt("index", d.getIndex());
-		    res.updateInt("depth", d.getDepth());
-		    res.updateInt("start", d.getDialogStart().getDB_ID());
-		    res.updateInt("end", d.getDialogEnd().getDB_ID());
-		    res.updateBoolean("accepted", d.isAccepted());
-		    res.updateRow();
-		    d.resetState(key);
-		    res.close();
-
-		    res = stmt.executeQuery("SELECT * FROM run_up WHERE dialog = "
-			    + d.getDB_ID());
-//		    if (res.next()) {
-//			if (d.hasRunUp()) {
-//			    res.updateInt("start", d.getRunUpStart().getDB_ID());
-//			    res.updateInt("end", d.getRunUpEnd().getDB_ID());
-//			    res.updateRow();
-//			}
-//			else
-//			    res.deleteRow();
-//		    }
-		    res.close();
-
-		    res = stmt
-		    .executeQuery("SELECT * FROM follow_up WHERE dialog = "
-			    + d.getDB_ID());
-//		    if (res.next()) {
-//			if (d.hasFollowUp()) {
-//			    res.updateInt("start", d.getFollowUpStart().getDB_ID());
-//			    res.updateInt("end", d.getFollowUpEnd().getDB_ID());
-//			    res.updateRow();
-//			}
-//			else
-//			    res.deleteRow();
-//		    }
-		    res.close();
-		}
-		else if (d.isRemoved()) {
-		    res.deleteRow();
-		}
-	    }
-
-	    else if (!d.isRemoved() && d.getDB_ID() == -1) {
-		res.moveToInsertRow();
-		res.updateInt("chapter", chapter.getDB_ID());
-		res.updateInt("index", d.getIndex());
-		res.updateInt("depth", d.getDepth());
-		res.updateInt("start", d.getDialogStart().getDB_ID());
-		res.updateInt("end", d.getDialogEnd().getDB_ID());
-		res.updateBoolean("accepted", d.isAccepted());
-		res.insertRow();
-		res.close();
-		d.resetState(key);
-
-		res = stmt.executeQuery("SELECT id "
-			+ "FROM dialogs WHERE chapter = "
-			+ chapter.getDB_ID()
-			+ " and `index` = "
-			+ d.getIndex()
-			+ " and depth = "
-			+ d.getDepth());
-
-		if (res.next())
-		    d.setDB_ID(key, res.getInt("id"));
-		else
-		    throw new DBC_SaveException("Dialog "
-			    + d
-			    + "konnte nicht angelegt werden");
-		res.close();
-
-//		if (d.hasFollowUp()) {
-//		    res = stmt.executeQuery("SELECT * FROM follow_up");
-//		    res.moveToInsertRow();
-//		    res.updateInt("dialog", d.getDB_ID());
-//		    res.updateInt("start", d.getFollowUpStart().getDB_ID());
-//		    res.updateInt("end", d.getFollowUpEnd().getDB_ID());
-//		    res.insertRow();
-//		    res.close();
-//		}
-//
-//		if (d.hasRunUp()) {
-//		    res = stmt.executeQuery("SELECT * FROM run_up");
-//		    res.moveToInsertRow();
-//		    res.updateInt("dialog", d.getDB_ID());
-//		    res.updateInt("start", d.getRunUpStart().getDB_ID());
-//		    res.updateInt("end", d.getRunUpEnd().getDB_ID());
-//		    res.insertRow();
-//		    res.close();
-//		}
-	    }
-	    res.close();
-	    connection.commit();
-	}
-	connection.setAutoCommit(true);
-	stmt.close();
-
-	saveSpeakerChanges(dialogs);
-
-	return dialogs;
-    }
-     */
     
     /**
      * Wird vom Dialogprogramm benutzt.
      * Es werden alle Speakers in der DB gespeichert.
      * Speaker können Akteure und Kp (Kommunikationspartner) sein, außerdem werden speaker bei der Face-Bestimmung festgelegt. 
      */
-    public synchronized ArrayList<DialogSpeaker> saveSpeakers(Integer chapterID, ArrayList<DialogSpeaker> speakers)
+	public synchronized ArrayList<DialogSpeaker> saveSpeakers(Integer chapterID, ArrayList<DialogSpeaker> speakers, Integer level)
 	throws Exception 
 	{
 		Chapter chapter = getChapter(chapterID.intValue());
@@ -1475,14 +1240,16 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		ResultSet res;
 		
 		// alle Speakers des Chapters werden gelöscht
-		stmt.execute("DELETE FROM speakers WHERE chapter = " + chapter.getDB_ID());
+		stmt.execute("DELETE FROM speakers WHERE chapter = " + chapter.getDB_ID()
+				+ " AND level = " + level);
 		
 		for (int i = 0; i < speakers.size(); i++) 
 		{
 			DialogSpeaker speaker = (DialogSpeaker) speakers.get(i);
 
 			res = stmt.executeQuery("SELECT * " + "FROM speakers "
-					+ "WHERE id = " + speaker.getDB_ID());
+					+ "WHERE id = " + speaker.getDB_ID()
+					+ " AND level = " + level);
 
 			for (int speakerNr : speaker.getSpeakerMap().keySet()) 
 			{
@@ -1493,6 +1260,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				res.updateString("speaker", speakerName);
 				res.updateString("typ", speaker.getTyp());
 				res.updateInt("location", speaker.getIUIndex());
+				res.updateInt("level", level);
 				res.insertRow();
 			}
 			res.close();
@@ -1507,7 +1275,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 							+ " and speakerNr = " + speakerNr 
 							+ " and `speaker` = ?"
 							+ " and typ = ?"
-							+ " and location = " + speaker.getIUIndex());
+							+ " and location = " + speaker.getIUIndex()
+							+ " AND level = " + level);
 						   
 				preStmt.setString(1, speakerName);
 				preStmt.setString(2, speaker.getTyp());
@@ -1529,124 +1298,9 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 		return speakers;
 	}
-    
-//    private void saveSpeakerChanges(Dialogs dialogs) throws Exception 
-//    {
-//		Vector scs = dialogs.getAllSpeakerChanges(key);
-//		// Kapitel muss nicht gesetzt werden, da dies schon durch saveDialogs
-//		// erledigt wurde;
-//	
-//		connection.setAutoCommit(false);
-//		Statement stmt = connection
-//		.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
-//			ResultSet.CONCUR_UPDATABLE);
-//		ResultSet res;
-//	
-//		for (int i = 0; i < scs.size(); i++) 
-//		{
-//		    DialogSpeakerChange sc = (DialogSpeakerChange) scs.get(i);
-//	
-//		    res = stmt.executeQuery("SELECT * "
-//			    + "FROM speaker_changes "
-//			    + "WHERE id = "
-//			    + sc.getDB_ID());
-//	
-//		    if (res.next() && sc.getDB_ID() != -1) 
-//		    {
-//				if (sc.hasChanged()) 
-//				{
-//				    res.updateInt("dialog", sc.getDialog().getDB_ID());
-//				    res.updateInt("speaker_change", sc.getSpeakerChange());
-//				    res.updateInt("index", sc.getIndex());
-//				    res.updateBoolean("accepted", sc.isAccepted());
-//				    res.updateRow();
-//				    sc.resetState(key);
-//		
-//				    Vector words = sc.getWords();
-//				    Vector existingWords = new Vector();
-//				    res = stmt.executeQuery("SELECT * FROM words_in_speaker_change "
-//					    + "WHERE speaker_change = "
-//					    + sc.getDB_ID());
-//		
-//				    // lï¿½sche die Wï¿½rter, die nicht mehr im Sprecherwechsel vorkommen
-//				    while (res.next()) 
-//				    {
-//						int wordID = res.getInt("word");
-//						Word w = (Word) getElement(wordID, words);
-//						if (w == null) {
-//						    res.deleteRow();
-//						}
-//						else {
-//						    existingWords.add(w);
-//						}
-//				    }
-//		
-//				    for (int j = 0; j < words.size(); j++) 
-//				    {
-//						Word w = (Word) words.get(j);
-//						if (!existingWords.contains(w)) 
-//						{
-//						    res.moveToInsertRow();
-//						    res.updateInt("speaker_change", sc.getDB_ID());
-//						    res.updateInt("word", w.getDB_ID());
-//						    res.insertRow();
-//						}
-//				    }
-//				}
-//				else if (sc.isRemoved()) {
-//				    res.deleteRow();
-//				}
-//		    }
-//	
-//		    else if (!sc.isRemoved() && sc.getDB_ID() == -1) 
-//		    {
-//				res.moveToInsertRow();
-//				res.updateInt("dialog", sc.getDialog().getDB_ID());
-//				res.updateInt("speaker_change", sc.getSpeakerChange());
-//				res.updateInt("index", sc.getIndex());
-//				res.updateBoolean("accepted", sc.isAccepted());
-//				res.insertRow();
-//				res.close();
-//				sc.resetState(key);
-//		
-//				res = stmt.executeQuery("SELECT id "
-//					+ "FROM speaker_changes WHERE dialog = "
-//					+ sc.getDialog().getDB_ID()
-//					+ " and `index` = "
-//					+ sc.getIndex());
-//		
-//				if (res.next()) {
-//				    sc.setDB_ID(key, res.getInt("id"));
-//				}
-//				else 
-//				{
-//				    throw new DBC_SaveException("Sprecherwechsel "
-//					    + sc
-//					    + "konnte nicht angelegt werden");
-//				}
-//		
-//				res.close();
-//				res = stmt.executeQuery("SELECT * FROM words_in_speaker_change");
-//				Vector words = sc.getWords();
-//				for (int j = 0; j < words.size(); j++) 
-//				{
-//				    Word w = (Word) words.get(j);
-//				    res.moveToInsertRow();
-//				    res.updateInt("speaker_change", sc.getDB_ID());
-//				    res.updateInt("word", w.getDB_ID());
-//				    res.insertRow();
-//				}
-//		    }
-//		    res.close();
-//		    connection.commit();
-//		}
-//		connection.setAutoCommit(true);
-//		stmt.close();
-//    }
-
-    
-  public void saveSpeakerChanges(Integer chapterID, ArrayList<DialogSpeakerChange> changes) throws Exception 
-  {
+      
+	public void saveSpeakerChanges(Integer chapterID, ArrayList<DialogSpeakerChange> changes, Integer level) throws Exception 
+	{
 		Chapter chapter = getChapter(chapterID);
 	  
 		connection.setAutoCommit(false);
@@ -1655,57 +1309,61 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		ResultSet res;
 		
 		// alle SpeakerChanges des Chapters werden gelöscht
-		stmt.execute("DELETE FROM `speaker_changes` WHERE chapter = " + chapter.getDB_ID());
+		stmt.execute("DELETE FROM `speaker_changes` WHERE chapter = " + chapter.getDB_ID()
+				+ " AND level = " + level);
 
-	
+
 		for (int i = 0; i < changes.size(); i++) 
 		{
-		    DialogSpeakerChange sc = (DialogSpeakerChange) changes.get(i);
-	
-		    res = stmt.executeQuery("SELECT * "
-				    + "FROM speaker_changes "
-				    + "WHERE id = " + sc.getDB_ID());
+			DialogSpeakerChange sc = (DialogSpeakerChange) changes.get(i);
+
+			res = stmt.executeQuery("SELECT * "
+					+ "FROM speaker_changes "
+					+ "WHERE id = " + sc.getDB_ID()
+					+ " AND level = " + level);
 			   
-	    	res.moveToInsertRow();
-	    	res.updateInt("chapter", chapter.getDB_ID());
-		    res.updateString("description", sc.getDescription());
-		    res.updateString("typ", sc.getTyp());
-		    res.updateInt("location", sc.getIUIndex());
-		    res.insertRow();
+			res.moveToInsertRow();
+			res.updateInt("chapter", chapter.getDB_ID());
+			res.updateString("description", sc.getDescription());
+			res.updateString("typ", sc.getTyp());
+			res.updateInt("location", sc.getIUIndex());
+			res.updateInt("level", level);
+			res.insertRow();
 			res.close();
-		    sc.resetState(key);	
-		    
-		    PreparedStatement preStmt = connection.prepareStatement("SELECT id "
+			sc.resetState(key);	
+			
+			PreparedStatement preStmt = connection.prepareStatement("SELECT id "
 					+ "FROM speaker_changes WHERE " 
 					+ "chapter = " + chapter.getDB_ID()
 					+ " and description =  ? "  
 					+ " and typ =  ?"
-		    		+ " and location = " + sc.getIUIndex());
+					+ " and location = " + sc.getIUIndex()
+					+ " AND level = " + level);
 				   
-		    
-		    preStmt.setString(1, sc.getDescription());
-		    preStmt.setString(2, sc.getTyp());
-		    res = preStmt.executeQuery();
-		    
+			
+			preStmt.setString(1, sc.getDescription());
+			preStmt.setString(2, sc.getTyp());
+			res = preStmt.executeQuery();
+			
 			if (res.next()) {
-			    sc.setDB_ID(key, res.getInt("id"));
+				sc.setDB_ID(key, res.getInt("id"));
 			}
 			else 
 			{
-			    throw new DBC_SaveException("Sprecherwechsel "
-				    + sc
-				    + "konnte nicht angelegt werden");
+				throw new DBC_SaveException("Sprecherwechsel "
+					+ sc
+					+ "konnte nicht angelegt werden");
 			}
-		    			   
-		    res.close();
-		    connection.commit();
+						   
+			res.close();
+			connection.commit();
 		}
 		connection.setAutoCommit(true);
 		stmt.close();
-  	}
+	}
   
-  	public void saveD_Themat(Integer chapterID, ArrayList<DialogD_Themat> themats) throws Exception 
-  	{
+	public void saveD_Themat(Integer chapterID, ArrayList<DialogD_Themat> themats, Integer level) throws Exception 
+	{
 		Chapter chapter = getChapter(chapterID);
 	  
 		connection.setAutoCommit(false);
@@ -1714,84 +1372,88 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		ResultSet res;
 		
 		// alle SpeakerChanges des Chapters werden gelöscht
-		stmt.execute("DELETE FROM `d_themat` WHERE chapter = " + chapter.getDB_ID());
+		stmt.execute("DELETE FROM `d_themat` WHERE chapter = " + chapter.getDB_ID()
+				+ " AND level = " + level);
 
-	
+
 		for (int i = 0; i < themats.size(); i++) 
 		{
-		    DialogD_Themat dt = (DialogD_Themat) themats.get(i);
-	
-		    res = stmt.executeQuery("SELECT * "
-				    + "FROM d_themat "
-				    + "WHERE id = " + dt.getDB_ID());
+			DialogD_Themat dt = (DialogD_Themat) themats.get(i);
+
+			res = stmt.executeQuery("SELECT * "
+					+ "FROM d_themat "
+					+ "WHERE id = " + dt.getDB_ID()
+					+ " AND level = " + level);
 			   
-	    	res.moveToInsertRow();
-	    	res.updateInt("chapter", chapter.getDB_ID());
-		    res.updateString("description", dt.getDescription());
-		    res.updateInt("location", dt.getIUIndex());
-		    res.insertRow();
+			res.moveToInsertRow();
+			res.updateInt("chapter", chapter.getDB_ID());
+			res.updateString("description", dt.getDescription());
+			res.updateInt("location", dt.getIUIndex());
+			res.updateInt("level", level);
+			res.insertRow();
 			res.close();
-		    dt.resetState(key);	
-		    
-		    PreparedStatement preStmt = connection.prepareStatement("SELECT id "
+			dt.resetState(key);	
+			
+			PreparedStatement preStmt = connection.prepareStatement("SELECT id "
 					+ "FROM d_themat WHERE " 
 					+ "chapter = " + chapter.getDB_ID()
 					+ " and description =  ? "  
-					+ " and location = " + dt.getIUIndex());
+					+ " and location = " + dt.getIUIndex()
+					+ " AND level = " + level);
 				   
-		    
-		    preStmt.setString(1, dt.getDescription());
-		    res = preStmt.executeQuery();
-		    
+			
+			preStmt.setString(1, dt.getDescription());
+			res = preStmt.executeQuery();
+			
 			if (res.next()) 
 			{
-			    dt.setDB_ID(key, res.getInt("id"));
-			    
-			    // save options
-			    if (dt.getOptions().size() != 0)
-			    {
-				    res = stmt.executeQuery("SELECT * "
-						    + "FROM options_of_d_themat ");
+				dt.setDB_ID(key, res.getInt("id"));
+				
+				// save options
+				if (dt.getOptions().size() != 0)
+				{
+					res = stmt.executeQuery("SELECT * "
+							+ "FROM options_of_d_themat ");
 					
 					res.moveToInsertRow();
-			    	res.updateInt("d_themat", dt.getDB_ID());	    	
-			    	res.updateBoolean("agree", dt.isAgree());
-			    	res.updateBoolean("disagree", dt.isDisagree());	    	
-			    	res.updateBoolean("obey", dt.isObey());
-			    	res.updateBoolean("refuse", dt.isRefuse());
-			    	res.updateBoolean("accept", dt.isAccept());
-			    	res.updateBoolean("reject", dt.isReject());	    	
-			    	res.updateBoolean("approve", dt.isApprove());
-			    	res.updateBoolean("disapprove", dt.isDisapprove());
-			    	res.insertRow();
+					res.updateInt("d_themat", dt.getDB_ID());	    	
+					res.updateBoolean("agree", dt.isAgree());
+					res.updateBoolean("disagree", dt.isDisagree());	    	
+					res.updateBoolean("obey", dt.isObey());
+					res.updateBoolean("refuse", dt.isRefuse());
+					res.updateBoolean("accept", dt.isAccept());
+					res.updateBoolean("reject", dt.isReject());	    	
+					res.updateBoolean("approve", dt.isApprove());
+					res.updateBoolean("disapprove", dt.isDisapprove());
+					res.insertRow();
 					res.close();
 					dt.resetState(key);
-			    }
+				}
 			}
 			else 
 			{
-			    throw new DBC_SaveException("d_thematisch Eintrag "
-				    + dt
-				    + "konnte nicht angelegt werden");
+				throw new DBC_SaveException("d_thematisch Eintrag "
+					+ dt
+					+ "konnte nicht angelegt werden");
 			}
 			
-		    res.close();
-		    connection.commit();
+			res.close();
+			connection.commit();
 		}
 		connection.setAutoCommit(true);
 		stmt.close();
-  	}
-  	
-  	/**
-  	 * Wird vom Dialogprogramm benutzt
-  	 * Es werden die Faces in der DB gespeichert. 
-  	 * Die zu den Faces zugehörigen Speakers müssen separat mit saveSpeakers gespeichert werden.
-  	 * @param chapterID
-  	 * @param faces
-  	 * @return
-  	 * @throws Exception
-  	 */
-  	public synchronized void saveFaces (Integer chapterID, ArrayList<DialogFaces> faces)
+	}
+
+	/**
+	 * Wird vom Dialogprogramm benutzt
+	 * Es werden die Faces in der DB gespeichert. 
+	 * Die zu den Faces zugehörigen Speakers müssen separat mit saveSpeakers gespeichert werden.
+	 * @param chapterID
+	 * @param faces
+	 * @return
+	 * @throws Exception
+	 */
+	public synchronized void saveFaces (Integer chapterID, ArrayList<DialogFaces> faces, Integer level)
 	throws Exception 
 	{
 		Chapter chapter = getChapter(chapterID.intValue());
@@ -1802,19 +1464,22 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		ResultSet res;
 		
 		// alle Speakers des Chapters werden gelöscht
-		stmt.execute("DELETE FROM faces WHERE chapter = " + chapter.getDB_ID());
+		stmt.execute("DELETE FROM faces WHERE chapter = " + chapter.getDB_ID()
+				+ " AND level = " + level);
 		
 		for (int i = 0; i < faces.size(); i++) 
 		{
 			DialogFaces face = (DialogFaces) faces.get(i);
 
 			res = stmt.executeQuery("SELECT * " + "FROM faces "
-					+ "WHERE id = " + face.getDB_ID());
+					+ "WHERE id = " + face.getDB_ID()
+					+ " AND level = " + level);
 			
 			res.moveToInsertRow();
 			res.updateInt("chapter", chapter.getDB_ID());
 			res.updateString("description", face.getDescription());
 			res.updateInt("location", face.getIUIndex());
+			res.updateInt("level", level);
 			res.insertRow();
 			res.close();
 			face.resetState(key);
@@ -1823,7 +1488,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 						+ "FROM faces WHERE " 
 						+ "chapter = " + chapter.getDB_ID() 
 						+ " and `description` = ?"
-						+ " and location = " + face.getIUIndex());
+						+ " and location = " + face.getIUIndex()
+						+ " AND level = " + level);
 					   
 			preStmt.setString(1, face.getDescription());
 			res = preStmt.executeQuery();
@@ -1841,10 +1507,9 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		connection.setAutoCommit(true);
 		stmt.close();
 	}
-  	
-  	
-  	public void saveTargets(Integer chapterID, ArrayList<DialogTarget> targets) throws Exception 
-  	{
+
+	public void saveTargets(Integer chapterID, ArrayList<DialogTarget> targets, Integer level) throws Exception 
+	{
 		Chapter chapter = getChapter(chapterID);
 	  
 		connection.setAutoCommit(false);
@@ -1853,60 +1518,64 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		ResultSet res;
 		
 		// alle SpeakerChanges des Chapters werden gelöscht
-		stmt.execute("DELETE FROM `targets` WHERE chapter = " + chapter.getDB_ID());
+		stmt.execute("DELETE FROM `targets` WHERE chapter = " + chapter.getDB_ID()
+				+ " AND level = " + level);
 
-	
+
 		for (int i = 0; i < targets.size(); i++) 
 		{
-		    DialogTarget dt = (DialogTarget) targets.get(i);
-	
-		    res = stmt.executeQuery("SELECT * "
-				    + "FROM targets "
-				    + "WHERE id = " + dt.getDB_ID());
+			DialogTarget dt = (DialogTarget) targets.get(i);
+
+			res = stmt.executeQuery("SELECT * "
+					+ "FROM targets "
+					+ "WHERE id = " + dt.getDB_ID()
+					+ " AND level = " + level);
 			   
-	    	res.moveToInsertRow();
-	    	res.updateInt("chapter", chapter.getDB_ID());
-		    res.updateString("description", dt.getDescription());
-		    res.updateInt("targetNr", dt.getTargetNr());
-		    res.updateString("target", dt.getTarget());
-		    res.updateInt("location", dt.getIUIndex());
-		    res.insertRow();
+			res.moveToInsertRow();
+			res.updateInt("chapter", chapter.getDB_ID());
+			res.updateString("description", dt.getDescription());
+			res.updateInt("targetNr", dt.getTargetNr());
+			res.updateString("target", dt.getTarget());
+			res.updateInt("location", dt.getIUIndex());
+			res.updateInt("level", level);
+			res.insertRow();
 			res.close();
-		    dt.resetState(key);	
-		    
-		    PreparedStatement preStmt = connection.prepareStatement("SELECT id "
+			dt.resetState(key);	
+			
+			PreparedStatement preStmt = connection.prepareStatement("SELECT id "
 					+ "FROM targets WHERE " 
 					+ "chapter = " + chapter.getDB_ID()
 					+ " and description =  ? "
 					+ " and targetNr =  " + dt.getTargetNr() 
 					+ " and target =  ? "
-					+ " and location = " + dt.getIUIndex());
+					+ " and location = " + dt.getIUIndex()
+					+ " AND level = " + level);
 				   
-		    
-		    preStmt.setString(1, dt.getDescription());
-		    preStmt.setString(2, dt.getTarget());
-		    
-		    res = preStmt.executeQuery();
-		    
+			
+			preStmt.setString(1, dt.getDescription());
+			preStmt.setString(2, dt.getTarget());
+			
+			res = preStmt.executeQuery();
+			
 			if (res.next()) {
-			    dt.setDB_ID(key, res.getInt("id"));
+				dt.setDB_ID(key, res.getInt("id"));
 			}
 			else 
 			{
-			    throw new DBC_SaveException("Target "
-				    + dt
-				    + "konnte nicht angelegt werden");
+				throw new DBC_SaveException("Target "
+					+ dt
+					+ "konnte nicht angelegt werden");
 			}
 			
-		    res.close();
-		    connection.commit();
+			res.close();
+			connection.commit();
 		}
 		connection.setAutoCommit(true);
 		stmt.close();
-  	}
-  	
-  	public void saveISignals(Integer chapterID, ArrayList<DialogISignal> signals) throws Exception 
-  	{
+	}
+
+	public void saveISignals(Integer chapterID, ArrayList<DialogISignal> signals, Integer level) throws Exception 
+	{
 		Chapter chapter = getChapter(chapterID);
 	  
 		connection.setAutoCommit(false);
@@ -1915,52 +1584,56 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		ResultSet res;
 		
 		// alle SpeakerChanges des Chapters werden gelöscht
-		stmt.execute("DELETE FROM `i_signals` WHERE chapter = " + chapter.getDB_ID());
+		stmt.execute("DELETE FROM `i_signals` WHERE chapter = " + chapter.getDB_ID()
+				+ " AND level = " + level);
 
-	
+
 		for (int i = 0; i < signals.size(); i++) 
 		{
-		    DialogISignal sig = (DialogISignal) signals.get(i);
-	
-		    res = stmt.executeQuery("SELECT * "
-				    + "FROM i_signals "
-				    + "WHERE id = " + sig.getDB_ID());
+			DialogISignal sig = (DialogISignal) signals.get(i);
+
+			res = stmt.executeQuery("SELECT * "
+					+ "FROM i_signals "
+					+ "WHERE id = " + sig.getDB_ID()
+					+ " AND level = " + level);
 			   
-	    	res.moveToInsertRow();
-	    	res.updateInt("chapter", chapter.getDB_ID());
-		    res.updateBoolean("signal", sig.getSignal());
-		    res.updateInt("location", sig.getIUIndex());
-		    res.insertRow();
+			res.moveToInsertRow();
+			res.updateInt("chapter", chapter.getDB_ID());
+			res.updateBoolean("signal", sig.getSignal());
+			res.updateInt("location", sig.getIUIndex());
+			res.updateInt("level", level);
+			res.insertRow();
 			res.close();
-		    sig.resetState(key);	
-		    
-		    PreparedStatement preStmt = connection.prepareStatement("SELECT id "
+			sig.resetState(key);	
+			
+			PreparedStatement preStmt = connection.prepareStatement("SELECT id "
 					+ "FROM i_signals WHERE " 
 					+ "chapter = " + chapter.getDB_ID()
 					+ " and signal =  " + sig.getSignal()
-					+ " and location = " + sig.getIUIndex());
+					+ " and location = " + sig.getIUIndex()
+					+ " AND level = " + level);
 				   
-		    res = preStmt.executeQuery();
-		    
+			res = preStmt.executeQuery();
+			
 			if (res.next()) {
-			    sig.setDB_ID(key, res.getInt("id"));
+				sig.setDB_ID(key, res.getInt("id"));
 			}
 			else 
 			{
-			    throw new DBC_SaveException("I_Signal "
-				    + sig
-				    + "konnte nicht angelegt werden");
+				throw new DBC_SaveException("I_Signal "
+					+ sig
+					+ "konnte nicht angelegt werden");
 			}
 			
-		    res.close();
-		    connection.commit();
+			res.close();
+			connection.commit();
 		}
 		connection.setAutoCommit(true);
 		stmt.close();
-  	}
-  	
-  	public void saveComments(Integer chapterID, ArrayList<DialogComment> comments) throws Exception 
-  	{
+	}
+
+	public void saveComments(Integer chapterID, ArrayList<DialogComment> comments, Integer level) throws Exception 
+	{
 		Chapter chapter = getChapter(chapterID);
 	  
 		connection.setAutoCommit(false);
@@ -1969,54 +1642,58 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		ResultSet res;
 		
 		// alle SpeakerChanges des Chapters werden gelöscht
-		stmt.execute("DELETE FROM `comments` WHERE chapter = " + chapter.getDB_ID());
+		stmt.execute("DELETE FROM `comments` WHERE chapter = " + chapter.getDB_ID()
+				+ " AND level = " + level);
 
-	
+
 		for (int i = 0; i < comments.size(); i++) 
 		{
-		    DialogComment com = (DialogComment) comments.get(i);
-	
-		    res = stmt.executeQuery("SELECT * "
-				    + "FROM comments "
-				    + "WHERE id = " + com.getDB_ID());
+			DialogComment com = (DialogComment) comments.get(i);
+
+			res = stmt.executeQuery("SELECT * "
+					+ "FROM comments "
+					+ "WHERE id = " + com.getDB_ID()
+					+ " AND level = " + level);
 			   
-	    	res.moveToInsertRow();
-	    	res.updateInt("chapter", chapter.getDB_ID());
-		    res.updateString("comment", com.getComment());
-		    res.updateInt("commentNr", com.getCommentNr());
-		    res.updateInt("location", com.getIUIndex());
-		    res.insertRow();
+			res.moveToInsertRow();
+			res.updateInt("chapter", chapter.getDB_ID());
+			res.updateString("comment", com.getComment());
+			res.updateInt("commentNr", com.getCommentNr());
+			res.updateInt("location", com.getIUIndex());
+			res.updateInt("level", level);
+			res.insertRow();
 			res.close();
-		    com.resetState(key);	
-		    
-		    PreparedStatement preStmt = connection.prepareStatement("SELECT id "
+			com.resetState(key);	
+			
+			PreparedStatement preStmt = connection.prepareStatement("SELECT id "
 					+ "FROM comments WHERE " 
 					+ "chapter = " + chapter.getDB_ID()
 					+ " and comment =  ?"
 					+ " and commentNr =  " + com.getCommentNr()
-					+ " and location = " + com.getIUIndex());
+					+ " and location = " + com.getIUIndex()
+					+ " AND level = " + level);
 				   
-		    preStmt.setString(1, com.getComment());
-		    res = preStmt.executeQuery();
-		    
+			preStmt.setString(1, com.getComment());
+			res = preStmt.executeQuery();
+			
 			if (res.next()) {
-			    com.setDB_ID(key, res.getInt("id"));
+				com.setDB_ID(key, res.getInt("id"));
 			}
 			else 
 			{
-			    throw new DBC_SaveException("Comment "
-				    + com
-				    + "konnte nicht angelegt werden");
+				throw new DBC_SaveException("Comment "
+					+ com
+					+ "konnte nicht angelegt werden");
 			}
 			
-		    res.close();
-		    connection.commit();
+			res.close();
+			connection.commit();
 		}
 		connection.setAutoCommit(true);
 		stmt.close();
-  	}
-    
-	public synchronized Dialogs loadDialogs(Integer chapterID) throws Exception 
+	}
+
+	public synchronized Dialogs loadDialogs(Integer chapterID, Integer level) throws Exception 
 	{
 		Chapter chapter = getChapter(chapterID.intValue());
 
@@ -2029,6 +1706,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		res = stmt.executeQuery("SELECT id, `index`, depth, start, end, accepted "
 						+ "FROM dialogs WHERE chapter = "
 						+ chapter.getDB_ID()
+						+ " AND level = " + level
 						+ " ORDER BY `index`");
 
 		while (res.next()) 
@@ -2045,7 +1723,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			Dialog dialog = (Dialog)ds.get(i);
 			
 			res = stmt.executeQuery("SELECT start, end, description "
-					+ "FROM cosmologies WHERE dialog = " + dialog.getDB_ID());
+					+ "FROM cosmologies WHERE dialog = " + dialog.getDB_ID()
+					+ " AND level = " + level);
 
 			while (res.next()) 
 			{
@@ -2056,27 +1735,6 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				dialog.setCosmology(cosmol);
 			}
 		}
-
-//		for (int i = 0; i < ds.size(); i++) {
-//			Dialog dialog = (Dialog) ds.get(i);
-//			res = stmt.executeQuery("SELECT * "
-//					+ "FROM speaker_changes WHERE dialog = "
-//					+ dialog.getDB_ID());
-//
-//			if (res.next()) {
-//				DialogSpeakerChange sc = new DialogSpeakerChange(key, res.getInt("id"),
-//						dialog, res.getInt("speaker_change"), res.getInt("index"), res.getBoolean("accepted"));
-//
-//				res = stmt.executeQuery("SELECT word FROM words_in_speaker_change "
-//								+ "WHERE speaker_change = " + sc.getDB_ID());
-//				while (res.next()) {
-//					Word w = chapter.getWordWithID(res.getInt("word"));
-//					sc.addWord(w);
-//				}
-//				sc.resetState(key);
-//			}
-//		}
-
 		for (int i = 0; i < ds.size(); i++) {
 			Dialog dialog = (Dialog) ds.get(i);
 			dialogs.add(dialog);
@@ -2085,8 +1743,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		stmt.close();
 		return dialogs;
 	}
-
-	public synchronized ArrayList<DialogSpeaker> loadSpeakers (Integer chapterID, String typ) throws Exception 
+ 
+	public synchronized ArrayList<DialogSpeaker> loadSpeakers (Integer chapterID, String typ, Integer level) throws Exception 
 	{
 		Chapter chapter = getChapter(chapterID.intValue());
 
@@ -2099,15 +1757,16 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 					+ "FROM speakers WHERE " 
 					+ "chapter = " + chapter.getDB_ID()
 					+ " and typ = ?"
+					+ " AND level = " + level
 					+ " ORDER BY `location` ASC ");
 				   
-		    
-	    preStmt.setString(1, typ);
-	    res = preStmt.executeQuery();
-		    
-	    if ( res.next() )
-	    {
-		    int location = res.getInt("location");
+			
+		preStmt.setString(1, typ);
+		res = preStmt.executeQuery();
+			
+		if ( res.next() )
+		{
+			int location = res.getInt("location");
 			Map<Integer, String> map = new HashMap<Integer, String>();
 			map.put(res.getInt("speakerNr"), res.getString("speaker"));
 			
@@ -2120,21 +1779,21 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				else
 				{
 					DialogSpeaker speaker = new DialogSpeaker(chapter, map, typ, location);
-				    speakers.add(speaker);
-				    location = res.getInt("location");
+					speakers.add(speaker);
+					location = res.getInt("location");
 					map = new HashMap<Integer, String>();
 					map.put(res.getInt("speakerNr"), res.getString("speaker"));
 				}
 			}
 			DialogSpeaker speaker = new DialogSpeaker(chapter, map, typ, location);
-		    speakers.add(speaker);
-	    }
+			speakers.add(speaker);
+		}
 		res.close();
 		stmt.close();
 		return speakers;
 	}
-	
-	public synchronized ArrayList<DialogSpeakerChange> loadSpeakerChanges (Integer chapterID, String typ) throws Exception 
+
+	public synchronized ArrayList<DialogSpeakerChange> loadSpeakerChanges (Integer chapterID, String typ, Integer level) throws Exception 
 	{
 		Chapter chapter = getChapter(chapterID.intValue());
 
@@ -2146,21 +1805,22 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		PreparedStatement preStmt = connection.prepareStatement("SELECT * "
 					+ "FROM speaker_changes WHERE " 
 					+ "chapter = " + chapter.getDB_ID()
-					+ " and typ = ?");
+					+ " and typ = ?"
+					+ " AND level = " + level);
 		 preStmt.setString(1, typ);
 		 res = preStmt.executeQuery();			
-				    
-	    while ( res.next() )
-	    {
-		    DialogSpeakerChange change = new DialogSpeakerChange(chapter, res.getString("description"), res.getInt("location"), typ);
-		    changes.add(change);
-	    }
+					
+		while ( res.next() )
+		{
+			DialogSpeakerChange change = new DialogSpeakerChange(chapter, res.getString("description"), res.getInt("location"), typ);
+			changes.add(change);
+		}
 		res.close();
 		stmt.close();
 		return changes;
 	}
-	
-	public synchronized ArrayList<DialogD_Themat> loadD_Themat (Integer chapterID) throws Exception 
+
+	public synchronized ArrayList<DialogD_Themat> loadD_Themat (Integer chapterID, Integer level) throws Exception 
 	{
 		Chapter chapter = getChapter(chapterID.intValue());
 
@@ -2171,55 +1831,56 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 		PreparedStatement preStmt = connection.prepareStatement("SELECT * "
 					+ "FROM d_themat WHERE " 
-					+ "chapter = " + chapter.getDB_ID());
+					+ "chapter = " + chapter.getDB_ID()
+					+ " AND level = " + level);
 		  
-	    res = preStmt.executeQuery();
-		    
-	    while ( res.next() )
-	    {
-	    	PreparedStatement preStmt2 = connection.prepareStatement("SELECT * "
+		res = preStmt.executeQuery();
+			
+		while ( res.next() )
+		{
+			PreparedStatement preStmt2 = connection.prepareStatement("SELECT * "
 					+ "FROM options_of_d_themat WHERE " 
 					+ "d_themat = " + res.getInt("id"));
-	    	
-	    	res2 = preStmt2.executeQuery();
-	    	Vector<String> options = new Vector<String>();
-	    	if (res2.next())
-	    	{
-	    		if (res2.getBoolean("agree")) {
-	    			options.add("agree");
-	    		}
-	    		if (res2.getBoolean("disagree")) {
-	    			options.add("disagree");
-	    		}
-	    		if (res2.getBoolean("obey")) {
-	    			options.add("obey");
-	    		}
-	    		if (res2.getBoolean("refuse")) {
-	    			options.add("refuse");
-	    		}
-	    		if (res2.getBoolean("accept")) {
-	    			options.add("accept");
-	    		}
-	    		if (res2.getBoolean("reject")) {
-	    			options.add("reject");
-	    		}
-	    		if (res2.getBoolean("approve")) {
-	    			options.add("approve");
-	    		}
-	    		if (res2.getBoolean("disapprove")) {
-	    			options.add("disapprove");
-	    		}		    	
-	    	}	    	
-		    DialogD_Themat d_themat = new DialogD_Themat(chapter, res.getString("description"), res.getInt("location"), options);
-		    d_themats.add(d_themat);
-	    }
+			
+			res2 = preStmt2.executeQuery();
+			Vector<String> options = new Vector<String>();
+			if (res2.next())
+			{
+				if (res2.getBoolean("agree")) {
+					options.add("agree");
+				}
+				if (res2.getBoolean("disagree")) {
+					options.add("disagree");
+				}
+				if (res2.getBoolean("obey")) {
+					options.add("obey");
+				}
+				if (res2.getBoolean("refuse")) {
+					options.add("refuse");
+				}
+				if (res2.getBoolean("accept")) {
+					options.add("accept");
+				}
+				if (res2.getBoolean("reject")) {
+					options.add("reject");
+				}
+				if (res2.getBoolean("approve")) {
+					options.add("approve");
+				}
+				if (res2.getBoolean("disapprove")) {
+					options.add("disapprove");
+				}		    	
+			}	    	
+			DialogD_Themat d_themat = new DialogD_Themat(chapter, res.getString("description"), res.getInt("location"), options);
+			d_themats.add(d_themat);
+		}
 		res.close();
 		stmt.close();
 		return d_themats;
 	}
-	
-	
-	public synchronized ArrayList<DialogFaces> loadFaces (Integer chapterID) throws Exception 
+
+
+	public synchronized ArrayList<DialogFaces> loadFaces (Integer chapterID, Integer level) throws Exception 
 	{
 		Chapter chapter = getChapter(chapterID.intValue());
 
@@ -2230,11 +1891,12 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 		PreparedStatement preStmt = connection.prepareStatement("SELECT * "
 					+ "FROM faces WHERE " 
-					+ "chapter = " + chapter.getDB_ID());
+					+ "chapter = " + chapter.getDB_ID()
+					+ " AND level = " + level);
 					   
 		res = preStmt.executeQuery();
-		    
-		ArrayList<DialogSpeaker> speakers = loadSpeakers(chapterID, DialogSpeaker.FACE_TYP);
+			
+		ArrayList<DialogSpeaker> speakers = loadSpeakers(chapterID, DialogSpeaker.FACE_TYP, level);
 		while ( res.next() ) 
 		{
 			DialogSpeaker speaker = null;
@@ -2254,8 +1916,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		stmt.close();
 		return faces;
 	}
-	
-	public synchronized ArrayList<DialogTarget> loadTargets (Integer chapterID) throws Exception 
+
+	public synchronized ArrayList<DialogTarget> loadTargets (Integer chapterID, Integer level) throws Exception 
 	{
 		Chapter chapter = getChapter(chapterID.intValue());
 
@@ -2266,10 +1928,11 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 		PreparedStatement preStmt = connection.prepareStatement("SELECT * "
 					+ "FROM targets WHERE " 
-					+ "chapter = " + chapter.getDB_ID());
+					+ "chapter = " + chapter.getDB_ID()
+					+ " AND level = " + level);
 					   
 		res = preStmt.executeQuery();
-		    
+			
 		while ( res.next() ) 
 		{
 			DialogTarget target = new DialogTarget(chapter, res.getInt("location"), 
@@ -2280,8 +1943,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		stmt.close();
 		return targets;
 	}
-	
-	public synchronized ArrayList<DialogISignal> loadISignals (Integer chapterID) throws Exception 
+
+	public synchronized ArrayList<DialogISignal> loadISignals (Integer chapterID, Integer level) throws Exception 
 	{
 		Chapter chapter = getChapter(chapterID.intValue());
 
@@ -2292,10 +1955,11 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 		PreparedStatement preStmt = connection.prepareStatement("SELECT * "
 					+ "FROM i_signals WHERE " 
-					+ "chapter = " + chapter.getDB_ID());
+					+ "chapter = " + chapter.getDB_ID()
+					+ " AND level = " + level);
 					   
 		res = preStmt.executeQuery();
-		    
+			
 		while ( res.next() ) 
 		{
 			DialogISignal signal = new DialogISignal(chapter, res.getBoolean("signal"), res.getInt("location"));
@@ -2305,8 +1969,9 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		stmt.close();
 		return signals;
 	}
-	
-	public synchronized ArrayList<DialogComment> loadComments (Integer chapterID) throws Exception 
+
+
+	public synchronized ArrayList<DialogComment> loadComments (Integer chapterID, Integer level) throws Exception 
 	{
 		Chapter chapter = getChapter(chapterID.intValue());
 
@@ -2317,10 +1982,11 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 		PreparedStatement preStmt = connection.prepareStatement("SELECT location, comment, commentNr "
 					+ "FROM comments WHERE " 
-					+ "chapter = " + chapter.getDB_ID());
+					+ "chapter = " + chapter.getDB_ID()
+					+ " AND level = " + level);
 					   
 		res = preStmt.executeQuery();
-		    
+			
 		while ( res.next() ) 
 		{
 			DialogComment comment = new DialogComment(chapter, res.getInt("location"), res.getString("comment"), res.getInt("commentNr"));
@@ -3892,92 +3558,99 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	return languages;
     }
 
-    public Comments loadComments(Integer ChapterID, Integer ownerClassCode)
+    public Comments loadComments(Integer ChapterID, Integer ownerClassCode, Integer level)
     throws Exception {
-	Comments c = new Comments();
-	String subquery;
-
-	switch (ownerClassCode.intValue()) {
-	case Comments.CLASS_CODE_ILLOCUTION_UNIT :
-	    subquery = "SELECT id FROM illocution_units WHERE chapter = "
-		+ ChapterID;
-	    break;
-	case Comments.CLASS_CODE_DIRECT_SPEECH :
-	    subquery = "SELECT id FROM direct_speeches WHERE chapter = "
-		+ ChapterID;
-	    break;
-	case Comments.CLASS_CODE_DIALOG :
-	    subquery = "SELECT id FROM dialogs WHERE chapter = " + ChapterID;
-	    break;
-	case Comments.CLASS_CODE_DIALOG_FOLLOWUP :
-	    subquery = "SELECT id FROM dialogs WHERE chapter = " + ChapterID;
-	    break;
-	case Comments.CLASS_CODE_DIALOG_RUNUP :
-	    subquery = "SELECT id FROM dialogs WHERE chapter = " + ChapterID;
-	    break;
-	default :
-	    subquery = "";
-	break;
-	}
-
-	Statement stmt = connection.createStatement();
-	ResultSet res = stmt.executeQuery("SELECT owner_id, owner_class_code, "
+		Comments c = new Comments();
+		String subquery;
+		
+		switch (ownerClassCode.intValue()) {
+		case Comments.CLASS_CODE_ILLOCUTION_UNIT :
+		   subquery = "SELECT id FROM illocution_units WHERE chapter = "
+		+ ChapterID
+		+ " AND level = " + level;
+		   break;
+		case Comments.CLASS_CODE_DIRECT_SPEECH :
+		   subquery = "SELECT id FROM direct_speeches WHERE chapter = "
+		+ ChapterID
+		+ " AND level = " + level;
+		   break;
+		case Comments.CLASS_CODE_DIALOG :
+		   subquery = "SELECT id FROM dialogs WHERE chapter = " + ChapterID
+		+ " AND level = " + level;
+		   break;
+		case Comments.CLASS_CODE_DIALOG_FOLLOWUP :
+		   subquery = "SELECT id FROM dialogs WHERE chapter = " + ChapterID
+		+ " AND level = " + level;
+		   break;
+		case Comments.CLASS_CODE_DIALOG_RUNUP :
+		   subquery = "SELECT id FROM dialogs WHERE chapter = " + ChapterID
+		+ " AND level = " + level;
+		   break;
+		default :
+		   subquery = "";
+		break;
+		}
+		
+		Statement stmt = connection.createStatement();
+		ResultSet res = stmt.executeQuery("SELECT owner_id, owner_class_code, "
 		+ "program, comment FROM comments_old "
 		+ "WHERE owner_class_code = "
 		+ ownerClassCode
 		+ " and owner_id in ("
 		+ subquery
 		+ ")");
-
-	while (res.next()) {
-	    CommentKey ck = new CommentKey(key, res.getInt("owner_id"), res
-		    .getInt("owner_class_code"), res.getString("program"));
-	    c.setComment(key, ck, res.getString("comment"));
-	}
-
-	return c;
+		
+		while (res.next()) {
+		   CommentKey ck = new CommentKey(key, res.getInt("owner_id"), res
+		   .getInt("owner_class_code"), res.getString("program"));
+		   c.setComment(key, ck, res.getString("comment"));
+		}
+		
+		return c;
     }
 
-	public void saveComments(Comments comments) throws Exception {
-		connection.setAutoCommit(false);
-		Statement stmt = connection.createStatement(
-				ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+    public void saveComments(Comments comments, Integer level) throws Exception {
+    	connection.setAutoCommit(false);
+    	Statement stmt = connection.createStatement(
+    			ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
-		ResultSet res;
-		Enumeration cks = comments.getKeys();
+    	ResultSet res;
+    	Enumeration cks = comments.getKeys();
 
-		while (cks.hasMoreElements()) {
-			CommentKey ck = (CommentKey) cks.nextElement();
-			Comment c = comments.getComment(ck);
+    	while (cks.hasMoreElements()) {
+    		CommentKey ck = (CommentKey) cks.nextElement();
+    		Comment c = comments.getComment(ck);
 
-			res = stmt.executeQuery("SELECT * FROM comments WHERE owner_id = "
-					+ ck.getOwnerID() + " and owner_class_code = "
-					+ ck.getOwnerClassCode() + " and program = '"
-					+ ck.getProgramID() + "'");
+    		res = stmt.executeQuery("SELECT * FROM comments WHERE owner_id = "
+    				+ ck.getOwnerID() + " and owner_class_code = "
+    				+ ck.getOwnerClassCode() + " and program = '"
+    				+ ck.getProgramID() + "'"
+    				+ " AND level = " + level);
 
-			if (res.next()) {
-				if (c.isRemoved())
-					res.deleteRow();
-				else if (c.hasChanged()) {
-					res.updateString("comment", c.getComment());
-					res.updateRow();
-				}
-			} else {
-				if (c.isNew() || c.hasChanged()) {
-					res.moveToInsertRow();
-					res.updateInt("owner_id", ck.getOwnerID());
-					res.updateInt("owner_class_code", ck.getOwnerClassCode());
-					res.updateString("program", ck.getProgramID());
-					res.updateString("comment", c.getComment());
-					res.insertRow();
-				}
-			}
-			connection.commit();
-		}
+    		if (res.next()) {
+    			if (c.isRemoved())
+    				res.deleteRow();
+    			else if (c.hasChanged()) {
+    				res.updateString("comment", c.getComment());
+    				res.updateRow();
+    			}
+    		} else {
+    			if (c.isNew() || c.hasChanged()) {
+    				res.moveToInsertRow();
+    				res.updateInt("owner_id", ck.getOwnerID());
+    				res.updateInt("owner_class_code", ck.getOwnerClassCode());
+    				res.updateString("program", ck.getProgramID());
+    				res.updateString("comment", c.getComment());
+    				res.updateInt("level", level);	
+    				res.insertRow();
+    			}
+    		}
+    		connection.commit();
+    	}
 
-		stmt.close();
-		connection.setAutoCommit(true);
-	}
+    	stmt.close();
+    	connection.setAutoCommit(true);
+    }
 
     /**
      * Das gleiche wie die Wortlisten, bloï¿½, dass die Ausgabe in der Klasse

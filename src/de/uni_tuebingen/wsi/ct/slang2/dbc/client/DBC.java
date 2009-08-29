@@ -287,18 +287,22 @@ public class DBC implements DBC_KeyAcceptor {
 	/**
 	 *  delete wle and the coressponding assignation and set the assignation in cw to null
 	 */
-	public void deleteWLECW(int wleID, int assigID)
+	public void deleteWLE(int wleID, int assigID)
+	throws Exception {
+		Message answer = connection.call(new Message(key, "deleteWLE", new Integer(wleID), new Integer(assigID)));
+	}
+/*	public void deleteWLECW(int wleID, int assigID)
 	throws Exception {
 		Message answer = connection.call(new Message(key, "deleteWLECW", new Integer(wleID), new Integer(assigID)));
 	}
-	
+*/	
 	/**
 	 *  delete wle and the coressponding assignation and set the assignation in cw to null
 	 */
-	public void deleteWLEFW(int wleID, int assigID)
+/*	public void deleteWLEFW(int wleID, int assigID)
 	throws Exception {
 		Message answer = connection.call(new Message(key, "deleteWLEFW", new Integer(wleID), new Integer(assigID)));
-	}
+	}*/
 	
 	
 	/**
@@ -1077,8 +1081,7 @@ public class DBC implements DBC_KeyAcceptor {
 	public void saveRenominalisations(Renominalisations renominalisations) throws Exception {
 		try {
 			Renominalisations answer = (Renominalisations) connection.call(new Message(key, "saveRenominalisations", renominalisations,
-					new Integer(renominalisations.getChapter().getDB_ID())))
-					.getArguments()[0];
+					new Integer(renominalisations.getChapter().getDB_ID()))).getArguments()[0];
 			renominalisations.updateIDs(key, answer);
 		} catch (MysqlDataTruncation e){
 			throw new DBC_SaveException(e.getMessage());
@@ -1094,8 +1097,7 @@ public class DBC implements DBC_KeyAcceptor {
 	public Renominalisations loadRenominalisations(Chapter chapter) throws Exception {
 		Message answer = connection.call(new Message(key,
 				"loadRenominalisations", new Integer(chapter.getDB_ID())));
-		Renominalisations renominalisations = (Renominalisations) answer
-		.getArguments()[0];
+		Renominalisations renominalisations = (Renominalisations) answer.getArguments()[0];
 		IllocutionUnitRoots iur = loadIllocutionUnitRoots(chapter);
 		renominalisations.setChapter(key, chapter, iur);
 		return renominalisations;

@@ -237,9 +237,9 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 
     /**
-     * Lï¿½dt alle Bï¿½cher aus der Datenbank.
+     * Laedt alle Buecher aus der Datenbank.
      * 
-     * @return ein Vektor mit allen gespeicherten Bï¿½chern
+     * @return ein Vektor mit allen gespeicherten Buechern
      * 
      * @see Book
      */
@@ -278,7 +278,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     }
 
     /**
-     * Lï¿½dt ein Buch aus der Datenbank
+     * Laedt ein Buch aus der Datenbank
      * 
      * @param id
      *        Die ID des Buches
@@ -350,7 +350,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     }
 
     /**
-     * LÃ¤dt alle Pattern aus der Datenbank.
+     * Laedt alle Pattern aus der Datenbank.
      * 
      * @return Vektor<Pattern>
      */
@@ -371,7 +371,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     }
 
     /**
-     * LÃ¤dt alle Pattern mit tdTyp aus der Datenbank.
+     * Laedt alle Pattern mit tdTyp aus der Datenbank.
      * 
      * @param String tdType
      * @return Vektor<Pattern>
@@ -868,56 +868,15 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			    + "FROM chapters WHERE book = "
 			    + bookID);
 		    res.next(); //zeigt auf zu löschendes, auf jeden Fall vorhandene Chapter
-		    if(!res.next()){ //Buch kann gelöscht werden, da kein weiteres Kapitel von diesem Buch vorhanden ist
-			stmt.execute("delete FROM books WHERE id = "+bookID);
-		    }
+		    if(!res.next()) //Buch kann gelöscht werden, da kein weiteres Kapitel von diesem Buch vorhanden ist
+		    	stmt.execute("delete FROM books WHERE id = "+bookID);
+		    
 		    stmt.execute("delete FROM chapters WHERE id = "+chapterID);
 		}
     }
     
-    /**
-     * delete wle and the coressponding assignation and set the assignation in cw to null
-     * @param chapterID
-     * @throws Exception
-     */
-    public synchronized void deleteWLE(Integer wleID, Integer assigID)
-    throws Exception {
-		Statement stmt = connection.createStatement();
-		// delete wle
-		stmt.execute("DELETE FROM word_list_elements WHERE id = "+wleID);
-		//	nicht einfach die assig löschen, auch cw bzw. fw updaten
-		stmt.execute("DELETE FROM assignations WHERE id = "+assigID);
-		
-		stmt.execute("UPDATE constitutive_words SET assignation_id = NULL WHERE assignation_id = " + assigID);
-		stmt.execute("UPDATE function_words SET assignation_id = NULL WHERE assignation_id = " + assigID);
-	}
-    
-/*    public synchronized void deleteWLECW(Integer wleID, Integer assigID)//, Integer cwID)
-    throws Exception {
-		Statement stmt = connection.createStatement();
-		// delete wle
-		stmt.execute("DELETE FROM word_list_elements WHERE id = "+wleID);
-		//	nicht einfach die assig löschen, auch cw updaten
-		stmt.execute("DELETE FROM assignations WHERE id = "+assigID);
-		//stmt.execute("DELETE FROM constitutive_words WHERE id = "+cwID);
-		stmt.execute("UPDATE constitutive_words SET assignation_id = NULL WHERE assignation_id = " + assigID);
-	}*/
-    /**
-     * delete wle and the coressponding assignation and set the assignation in fw to null
-     * @param chapterID
-     * @throws Exception
-     */
-/*    public synchronized void deleteWLEFW(Integer wleID, Integer assigID)
-    throws Exception {
-		Statement stmt = connection.createStatement();
-		// delete wle
-		stmt.execute("DELETE FROM word_list_elements WHERE id = "+wleID);
-		stmt.execute("DELETE FROM assignations WHERE id = "+assigID);
-		stmt.execute("UPDATE function_words SET assignation_id = NULL WHERE assignation_id = " + assigID);
-	}*/
-    
 	/**
-	 * Lï¿½dt alle Direkten Reden aus der Datenbank, die zu diesem Kapitel
+	 * Laedt alle Direkten Reden aus der Datenbank, die zu diesem Kapitel
 	 * gespeichert wurden.
 	 * 
 	 * @param chapterID
@@ -1338,139 +1297,6 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		stmt.close();
 	}
   
-	public void saveD_Themat(Integer chapterID, ArrayList<DialogD_Themat> themats, Integer level) throws Exception 
-	{
-		Chapter chapter = getChapter(chapterID);
-	  
-		connection.setAutoCommit(false);
-		Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
-			ResultSet.CONCUR_UPDATABLE);
-		ResultSet res;
-		
-		// alle SpeakerChanges des Chapters werden gelöscht
-		stmt.execute("DELETE FROM `d_themat` WHERE chapter = " + chapter.getDB_ID()
-				+ " AND level = " + level);
-
-		for (int i = 0; i < themats.size(); i++) 
-		{
-			DialogD_Themat dt = (DialogD_Themat) themats.get(i);
-			res = stmt.executeQuery("SELECT * "
-					+ "FROM d_themat "
-					+ "WHERE id = " + dt.getDB_ID()
-					+ " AND level = " + level);
-			res.moveToInsertRow();
-			res.updateInt("chapter", chapter.getDB_ID());
-			res.updateString("description", dt.getDescription());
-			res.updateInt("location", dt.getIUIndex());
-			res.updateInt("level", level);
-			res.insertRow();
-			res.close();
-			dt.resetState(key);	
-			
-			PreparedStatement preStmt = connection.prepareStatement("SELECT id "
-					+ "FROM d_themat WHERE " 
-					+ "chapter = " + chapter.getDB_ID()
-					+ " and description =  ? "  
-					+ " and location = " + dt.getIUIndex()
-					+ " AND level = " + level);
-			preStmt.setString(1, dt.getDescription());
-			res = preStmt.executeQuery();
-			
-			if (res.next()) 
-			{
-				dt.setDB_ID(key, res.getInt("id"));
-				
-				// save options
-				if (dt.getOptions().size() != 0)
-				{
-					res = stmt.executeQuery("SELECT * "
-							+ "FROM options_of_d_themat ");
-					res.moveToInsertRow();
-					res.updateInt("d_themat", dt.getDB_ID());	    	
-					res.updateBoolean("agree", dt.isAgree());
-					res.updateBoolean("disagree", dt.isDisagree());	    	
-					res.updateBoolean("obey", dt.isObey());
-					res.updateBoolean("refuse", dt.isRefuse());
-					res.updateBoolean("accept", dt.isAccept());
-					res.updateBoolean("reject", dt.isReject());	    	
-					res.updateBoolean("approve", dt.isApprove());
-					res.updateBoolean("disapprove", dt.isDisapprove());
-					res.insertRow();
-					res.close();
-					dt.resetState(key);
-				}
-			}
-			else 
-			{
-				throw new DBC_SaveException("d_thematisch Eintrag "
-					+ dt
-					+ "konnte nicht angelegt werden");
-			}
-			res.close();
-			connection.commit();
-		}
-		connection.setAutoCommit(true);
-		stmt.close();
-	}
-
-	/**
-	 * Wird vom Dialogprogramm benutzt
-	 * Es werden die Faces in der DB gespeichert. 
-	 * Die zu den Faces zugehörigen Speakers müssen separat mit saveSpeakers gespeichert werden.
-	 * @param chapterID
-	 * @param faces
-	 * @return
-	 * @throws Exception
-	 */
-	public synchronized void saveFaces (Integer chapterID, ArrayList<DialogFaces> faces, Integer level)
-	throws Exception 
-	{
-		Chapter chapter = getChapter(chapterID.intValue());
-		connection.setAutoCommit(false);
-		Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-		ResultSet res;
-		
-		// alle Speakers des Chapters werden gelöscht
-		stmt.execute("DELETE FROM faces WHERE chapter = " + chapter.getDB_ID()
-				+ " AND level = " + level);
-		
-		for (int i = 0; i < faces.size(); i++) 
-		{
-			DialogFaces face = (DialogFaces) faces.get(i);
-			res = stmt.executeQuery("SELECT * " + "FROM faces "
-					+ "WHERE id = " + face.getDB_ID()
-					+ " AND level = " + level);
-			res.moveToInsertRow();
-			res.updateInt("chapter", chapter.getDB_ID());
-			res.updateString("description", face.getDescription());
-			res.updateInt("location", face.getIUIndex());
-			res.updateInt("level", level);
-			res.insertRow();
-			res.close();
-			face.resetState(key);
-			
-			PreparedStatement preStmt = connection.prepareStatement("SELECT id "
-					+ "FROM faces WHERE " 
-					+ "chapter = " + chapter.getDB_ID() 
-					+ " and `description` = ?"
-					+ " and location = " + face.getIUIndex()
-					+ " AND level = " + level);
-			preStmt.setString(1, face.getDescription());
-			res = preStmt.executeQuery();
-			
-			if (res.next())
-				face.setDB_ID(key, res.getInt("id"));
-			else {
-				throw new DBC_SaveException("Face " + face
-						+ "konnte nicht angelegt werden");
-			}
-			res.close();
-		}
-		connection.commit();
-		connection.setAutoCommit(true);
-		stmt.close();
-	}
-
 	public void saveTargets(Integer chapterID, ArrayList<DialogTarget> targets, Integer level) throws Exception 
 	{
 		Chapter chapter = getChapter(chapterID);
@@ -1738,8 +1564,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		 return changes;
 	}
 
-	public synchronized ArrayList<DialogD_Themat> loadD_Themat (Integer chapterID, Integer level) throws Exception 
-	{
+	public synchronized ArrayList<DialogD_Themat> loadD_Themat (Integer chapterID, Integer level)
+	throws Exception {
 		Chapter chapter = getChapter(chapterID.intValue());
 		ArrayList<DialogD_Themat> d_themats = new ArrayList<DialogD_Themat>();
 		Statement stmt = connection.createStatement();
@@ -1792,9 +1618,83 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		return d_themats;
 	}
 
-	
-	public synchronized ArrayList<DialogFaces> loadFaces (Integer chapterID, Integer level) throws Exception 
-	{
+	public void saveD_Themat(Integer chapterID, ArrayList<DialogD_Themat> themats, Integer level)
+	throws Exception {
+		Chapter chapter = getChapter(chapterID);
+	  
+		connection.setAutoCommit(false);
+		Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+			ResultSet.CONCUR_UPDATABLE);
+		ResultSet res;
+		
+		// alle SpeakerChanges des Chapters werden gelöscht
+		stmt.execute("DELETE FROM `d_themat` WHERE chapter = " + chapter.getDB_ID()
+				+ " AND level = " + level);
+
+		for (int i = 0; i < themats.size(); i++) 
+		{
+			DialogD_Themat dt = (DialogD_Themat) themats.get(i);
+			res = stmt.executeQuery("SELECT * "
+					+ "FROM d_themat "
+					+ "WHERE id = " + dt.getDB_ID()
+					+ " AND level = " + level);
+			res.moveToInsertRow();
+			res.updateInt("chapter", chapter.getDB_ID());
+			res.updateString("description", dt.getDescription());
+			res.updateInt("location", dt.getIUIndex());
+			res.updateInt("level", level);
+			res.insertRow();
+			res.close();
+			dt.resetState(key);	
+			
+			PreparedStatement preStmt = connection.prepareStatement("SELECT id "
+					+ "FROM d_themat WHERE " 
+					+ "chapter = " + chapter.getDB_ID()
+					+ " and description =  ? "  
+					+ " and location = " + dt.getIUIndex()
+					+ " AND level = " + level);
+			preStmt.setString(1, dt.getDescription());
+			res = preStmt.executeQuery();
+			
+			if (res.next()) 
+			{
+				dt.setDB_ID(key, res.getInt("id"));
+				
+				// save options
+				if (dt.getOptions().size() != 0)
+				{
+					res = stmt.executeQuery("SELECT * "
+							+ "FROM options_of_d_themat ");
+					res.moveToInsertRow();
+					res.updateInt("d_themat", dt.getDB_ID());	    	
+					res.updateBoolean("agree", dt.isAgree());
+					res.updateBoolean("disagree", dt.isDisagree());	    	
+					res.updateBoolean("obey", dt.isObey());
+					res.updateBoolean("refuse", dt.isRefuse());
+					res.updateBoolean("accept", dt.isAccept());
+					res.updateBoolean("reject", dt.isReject());	    	
+					res.updateBoolean("approve", dt.isApprove());
+					res.updateBoolean("disapprove", dt.isDisapprove());
+					res.insertRow();
+					res.close();
+					dt.resetState(key);
+				}
+			}
+			else 
+			{
+				throw new DBC_SaveException("d_thematisch Eintrag "
+					+ dt
+					+ "konnte nicht angelegt werden");
+			}
+			res.close();
+			connection.commit();
+		}
+		connection.setAutoCommit(true);
+		stmt.close();
+	}
+
+	public synchronized ArrayList<DialogFaces> loadFaces (Integer chapterID, Integer level)
+	throws Exception {
 		Chapter chapter = getChapter(chapterID.intValue());
 		ArrayList<DialogFaces> faces = new ArrayList<DialogFaces>();
 		Statement stmt = connection.createStatement();
@@ -1823,9 +1723,64 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		stmt.close();
 		return faces;
 	}
+	/**
+	 * Wird vom Dialogprogramm benutzt
+	 * Es werden die Faces in der DB gespeichert. 
+	 * Die zu den Faces zugehörigen Speakers müssen separat mit saveSpeakers gespeichert werden.
+	 * @param chapterID
+	 * @param faces
+	 * @return
+	 * @throws Exception
+	 */
+	public synchronized void saveFaces (Integer chapterID, ArrayList<DialogFaces> faces, Integer level)
+	throws Exception {
+		Chapter chapter = getChapter(chapterID.intValue());
+		connection.setAutoCommit(false);
+		Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+		ResultSet res;
+		
+		// alle Speakers des Chapters werden gelöscht
+		stmt.execute("DELETE FROM faces WHERE chapter = " + chapter.getDB_ID()
+				+ " AND level = " + level);
+		
+		for (int i = 0; i < faces.size(); i++) {
+			DialogFaces face = (DialogFaces) faces.get(i);
+			res = stmt.executeQuery("SELECT * " + "FROM faces "
+					+ "WHERE id = " + face.getDB_ID()
+					+ " AND level = " + level);
+			res.moveToInsertRow();
+			res.updateInt("chapter", chapter.getDB_ID());
+			res.updateString("description", face.getDescription());
+			res.updateInt("location", face.getIUIndex());
+			res.updateInt("level", level);
+			res.insertRow();
+			res.close();
+			face.resetState(key);
+			
+			PreparedStatement preStmt = connection.prepareStatement("SELECT id "
+					+ "FROM faces WHERE " 
+					+ "chapter = " + chapter.getDB_ID() 
+					+ " and `description` = ?"
+					+ " and location = " + face.getIUIndex()
+					+ " AND level = " + level);
+			preStmt.setString(1, face.getDescription());
+			res = preStmt.executeQuery();
+			
+			if (res.next())
+				face.setDB_ID(key, res.getInt("id"));
+			else {
+				throw new DBC_SaveException("Face " + face
+						+ "konnte nicht angelegt werden");
+			}
+			res.close();
+		}
+		connection.commit();
+		connection.setAutoCommit(true);
+		stmt.close();
+	}
 
-	public synchronized ArrayList<DialogTarget> loadTargets (Integer chapterID, Integer level) throws Exception 
-	{
+	
+	public synchronized ArrayList<DialogTarget> loadTargets (Integer chapterID, Integer level) throws Exception {
 		Chapter chapter = getChapter(chapterID.intValue());
 		ArrayList<DialogTarget> targets = new ArrayList<DialogTarget>();
 		Statement stmt = connection.createStatement();
@@ -1868,7 +1823,6 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		stmt.close();
 		return signals;
 	}
-
 
 	public synchronized ArrayList<DialogComment> loadComments (Integer chapterID, Integer level) throws Exception 
 	{
@@ -1990,6 +1944,100 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		return fwords;
     }
 
+	/**
+     * Inserts, updates or removes <code>assignations</code> in the Database dependent on their state.
+     * @param assignations
+     * @return assignations with updates DB_IDs
+     * @throws SQLException
+     * @throws NullPointerException if <code>assignations</code> is null
+     */
+    private synchronized TR_Assignation[] saveAssignations(TR_Assignation ... assignations)
+    throws SQLException, NullPointerException {
+		logger.entering(this.getClass().getName(), "saveAssignation", assignations);
+		if(assignations == null)
+		    throw new IllegalArgumentException("");
+
+		PreparedStatement stmt = null;
+		ResultSet res = null;
+	
+		try {
+		    for (TR_Assignation tr_assignation : assignations) {
+				if(tr_assignation == null) {
+				    logger.info("assignation is null");
+				    continue;
+				}
+				if(tr_assignation.isUnchanged()) {
+				    logger.finest("assignation unchanged");
+				    continue;
+				}
+	
+				TR_Assignation_DB assignation_db = tr_assignation.new TR_Assignation_DB();
+				stmt = connection.prepareStatement(
+					"SELECT * FROM assignations WHERE id = ?",
+					ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+				stmt.setInt(1, assignation_db.getDB_ID());
+				res = stmt.executeQuery();
+	
+				if (assignation_db.hasChanged()) {
+				    if(! res.next()) 
+				    	res.moveToInsertRow();
+				    
+				    res.updateBytes("tr_type", assignation_db.getTypesBinary());
+				    res.updateBytes("tr_genus", assignation_db.getGeneraBinary());
+				    res.updateBytes("tr_numerus", assignation_db.getNumeriBinary());
+				    res.updateBytes("tr_determination", assignation_db.getDeterminationsBinary());
+				    res.updateBytes("tr_case", assignation_db.getCasesBinary());
+				    res.updateBytes("tr_person", assignation_db.getPersonsBinary());
+				    res.updateBytes("tr_tempus", assignation_db.getTemporaBinary());
+				    res.updateBytes("tr_konjugation", assignation_db.getKonjugationBinary());
+				    res.updateBytes("tr_diathese", assignation_db.getDiathesesBinary());
+				    res.updateBytes("tr_wordclass", assignation_db.getWordclassesBinary());
+				    res.updateBytes("tr_wortart1", assignation_db.getWortarten1Binary());
+				    res.updateBytes("tr_wortart2", assignation_db.getWortarten2Binary());
+				    res.updateBytes("tr_wortart3", assignation_db.getWortarten3Binary());
+				    res.updateBytes("tr_wortart4", assignation_db.getWortarten4Binary());
+				    res.updateBytes("tr_subclass_verb", assignation_db.getWordsubclassesVerbBinary());
+				    res.updateBytes("tr_subclass_verb_modification", assignation_db.getSubclassesVerbModificationBinary());
+				    res.updateBytes("tr_subclass_adjective", assignation_db.getWordsubclassesAdjectiveBinary());
+				    res.updateBytes("tr_subclass_pronoun", assignation_db.getWordsubclassesPronounBinary());
+				    res.updateBytes("tr_subclass_punctuationmark", assignation_db.getWordsubclassesPunctuationMarkBinary());
+				    res.updateString("description", assignation_db.getDescription());
+				    res.updateString("etymol", assignation_db.getEtymol());
+				    res.updateString("abbreviation", assignation_db.getAbbreviation());
+				    
+				    if(res.isFirst()) 
+				    	res.updateRow();
+				    else {
+						res.insertRow();
+						res.last();
+						tr_assignation.setDB_ID(key, res.getInt("id"));
+						logger.fine("new assignation inserted. ID="+tr_assignation.getDB_ID());
+				    }
+				    assignation_db.resetState(key);
+				}
+				else if(assignation_db.isRemoved() && res.next())
+				    res.deleteRow();
+			}
+		}
+		catch ( SQLException e ) {
+			System.err.println(e.getMessage());
+		    logger.severe(e.getLocalizedMessage());
+		    throw e;
+		}
+		finally {
+		    try {
+			if (res  != null)
+			    res.close();
+			if (stmt  != null)
+			    stmt.close();
+		    }
+		    catch (SQLException e) {
+		    	logger.warning(e.getLocalizedMessage());
+		    }
+		}
+		return assignations;
+    }
+    
     private TR_Assignation loadAssignation(int id) throws SQLException
     {
 		PreparedStatement stmt = null;
@@ -2041,54 +2089,6 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		    }
 		}
 		return assignation;
-    }
-
-    private Vector<ConstitutiveWord> loadConstitutiveWords(Chapter chapter, Vector<IllocutionUnitRoot> roots) throws Exception
-    {
-		PreparedStatement stmt = null;
-		ResultSet res = null;
-		Vector<ConstitutiveWord> cwords = new Vector<ConstitutiveWord>();
-		try {
-		    stmt = connection.prepareStatement(
-			    "SELECT * FROM constitutive_words WHERE chapter = ?" );
-		    stmt.setInt(1, chapter.getDB_ID());
-		    res = stmt.executeQuery();
-
-		    while (res.next()) {
-				Token token = chapter.getTokenAtPosition(res.getInt("start"));
-				if(token.getIllocutionUnit() == null) // TODO Check if it is acceptable that a token has no IllocutionUnit
-					continue;
-			
-				IllocutionUnitRoot root = (IllocutionUnitRoot) getElement(token
-					.getIllocutionUnit().getDB_ID(), roots);
-				
-				if (token instanceof Word) {
-					TR_Assignation assi = loadAssignation(res.getInt("assignation_id"));
-				    ConstitutiveWord cw = new ConstitutiveWord(key, root, res.getInt("id"),
-					    (Word) token, res.getInt("start"), res.getInt("end"), res.getBoolean("accepted"), res.getInt("lexprag_path"),
-					    res.getInt("lexprag_level"), res.getInt("text_gr_path"), res.getInt("sem_path"),
-					    assi);
-				    cwords.add(cw);
-				}
-		    }
-		}
-	
-		catch ( SQLException e ) {
-		    logger.severe(e.getLocalizedMessage());
-		    throw e;
-		}
-		finally {
-		    try {
-			if (res  != null)
-			    res.close();
-			if (stmt  != null)
-			    stmt.close();
-		    }
-		    catch (SQLException e) {
-			logger.warning(e.getLocalizedMessage());
-		    }
-		}
-		return cwords;
     }
 
     /**
@@ -2149,6 +2149,74 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		    } catch (SQLException e) { /* IGNORE */ }
 		}
 		return mus;
+    }
+    
+    private void saveMeaningUnits(Vector meaningUnits)
+    throws Exception {
+		connection.setAutoCommit(false);
+		Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+		ResultSet res;
+	
+		for (int i = 0; i < meaningUnits.size(); i++) {
+		    MeaningUnit mu = (MeaningUnit) meaningUnits.get(i);
+		    if (mu.isUnchanged())
+		    	continue;
+	
+		    res = stmt.executeQuery("SELECT * FROM "
+			    + "meaning_units WHERE id = "
+			    + mu.getDB_ID());
+	
+		    if (res.next()) {
+				if (mu.hasChanged()) {
+				    res.updateInt("illocution_unit", mu.getRoot()
+					    .getIllocutionUnit().getDB_ID());
+				    if (mu.getFunctionWord() != null)
+				    	res.updateInt("function_word", mu.getFunctionWord().getDB_ID());
+				    else
+						res.updateNull("function_word");
+					res.updateInt("constitutive_word", mu.getConstitutiveWord().getDB_ID());
+					res.updateInt("path", mu.getPath());
+					res.updateBoolean("accepted", mu.isAccepted());
+					res.updateInt("numerus_paths", mu.getNumerusPath());
+					res.updateRow();
+					mu.resetState(key);
+				}
+				else if (mu.isRemoved())
+				    res.deleteRow();
+			}
+		    else if (!mu.isRemoved()) {
+				res.moveToInsertRow();
+				res.updateInt("illocution_unit", mu.getRoot().getIllocutionUnit().getDB_ID());
+				if (mu.getFunctionWord() != null)
+				    res.updateInt("function_word", mu.getFunctionWord().getDB_ID());
+				res.updateInt("constitutive_word", mu.getConstitutiveWord().getDB_ID());
+				res.updateInt("path", mu.getPath());
+				res.updateInt("numerus_paths", mu.getNumerusPath());
+				res.updateBoolean("accepted", mu.isAccepted());
+				res.insertRow();
+				res.close();
+				mu.resetState(key);
+		
+				res = stmt.executeQuery("SELECT id "
+					+ "FROM meaning_units WHERE illocution_unit = "
+					+ mu.getRoot().getIllocutionUnit().getDB_ID()
+					+ " and constitutive_word = "
+					+ mu.getConstitutiveWord().getDB_ID());
+		
+				if (res.next())
+				    mu.setDB_ID(key, res.getInt("id"));
+				else
+				    throw new DBC_SaveException("Semantische Einheit "
+					    + mu
+					    + " konnte nicht in der "
+					    + "DB gespeichert werden!");
+		    }
+		    res.close();
+		    // schreibe Aenderung in die DB
+		    connection.commit();
+		}
+		connection.setAutoCommit(true);
+		stmt.close();
     }
 
     private Vector loadSememeGroups(Chapter chapter, Vector roots, Vector meaningUnits, Vector funtionWords)
@@ -2270,6 +2338,263 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		}
 		stmt.close();
 		connection.setAutoCommit(true);
+    }
+
+    private void saveSememeGroups(Vector sememeGroups)
+    throws Exception {
+		connection.setAutoCommit(false);
+		Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,	ResultSet.CONCUR_UPDATABLE);
+		ResultSet res;
+	
+		for (int i = 0; i < sememeGroups.size(); i++) {
+		    SememeGroup sg = (SememeGroup) sememeGroups.get(i);
+		    if (sg.isUnchanged())
+		    	continue;
+	
+		    res = stmt.executeQuery("SELECT * FROM "
+			    + "sememe_groups WHERE id = "
+			    + sg.getDB_ID());
+	
+		    // schon in der DB vorhanden
+		    if (res.next()) {
+		    	if (sg.hasChanged()) {
+				    res.updateInt("illocution_unit", sg.getRoot().getIllocutionUnit().getDB_ID());
+				    if (sg.getFunctionWord() != null)
+				    	res.updateInt("function_word", sg.getFunctionWord().getDB_ID());
+				    else
+				    	res.updateNull("function_word");
+				    res.updateInt("meaning_unit_1", sg.getFirst().getDB_ID());
+				    res.updateInt("meaning_unit_2", sg.getSecond().getDB_ID());
+				    res.updateInt("path", sg.getPath());
+				    res.updateInt("numerus_paths", sg.getNumerusPath());
+				    res.updateBoolean("accepted", sg.isAccepted());
+				    res.updateRow();
+				    sg.resetState(key);
+				}
+				else if (sg.isRemoved())
+				    res.deleteRow();
+		    }
+			// muss gespeichert werden
+			else if (!sg.isRemoved()) {
+				res.moveToInsertRow();
+				res.updateInt("illocution_unit", sg.getRoot().getIllocutionUnit().getDB_ID());
+				if (sg.getFunctionWord() != null)
+				    res.updateInt("function_word", sg.getFunctionWord().getDB_ID());
+				else
+				    res.updateNull("function_word");
+				res.updateInt("meaning_unit_1", sg.getFirst().getDB_ID());
+				res.updateInt("meaning_unit_2", sg.getSecond().getDB_ID());
+				res.updateInt("path", sg.getPath());
+				res.updateInt("numerus_paths", sg.getNumerusPath());
+				res.updateBoolean("accepted", sg.isAccepted());
+				res.insertRow();
+				res.close();
+				sg.resetState(key);
+			
+				res = stmt.executeQuery("SELECT id "
+					+ "FROM sememe_groups WHERE meaning_unit_1 = "
+					+ sg.getFirst().getDB_ID()
+					+ " and meaning_unit_2 = "
+					+ sg.getSecond().getDB_ID());
+			
+				if (res.next())
+				    sg.setDB_ID(key, res.getInt("id"));
+				else
+				    throw new DBC_SaveException("Sememegruppe "
+					    + sg
+					    + " konnte nicht in der "
+					    + "DB gespeichert werden!");
+			}
+			res.close();
+			// schreibe Aenderung in die DB
+			connection.commit();
+		}
+		connection.setAutoCommit(true);
+		stmt.close();
+    }
+
+    private void saveCheckings(Vector checkings)
+    throws Exception {
+		connection.setAutoCommit(false);
+		Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+		ResultSet res;
+	
+		for (int i = 0; i < checkings.size(); i++) {
+		    Checking ch = (Checking) checkings.get(i);
+		    if (ch.isUnchanged())
+		    	continue;
+	
+		    res = stmt.executeQuery("SELECT * FROM "
+			    + "checkings WHERE id = "
+			    + ch.getDB_ID());
+	
+		    // schon in der DB vorhanden
+		    if (res.next()) {
+				if (ch.hasChanged()) {
+				    res.updateInt("meaning_unit", ch.getMeaningUnit().getDB_ID());
+				    res.updateInt("chapter", ch.getRoot().getChapter().getDB_ID());
+				    res.updateInt("path", ch.getPath());
+	//TODO ??	    res.updateInt("numerus_path", ch.getNumerusPath());
+				    res.updateBoolean("accepted", ch.isAccepted());
+				    res.updateRow();
+				    ch.resetState(key);
+				}
+				else if (ch.isRemoved())
+				    res.deleteRow();
+		    }
+		    // muss gespeichert werden
+		    else if (!ch.isRemoved()) {
+				res.moveToInsertRow();
+				res.updateInt("meaning_unit", ch.getMeaningUnit().getDB_ID());
+				res.updateInt("chapter", ch.getRoot().getChapter().getDB_ID());
+				res.updateInt("path", ch.getPath());
+				res.updateBoolean("accepted", ch.isAccepted());
+				res.insertRow();
+				res.close();
+				ch.resetState(key);
+		
+				res = stmt.executeQuery("SELECT id "
+					+ "FROM checkings WHERE meaning_unit = "
+					+ ch.getMeaningUnit().getDB_ID());
+		
+				if (res.next())
+				    ch.setDB_ID(key, res.getInt("id"));
+				else
+				    throw new DBC_SaveException("Checking "
+					    + ch
+					    + " konnte nicht in der "
+					    + "DB gespeichert werden!");
+			}
+		    res.close();
+		    // schreibe Aenderung in die DB
+		    connection.commit();
+		}
+		connection.setAutoCommit(true);
+		stmt.close();
+    }
+
+    private void saveMacroSentences(Vector macroSentences)
+    throws Exception {
+		connection.setAutoCommit(false);
+		Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+		ResultSet res;
+	
+		for (int i = 0; i < macroSentences.size(); i++) {
+		    MacroSentence ms = (MacroSentence) macroSentences.get(i);
+		    if (ms.isUnchanged())
+		    	continue;
+	
+		    res = stmt.executeQuery("SELECT * FROM "
+			    + "macro_sentences WHERE id = "
+			    + ms.getDB_ID());
+		    // schon in der DB vorhanden
+		    if (res.next()) {
+				if (ms.hasChanged()) {
+				    res.updateInt("head", ms.getHead().getDB_ID());
+				    res.updateInt("chapter", ms.getHead().getChapter().getDB_ID());
+				    res.updateInt("path", ms.getPath());
+		//TODO	    res.updateInt("numerus_path", ms.getPath());
+				    res.updateBoolean("accepted", ms.isAccepted());
+				    res.updateRow();
+				    ms.resetState(key);
+		
+				    res = stmt.executeQuery("SELECT * FROM "
+					    + "macro_sentences_dependencies "
+					    + "WHERE macro_sentence = "
+					    + ms.getDB_ID());
+				    Vector dep = ms.getDependencies();
+				    for (int j = 0; j < dep.size(); j++) {
+						IllocutionUnitRoot iur = (IllocutionUnitRoot) dep.get(j);
+						try {
+						    res.moveToInsertRow();
+						    res.updateInt("macro_sentence", ms.getDB_ID());
+						    res.updateInt("depending_illocution_unit", iur.getDB_ID());
+						    res.insertRow();
+						}
+						catch (Exception e) {
+						    continue;
+						}
+				    }
+				}
+				else if (ms.isRemoved())
+				    res.deleteRow();
+		    }
+		    // muss gespeichert werden
+			else if (!ms.isRemoved()) {
+				res.moveToInsertRow();
+				res.updateInt("head", ms.getHead().getDB_ID());
+				res.updateInt("chapter", ms.getHead().getChapter().getDB_ID());
+				res.updateInt("path", ms.getPath());
+	//TODO		res.updateInt("numerus_path", ms.getPath());
+				res.updateBoolean("accepted", ms.isAccepted());
+				res.insertRow();
+				res.close();
+				ms.resetState(key);
+		
+				res = stmt.executeQuery("SELECT id "
+					+ "FROM macro_sentences WHERE checking = "
+					+ ms.getHead().getDB_ID());
+				if (res.next())
+				    ms.setDB_ID(key, res.getInt("id"));
+				else
+				    throw new DBC_SaveException("Makrosatz "
+					    + ms
+					    + " konnte nicht in der "
+					    + "DB gespeichert werden!");
+				res = stmt.executeQuery("SELECT * FROM "
+					+ "macro_sentences_dependencies "
+					+ "WHERE macro_sentence = "
+					+ ms.getDB_ID());
+				Vector dep = ms.getDependencies();
+				for (int j = 0; j < dep.size(); j++) {
+				    IllocutionUnitRoot iur = (IllocutionUnitRoot) dep.get(j);
+				    res.moveToInsertRow();
+				    res.updateInt("macro_sentence", ms.getDB_ID());
+				    res.updateInt("depending_illocution_unit", iur.getDB_ID());
+				    res.insertRow();
+				}
+		    }
+		    res.close();
+		    // schreibe Aenderung in die DB
+		    connection.commit();
+		}
+		connection.setAutoCommit(true);
+		stmt.close();
+    }
+
+    public synchronized Vector loadFunctionWords()
+    throws Exception {
+		Statement stmt = connection.createStatement();
+		Vector fwords = new Vector();
+		ResultSet res = stmt.executeQuery("SELECT content "
+			+ "FROM words WHERE id IN "
+			+ "(SELECT distinct word "
+			+ "FROM function_words)");
+		while (res.next())
+		    fwords.add(new String(res.getBytes("content"), "ISO-8859-1"));
+	
+		stmt.close();
+		return fwords;
+    }
+
+    public synchronized Vector loadFunctionWordsCategories()
+    throws Exception {
+		Statement stmt = connection.createStatement();
+	
+		// Anzahl der Kategorien bestimmen
+		ResultSet res = stmt.executeQuery("SELECT count(*) FROM function_words_categories");
+		res.next();
+		Vector cats = new Vector(res.getInt(1));
+	
+		// Kategorien auslesen.
+		res = stmt.executeQuery("SELECT category FROM "
+			+ "function_words_categories "
+			+ "ORDER BY category");
+		while (res.next())
+		    cats.add(res.getString("category"));
+	
+		stmt.close();
+		return cats;
     }
 
     private void saveFunctionWords(Vector<FunctionWord> words) throws Exception {
@@ -2409,19 +2734,162 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     	}
     	finally {
     	    try {
-    		if(connection != null)
-    		    connection.setAutoCommit(true);
-    		if (res  != null)
-    		    res.close();
-    		if (stmt  != null)
-    		    stmt.close();
+	    		if(connection != null)
+	    		    connection.setAutoCommit(true);
+	    		if (res  != null)
+	    		    res.close();
+	    		if (stmt  != null)
+	    		    stmt.close();
     	    }
     	    catch (SQLException e) {
-    		logger.warning(e.getLocalizedMessage());
+    	    	logger.warning(e.getLocalizedMessage());
     	    }
     	}
     }
 
+    public synchronized Boolean existsFunctionWord(Integer wordID, Integer length)
+    throws Exception {
+		Boolean result = new Boolean(false);
+		Statement stmt = connection.createStatement();
+		ResultSet res = stmt.executeQuery("SELECT * FROM function_words "
+			+ "WHERE word = "
+			+ wordID.intValue());
+	
+		while (res.next()) {
+		    int start = res.getInt("start");
+		    int end = res.getInt("end");
+		    if (end - start == length.intValue()) {
+				result = new Boolean(true);
+				break;
+		    }
+		}
+		stmt.close();
+		return result;
+    }
+
+    public synchronized Vector getAllFunctionWords(String language)
+    throws Exception {
+		Vector result = new Vector();
+		Statement stmt = connection.createStatement();
+		ResultSet res = stmt.executeQuery("SELECT DISTINCT "
+			+ "SUBSTRING(CAST(content AS CHAR), start-position+1, end-position+1) AS string "
+			+ "FROM function_words AS fws, words, words_in_chapter AS winc "
+			+ "WHERE words.id = fws.word "
+			+ "AND words.id = winc.word "
+			+ "AND winc.chapter = fws.chapter "
+			+ "AND winc.position <= fws.start "
+			+ "AND fws.end <= winc.position + length(content) "
+			+ "AND words.language = '"
+			+ language
+			+ "' ORDER BY string");
+	
+		while (res.next())
+		    result.add(res.getString("string"));
+	
+		stmt.close();
+		return result;
+    }
+
+    public synchronized Vector getFunctionWords(String word, String language)
+    throws Exception {
+		Vector result = new Vector();
+		Statement stmt = connection.createStatement();
+	
+		ResultSet res = stmt
+		.executeQuery("SELECT fws.chapter, content, position, start, end "
+			+ "FROM function_words AS fws, words, words_in_chapter AS winc "
+			+ "WHERE words.id = fws.word "
+			+ "AND words.id = winc.word "
+			+ "AND winc.chapter = fws.chapter "
+			+ "AND winc.position <= fws.start "
+			+ "AND fws.end <= winc.position + LENGTH(content) "
+			+ "AND words.id IN " + String.format("(SELECT id FROM words WHERE content LIKE '%1$s' AND language = '%2$s')"
+				, word, language)
+		);
+	
+		while (res.next()) {
+		    String content = new String(res.getBytes("content"), "ISO-8859-1");
+		    int position = res.getInt("position");
+		    int start = res.getInt("start");
+		    int end = res.getInt("end");
+	
+		    DB_Tupel tupel = new DB_Tupel();
+		    tupel.put("content", content.substring(start - position, Math.min(end - position + 1
+		    		, content.length())));
+		    tupel.put("start", start - position);
+		    tupel.put("end", end - position);
+		    tupel.put("chapter", res.getInt("fws.chapter"));
+		    tupel.put("position", position);
+		    result.add(tupel);
+		}
+	
+		stmt.close();
+		return result;
+    }
+    
+    public synchronized Vector loadConstitutiveWords()
+    throws Exception {
+		Statement stmt = connection.createStatement();
+		Vector cwords = new Vector();
+	
+		ResultSet res = stmt.executeQuery("SELECT content "
+			+ "FROM words WHERE id in "
+			+ "(SELECT distinct word "
+			+ "FROM constitutive_words)");
+		while (res.next())
+		    cwords.add(new String(res.getBytes("content"), "ISO-8859-1"));
+	
+		stmt.close();
+		return cwords;
+    }
+
+    private Vector<ConstitutiveWord> loadConstitutiveWords(Chapter chapter, Vector<IllocutionUnitRoot> roots) throws Exception
+    {
+		PreparedStatement stmt = null;
+		ResultSet res = null;
+		Vector<ConstitutiveWord> cwords = new Vector<ConstitutiveWord>();
+		try {
+		    stmt = connection.prepareStatement(
+			    "SELECT * FROM constitutive_words WHERE chapter = ?" );
+		    stmt.setInt(1, chapter.getDB_ID());
+		    res = stmt.executeQuery();
+
+		    while (res.next()) {
+				Token token = chapter.getTokenAtPosition(res.getInt("start"));
+				if(token.getIllocutionUnit() == null) // TODO Check if it is acceptable that a token has no IllocutionUnit
+					continue;
+			
+				IllocutionUnitRoot root = (IllocutionUnitRoot) getElement(token
+					.getIllocutionUnit().getDB_ID(), roots);
+				
+				if (token instanceof Word) {
+					TR_Assignation assi = loadAssignation(res.getInt("assignation_id"));
+				    ConstitutiveWord cw = new ConstitutiveWord(key, root, res.getInt("id"),
+					    (Word) token, res.getInt("start"), res.getInt("end"), res.getBoolean("accepted"), res.getInt("lexprag_path"),
+					    res.getInt("lexprag_level"), res.getInt("text_gr_path"), res.getInt("sem_path"),
+					    assi);
+				    cwords.add(cw);
+				}
+		    }
+		}
+		catch ( SQLException e ) {
+		    logger.severe(e.getLocalizedMessage());
+		    throw e;
+		}
+		finally {
+		    try {
+				if (res  != null)
+				    res.close();
+				if (stmt  != null)
+				    stmt.close();
+		    }
+		    catch (SQLException e) {
+				logger.warning(e.getLocalizedMessage());
+		    }
+		}
+		return cwords;
+    }
+    
     private void saveConstitutiveWords(Vector<ConstitutiveWord> words) throws SQLException
     {	  
 		logger.entering(this.getClass().getName(), "saveConstitutiveWords", words);
@@ -2506,410 +2974,6 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			logger.warning(e.getLocalizedMessage());
 		    }
 		}
-    }
-
-    private void saveMeaningUnits(Vector meaningUnits)
-    throws Exception {
-		connection.setAutoCommit(false);
-		Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-		ResultSet res;
-	
-		for (int i = 0; i < meaningUnits.size(); i++) {
-		    MeaningUnit mu = (MeaningUnit) meaningUnits.get(i);
-		    if (mu.isUnchanged())
-		    	continue;
-	
-		    res = stmt.executeQuery("SELECT * FROM "
-			    + "meaning_units WHERE id = "
-			    + mu.getDB_ID());
-	
-		    if (res.next()) {
-				if (mu.hasChanged()) {
-				    res.updateInt("illocution_unit", mu.getRoot()
-					    .getIllocutionUnit().getDB_ID());
-				    if (mu.getFunctionWord() != null)
-				    	res.updateInt("function_word", mu.getFunctionWord().getDB_ID());
-				    else
-						res.updateNull("function_word");
-					res.updateInt("constitutive_word", mu.getConstitutiveWord().getDB_ID());
-					res.updateInt("path", mu.getPath());
-					res.updateBoolean("accepted", mu.isAccepted());
-					res.updateInt("numerus_paths", mu.getNumerusPath());
-					res.updateRow();
-					mu.resetState(key);
-				}
-				else if (mu.isRemoved())
-				    res.deleteRow();
-			}
-		    else if (!mu.isRemoved()) {
-				res.moveToInsertRow();
-				res.updateInt("illocution_unit", mu.getRoot().getIllocutionUnit().getDB_ID());
-				if (mu.getFunctionWord() != null)
-				    res.updateInt("function_word", mu.getFunctionWord().getDB_ID());
-				res.updateInt("constitutive_word", mu.getConstitutiveWord().getDB_ID());
-				res.updateInt("path", mu.getPath());
-				res.updateInt("numerus_paths", mu.getNumerusPath());
-				res.updateBoolean("accepted", mu.isAccepted());
-				res.insertRow();
-				res.close();
-				mu.resetState(key);
-		
-				res = stmt.executeQuery("SELECT id "
-					+ "FROM meaning_units WHERE illocution_unit = "
-					+ mu.getRoot().getIllocutionUnit().getDB_ID()
-					+ " and constitutive_word = "
-					+ mu.getConstitutiveWord().getDB_ID());
-		
-				if (res.next())
-				    mu.setDB_ID(key, res.getInt("id"));
-				else
-				    throw new DBC_SaveException("Semantische Einheit "
-					    + mu
-					    + " konnte nicht in der "
-					    + "DB gespeichert werden!");
-		    }
-		    res.close();
-		    // schreibe ï¿½nderung in die DB
-		    connection.commit();
-		}
-		connection.setAutoCommit(true);
-		stmt.close();
-    }
-
-    private void saveSememeGroups(Vector sememeGroups)
-    throws Exception {
-		connection.setAutoCommit(false);
-		Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,	ResultSet.CONCUR_UPDATABLE);
-		ResultSet res;
-	
-		for (int i = 0; i < sememeGroups.size(); i++) {
-		    SememeGroup sg = (SememeGroup) sememeGroups.get(i);
-		    if (sg.isUnchanged())
-		    	continue;
-	
-		    res = stmt.executeQuery("SELECT * FROM "
-			    + "sememe_groups WHERE id = "
-			    + sg.getDB_ID());
-	
-		    // schon in der DB vorhanden
-		    if (res.next()) {
-		    	if (sg.hasChanged()) {
-				    res.updateInt("illocution_unit", sg.getRoot().getIllocutionUnit().getDB_ID());
-				    if (sg.getFunctionWord() != null)
-				    	res.updateInt("function_word", sg.getFunctionWord().getDB_ID());
-				    else
-				    	res.updateNull("function_word");
-				    res.updateInt("meaning_unit_1", sg.getFirst().getDB_ID());
-				    res.updateInt("meaning_unit_2", sg.getSecond().getDB_ID());
-				    res.updateInt("path", sg.getPath());
-				    res.updateInt("numerus_paths", sg.getNumerusPath());
-				    res.updateBoolean("accepted", sg.isAccepted());
-				    res.updateRow();
-				    sg.resetState(key);
-				}
-				else if (sg.isRemoved())
-				    res.deleteRow();
-		    }
-			// muss gespeichert werden
-			else if (!sg.isRemoved()) {
-				res.moveToInsertRow();
-				res.updateInt("illocution_unit", sg.getRoot().getIllocutionUnit().getDB_ID());
-				if (sg.getFunctionWord() != null)
-				    res.updateInt("function_word", sg.getFunctionWord().getDB_ID());
-				else
-				    res.updateNull("function_word");
-				res.updateInt("meaning_unit_1", sg.getFirst().getDB_ID());
-				res.updateInt("meaning_unit_2", sg.getSecond().getDB_ID());
-				res.updateInt("path", sg.getPath());
-				res.updateInt("numerus_paths", sg.getNumerusPath());
-				res.updateBoolean("accepted", sg.isAccepted());
-				res.insertRow();
-				res.close();
-				sg.resetState(key);
-			
-				res = stmt.executeQuery("SELECT id "
-					+ "FROM sememe_groups WHERE meaning_unit_1 = "
-					+ sg.getFirst().getDB_ID()
-					+ " and meaning_unit_2 = "
-					+ sg.getSecond().getDB_ID());
-			
-				if (res.next())
-				    sg.setDB_ID(key, res.getInt("id"));
-				else
-				    throw new DBC_SaveException("Sememegruppe "
-					    + sg
-					    + " konnte nicht in der "
-					    + "DB gespeichert werden!");
-			}
-			res.close();
-			// schreibe ï¿½nderung in die DB
-			connection.commit();
-		}
-		connection.setAutoCommit(true);
-		stmt.close();
-    }
-
-    private void saveCheckings(Vector checkings)
-    throws Exception {
-		connection.setAutoCommit(false);
-		Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-		ResultSet res;
-	
-		for (int i = 0; i < checkings.size(); i++) {
-		    Checking ch = (Checking) checkings.get(i);
-		    if (ch.isUnchanged())
-		    	continue;
-	
-		    res = stmt.executeQuery("SELECT * FROM "
-			    + "checkings WHERE id = "
-			    + ch.getDB_ID());
-	
-		    // schon in der DB vorhanden
-		    if (res.next()) {
-				if (ch.hasChanged()) {
-				    res.updateInt("meaning_unit", ch.getMeaningUnit().getDB_ID());
-				    res.updateInt("chapter", ch.getRoot().getChapter().getDB_ID());
-				    res.updateInt("path", ch.getPath());
-	//TODO ??	    res.updateInt("numerus_path", ch.getNumerusPath());
-				    res.updateBoolean("accepted", ch.isAccepted());
-				    res.updateRow();
-				    ch.resetState(key);
-				}
-				else if (ch.isRemoved())
-				    res.deleteRow();
-		    }
-		    // muss gespeichert werden
-		    else if (!ch.isRemoved()) {
-				res.moveToInsertRow();
-				res.updateInt("meaning_unit", ch.getMeaningUnit().getDB_ID());
-				res.updateInt("chapter", ch.getRoot().getChapter().getDB_ID());
-				res.updateInt("path", ch.getPath());
-				res.updateBoolean("accepted", ch.isAccepted());
-				res.insertRow();
-				res.close();
-				ch.resetState(key);
-		
-				res = stmt.executeQuery("SELECT id "
-					+ "FROM checkings WHERE meaning_unit = "
-					+ ch.getMeaningUnit().getDB_ID());
-		
-				if (res.next())
-				    ch.setDB_ID(key, res.getInt("id"));
-				else
-				    throw new DBC_SaveException("Checking "
-					    + ch
-					    + " konnte nicht in der "
-					    + "DB gespeichert werden!");
-			}
-		    res.close();
-		    // schreibe ï¿½nderung in die DB
-		    connection.commit();
-		}
-		connection.setAutoCommit(true);
-		stmt.close();
-    }
-
-    private void saveMacroSentences(Vector macroSentences)
-    throws Exception {
-		connection.setAutoCommit(false);
-		Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-		ResultSet res;
-	
-		for (int i = 0; i < macroSentences.size(); i++) {
-		    MacroSentence ms = (MacroSentence) macroSentences.get(i);
-		    if (ms.isUnchanged())
-		    	continue;
-	
-		    res = stmt.executeQuery("SELECT * FROM "
-			    + "macro_sentences WHERE id = "
-			    + ms.getDB_ID());
-		    // schon in der DB vorhanden
-		    if (res.next()) {
-				if (ms.hasChanged()) {
-				    res.updateInt("head", ms.getHead().getDB_ID());
-				    res.updateInt("chapter", ms.getHead().getChapter().getDB_ID());
-				    res.updateInt("path", ms.getPath());
-		//TODO	    res.updateInt("numerus_path", ms.getPath());
-				    res.updateBoolean("accepted", ms.isAccepted());
-				    res.updateRow();
-				    ms.resetState(key);
-		
-				    res = stmt.executeQuery("SELECT * FROM "
-					    + "macro_sentences_dependencies "
-					    + "WHERE macro_sentence = "
-					    + ms.getDB_ID());
-				    Vector dep = ms.getDependencies();
-				    for (int j = 0; j < dep.size(); j++) {
-						IllocutionUnitRoot iur = (IllocutionUnitRoot) dep.get(j);
-						try {
-						    res.moveToInsertRow();
-						    res.updateInt("macro_sentence", ms.getDB_ID());
-						    res.updateInt("depending_illocution_unit", iur.getDB_ID());
-						    res.insertRow();
-						}
-						catch (Exception e) {
-						    continue;
-						}
-				    }
-				}
-				else if (ms.isRemoved())
-				    res.deleteRow();
-		    }
-		    // muss gespeichert werden
-			else if (!ms.isRemoved()) {
-				res.moveToInsertRow();
-				res.updateInt("head", ms.getHead().getDB_ID());
-				res.updateInt("chapter", ms.getHead().getChapter().getDB_ID());
-				res.updateInt("path", ms.getPath());
-	//TODO		res.updateInt("numerus_path", ms.getPath());
-				res.updateBoolean("accepted", ms.isAccepted());
-				res.insertRow();
-				res.close();
-				ms.resetState(key);
-		
-				res = stmt.executeQuery("SELECT id "
-					+ "FROM macro_sentences WHERE checking = "
-					+ ms.getHead().getDB_ID());
-				if (res.next())
-				    ms.setDB_ID(key, res.getInt("id"));
-				else
-				    throw new DBC_SaveException("Makrosatz "
-					    + ms
-					    + " konnte nicht in der "
-					    + "DB gespeichert werden!");
-				res = stmt.executeQuery("SELECT * FROM "
-					+ "macro_sentences_dependencies "
-					+ "WHERE macro_sentence = "
-					+ ms.getDB_ID());
-				Vector dep = ms.getDependencies();
-				for (int j = 0; j < dep.size(); j++) {
-				    IllocutionUnitRoot iur = (IllocutionUnitRoot) dep.get(j);
-				    res.moveToInsertRow();
-				    res.updateInt("macro_sentence", ms.getDB_ID());
-				    res.updateInt("depending_illocution_unit", iur.getDB_ID());
-				    res.insertRow();
-				}
-		    }
-		    res.close();
-		    // schreibe ï¿½nderung in die DB
-		    connection.commit();
-		}
-		connection.setAutoCommit(true);
-		stmt.close();
-    }
-
-    public synchronized Vector loadFunctionWords()
-    throws Exception {
-		Statement stmt = connection.createStatement();
-		Vector fwords = new Vector();
-		ResultSet res = stmt.executeQuery("SELECT content "
-			+ "FROM words WHERE id IN "
-			+ "(SELECT distinct word "
-			+ "FROM function_words)");
-		while (res.next())
-		    fwords.add(new String(res.getBytes("content"), "ISO-8859-1"));
-	
-		stmt.close();
-		return fwords;
-    }
-
-    public synchronized Vector loadFunctionWordsCategories()
-    throws Exception {
-		Statement stmt = connection.createStatement();
-	
-		// Anzahl der Kategorien bestimmen
-		ResultSet res = stmt.executeQuery("SELECT count(*) FROM function_words_categories");
-		res.next();
-		Vector cats = new Vector(res.getInt(1));
-	
-		// Kategorien auslesen.
-		res = stmt.executeQuery("SELECT category FROM "
-			+ "function_words_categories "
-			+ "ORDER BY category");
-		while (res.next())
-		    cats.add(res.getString("category"));
-	
-		stmt.close();
-		return cats;
-    }
-
-    public synchronized Vector loadConstitutiveWords()
-    throws Exception {
-		Statement stmt = connection.createStatement();
-		Vector cwords = new Vector();
-	
-		ResultSet res = stmt.executeQuery("SELECT content "
-			+ "FROM words WHERE id in "
-			+ "(SELECT distinct word "
-			+ "FROM constitutive_words)");
-		while (res.next())
-		    cwords.add(new String(res.getBytes("content"), "ISO-8859-1"));
-	
-		stmt.close();
-		return cwords;
-    }
-
-    private PathNode loadPaths() {
-		PathNode rootPathNode = new PathNode(key, 0, null, "pathroot", "---");
-		try {
-		    Statement stmt = connection.createStatement();
-		    ResultSet res = stmt.executeQuery("SELECT * FROM paths WHERE id > 0 ORDER BY parent");
-		    while (res.next()) {
-				PathNode parent = rootPathNode.getNode(res.getInt("parent"));
-				new PathNode(key, res.getInt("id"), parent, res.getString("name"),
-						res.getString("description"));
-			}
-		    stmt.close();
-		}
-		catch (SQLException e) {
-		    e.printStackTrace();
-		}
-		return rootPathNode;
-    }
-
-    public PathNode getPaths() {
-    	return root;
-    }
-
-    private PathNode loadNumerusPaths() {
-		PathNode rootPathNode = new PathNode(key, 0, null, "numerusPathRoot", "---");
-		try {
-		    Statement stmt = connection.createStatement();
-		    ResultSet res = stmt.executeQuery("select * from numerus_paths where id > 0 order by parent");
-		    while (res.next()) {
-				PathNode parent = rootPathNode.getNode(res.getInt("parent"));
-				new PathNode(key, res.getInt("id"), parent, res.getString("name"), 
-						res.getString("description"));
-		    }
-		    stmt.close();
-		} catch (SQLException e) {
-		    e.printStackTrace();
-		}
-		return rootPathNode;
-    }
-
-    public PathNode getNumerusPaths() {
-    	return numerusRoot;
-    }
-
-    public synchronized Boolean existsFunctionWord(Integer wordID, Integer length)
-    throws Exception {
-		Boolean result = new Boolean(false);
-		Statement stmt = connection.createStatement();
-		ResultSet res = stmt.executeQuery("SELECT * FROM function_words "
-			+ "WHERE word = "
-			+ wordID.intValue());
-	
-		while (res.next()) {
-		    int start = res.getInt("start");
-		    int end = res.getInt("end");
-		    if (end - start == length.intValue()) {
-				result = new Boolean(true);
-				break;
-		    }
-		}
-		stmt.close();
-		return result;
     }
 
     public synchronized Boolean existsConstitutiveWord(Integer wordID, Integer length)
@@ -3015,64 +3079,47 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		return result;
     }
     
-    public synchronized Vector getAllFunctionWords(String language)
-    throws Exception {
-		Vector result = new Vector();
-		Statement stmt = connection.createStatement();
-		ResultSet res = stmt.executeQuery("SELECT DISTINCT "
-			+ "SUBSTRING(CAST(content AS CHAR), start-position+1, end-position+1) AS string "
-			+ "FROM function_words AS fws, words, words_in_chapter AS winc "
-			+ "WHERE words.id = fws.word "
-			+ "AND words.id = winc.word "
-			+ "AND winc.chapter = fws.chapter "
-			+ "AND winc.position <= fws.start "
-			+ "AND fws.end <= winc.position + length(content) "
-			+ "AND words.language = '"
-			+ language
-			+ "' ORDER BY string");
-	
-		while (res.next())
-		    result.add(res.getString("string"));
-	
-		stmt.close();
-		return result;
+    private PathNode loadPaths() {
+		PathNode rootPathNode = new PathNode(key, 0, null, "pathroot", "---");
+		try {
+		    Statement stmt = connection.createStatement();
+		    ResultSet res = stmt.executeQuery("SELECT * FROM paths WHERE id > 0 ORDER BY parent");
+		    while (res.next()) {
+				PathNode parent = rootPathNode.getNode(res.getInt("parent"));
+				new PathNode(key, res.getInt("id"), parent, res.getString("name"),
+						res.getString("description"));
+			}
+		    stmt.close();
+		}
+		catch (SQLException e) {
+		    e.printStackTrace();
+		}
+		return rootPathNode;
     }
 
-    public synchronized Vector getFunctionWords(String word, String language)
-    throws Exception {
-		Vector result = new Vector();
-		Statement stmt = connection.createStatement();
-	
-		ResultSet res = stmt
-		.executeQuery("SELECT fws.chapter, content, position, start, end "
-			+ "FROM function_words AS fws, words, words_in_chapter AS winc "
-			+ "WHERE words.id = fws.word "
-			+ "AND words.id = winc.word "
-			+ "AND winc.chapter = fws.chapter "
-			+ "AND winc.position <= fws.start "
-			+ "AND fws.end <= winc.position + LENGTH(content) "
-			+ "AND words.id IN " + String.format("(SELECT id FROM words WHERE content LIKE '%1$s' AND language = '%2$s')"
-				, word, language)
-		);
-	
-		while (res.next()) {
-		    String content = new String(res.getBytes("content"), "ISO-8859-1");
-		    int position = res.getInt("position");
-		    int start = res.getInt("start");
-		    int end = res.getInt("end");
-	
-		    DB_Tupel tupel = new DB_Tupel();
-		    tupel.put("content", content.substring(start - position, Math.min(end - position + 1
-		    		, content.length())));
-		    tupel.put("start", start - position);
-		    tupel.put("end", end - position);
-		    tupel.put("chapter", res.getInt("fws.chapter"));
-		    tupel.put("position", position);
-		    result.add(tupel);
+    public PathNode getPaths() {
+    	return root;
+    }
+
+    private PathNode loadNumerusPaths() {
+		PathNode rootPathNode = new PathNode(key, 0, null, "numerusPathRoot", "---");
+		try {
+		    Statement stmt = connection.createStatement();
+		    ResultSet res = stmt.executeQuery("select * from numerus_paths where id > 0 order by parent");
+		    while (res.next()) {
+				PathNode parent = rootPathNode.getNode(res.getInt("parent"));
+				new PathNode(key, res.getInt("id"), parent, res.getString("name"), 
+						res.getString("description"));
+		    }
+		    stmt.close();
+		} catch (SQLException e) {
+		    e.printStackTrace();
 		}
-	
-		stmt.close();
-		return result;
+		return rootPathNode;
+    }
+
+    public PathNode getNumerusPaths() {
+    	return numerusRoot;
     }
 
     public synchronized Vector loadThemas(Integer chapterID)
@@ -3206,7 +3253,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				continue;
 		    }
 	
-		    // Prï¿½fe, ob schon ein Tupel mit der ID in der DB
+		    // Pruefe, ob schon ein Tupel mit der ID in der DB
 		    // gespeichert ist
 		    res = stmt.executeQuery("SELECT * "
 			    + "FROM isotopes WHERE id = "
@@ -3223,12 +3270,12 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				    res.updateRow();
 				    isotope.resetState(key);
 				}
-				// ...und wird gelï¿½scht
+				// ...und wird geloescht
 				else if (isotope.isRemoved())
 				    res.deleteRow();
 		    }
 		    // Tupel wird neu angelegt, wenn es nicht schon
-		    // wieder in der Java-Datenstruktur gelï¿½scht wurde
+		    // wieder in der Java-Datenstruktur geloescht wurde
 		    else if (!isotope.isRemoved()) {
 				res.moveToInsertRow();
 				res.updateInt("category", categoryID);
@@ -3259,7 +3306,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 					    + "DB gespeichert werden!");
 		    }
 		    res.close();
-		    // schreibe ï¿½nderung in die DB
+		    // schreibe Aenderung in die DB
 		    connection.commit();
 		}
 		connection.setAutoCommit(true);
@@ -3268,7 +3315,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     }
 
     /**
-     * Erstellt eine Isotopie-Sammlung ï¿½ber alle in diesem Kapitel vorkommenden
+     * Erstellt eine Isotopie-Sammlung ueber alle in diesem Kapitel vorkommenden
      * Isotopien.
      */
     public Isotopes loadIsotopes(Integer chapterID)
@@ -3328,7 +3375,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		else {
 		    res.moveToInsertRow();
 		    res.updateInt("chapter", chapterID.intValue());
-		    res.updateString("hierachy", "blï¿½des Java will "
+		    res.updateString("hierachy", "bloedes Java will "
 			    + "nicht aufs erste mal Objekte schreiben...");
 		    res.insertRow();
 		    doAgain = true;
@@ -3338,10 +3385,10 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		connection.commit();
 		connection.setAutoCommit(true);
 	
-		// Es ist nicht mï¿½glich, Objects sofort in eine neue Zeile
+		// Es ist nicht moeglich, Objects sofort in eine neue Zeile
 		// zu schreiben, deswegen wird die Zeile neu angelegt und
 		// die Zelle, die eigentlich das Object speichern soll,
-		// wird mit Nonsens gefï¿½llt, erst beim wiederholten Aufruf
+		// wird mit Nonsens gefuellt, erst beim wiederholten Aufruf
 		// kann das Object gespeichert werden.
 		if (doAgain)
 		    saveIsotopeHierachy(chapterID, hierachy);
@@ -3602,463 +3649,457 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		return result;
     }
 
-    public Renominalisations saveRenominalisations(Renominalisations renominalisations,
-	    Integer chapterID)
+    public Renominalisations saveRenominalisations(Renominalisations renominalisations, Integer chapterID)
     throws Exception {
-	Chapter chapter = getChapter(chapterID.intValue());
-	IllocutionUnitRoots iur = loadIllocutionUnitRoots(chapterID);
-	renominalisations.setChapter(key, chapter, iur);
-	Vector renoms = renominalisations.getAllRenominalisations(key);
-	connection.setAutoCommit(false);
-	Statement stmt = connection
-	.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
-		ResultSet.CONCUR_UPDATABLE);
-	ResultSet res;
-
-	for (int i = 0; i < renoms.size(); i++) {
-	    Renominalisation renominalisation = (Renominalisation) renoms.get(i);
-	    // Suche die ID zu der Kategorie
-	    int categoryID = -1;
-	    res = stmt.executeQuery("SELECT id "
-		    + "FROM renominalisation_categories "
-		    + "WHERE category like binary '"
-		    + renominalisation.getCategory()
-		    + "'");
-	    if (res.next()) {
-		categoryID = res.getInt("id");
-		res.close();
-	    } //didn't find category
-	    else {
-		res.close();
-		stmt.executeUpdate("insert into "
-			+ "renominalisation_categories (category) "
-			+ "values('"
-			+ renominalisation.getCategory()
-			+ "')");
-		i--;
-		continue;
-	    }
-
-	    // PrÃ¼fe, ob schon ein Tupel mit der ID in der DB
-	    // gespeichert ist
-	    res = stmt.executeQuery("SELECT * "
-		    + "FROM renominalisations WHERE id = "
-		    + renominalisation.getDB_ID());
-
-	    // Tupel ist vorhanden...
-	    if (res.next()) {
-		// ...und wird aktualisiert
-		if (renominalisation.hasChanged()) {
-		    res.updateInt("category", categoryID);
-		    res.updateInt("constitutive_word", renominalisation
-			    .getConstitutiveWord().getDB_ID());
-		    res.updateInt("chapter", renominalisation.getChapter()
-			    .getDB_ID());
-		    // res.updateInt("index",
-		    // renominalisation.getConstitutiveWord().getIndex());
-		    res.updateRow();
-		    renominalisation.resetState(key);
+		Chapter chapter = getChapter(chapterID.intValue());
+		IllocutionUnitRoots iur = loadIllocutionUnitRoots(chapterID);
+		renominalisations.setChapter(key, chapter, iur);
+		Vector renoms = renominalisations.getAllRenominalisations(key);
+		connection.setAutoCommit(false);
+		Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+		ResultSet res;
+	
+		for (int i = 0; i < renoms.size(); i++) {
+		    Renominalisation renominalisation = (Renominalisation) renoms.get(i);
+		    // Suche die ID zu der Kategorie
+		    int categoryID = -1;
+		    res = stmt.executeQuery("SELECT id "
+			    + "FROM renominalisation_categories "
+			    + "WHERE category like binary '"
+			    + renominalisation.getCategory()
+			    + "'");
+		    if (res.next()) {
+				categoryID = res.getInt("id");
+				res.close();
+		    } //didn't find category
+		    else {
+				res.close();
+				stmt.executeUpdate("insert into "
+					+ "renominalisation_categories (category) "
+					+ "values('"
+					+ renominalisation.getCategory()
+					+ "')");
+				i--;
+				continue;
+		    }
+	
+		    // Pruefe, ob schon ein Tupel mit der ID in der DB
+		    // gespeichert ist
+		    res = stmt.executeQuery("SELECT * "
+			    + "FROM renominalisations WHERE id = "
+			    + renominalisation.getDB_ID());
+	
+		    // Tupel ist vorhanden...
+		    if (res.next()) {
+				// ...und wird aktualisiert
+				if (renominalisation.hasChanged()) {
+				    res.updateInt("category", categoryID);
+				    res.updateInt("constitutive_word", renominalisation.getConstitutiveWord().getDB_ID());
+				    res.updateInt("chapter", renominalisation.getChapter().getDB_ID());
+				    res.updateRow();
+				    renominalisation.resetState(key);
+				}
+				// ...und wird geloescht
+				else if (renominalisation.isRemoved())
+				    res.deleteRow();
+		    }
+		    // Tupel wird neu angelegt, wenn es nicht schon
+		    // wieder in der Java-Datenstruktur geloescht wurde
+		    else if (!renominalisation.isRemoved()) {
+				res.moveToInsertRow();
+				res.updateInt("category", categoryID);
+				res.updateInt("constitutive_word", renominalisation.getConstitutiveWord().getDB_ID());
+				res.updateInt("chapter", renominalisation.getChapter().getDB_ID());
+				res.insertRow();
+				res.close();
+				renominalisation.resetState(key);
+		
+				res = stmt.executeQuery("SELECT id "
+					+ "FROM renominalisations WHERE category = "
+					+ categoryID
+					+ " and constitutive_word = "
+					+ renominalisation.getConstitutiveWord().getDB_ID()
+					+ " and chapter = "
+					+ renominalisation.getChapter().getDB_ID());
+				
+				// hole die DB-ID zu der neu angelegten Renominalisation
+				if (res.next())
+				    renominalisation.setDB_ID(key, res.getInt("id"));
+				else
+				    throw new DBC_SaveException("Renominalisation "
+					    + renominalisation
+					    + " konnte nicht in der "
+					    + "DB gespeichert werden!");
+		    }
+		    res.close();
+		    // schreibe Aenderung in die DB
+		    connection.commit();
 		}
-		// ...und wird gelï¿½scht
-		else if (renominalisation.isRemoved())
-		    res.deleteRow();
-	    }
-	    // Tupel wird neu angelegt, wenn es nicht schon
-	    // wieder in der Java-Datenstruktur gelÃ¶scht wurde
-	    else if (!renominalisation.isRemoved()) {
-		res.moveToInsertRow();
-		res.updateInt("category", categoryID);
-		res.updateInt("constitutive_word", renominalisation
-			.getConstitutiveWord().getDB_ID());
-		res.updateInt("chapter", renominalisation.getChapter().getDB_ID());
-		// res.updateInt("index",
-		// renominalisation.getConstitutiveWord().getIndex());
-		res.insertRow();
-		res.close();
-		renominalisation.resetState(key);
-
-		res = stmt.executeQuery("SELECT id "
-			+ "FROM renominalisations WHERE category = "
-			+ categoryID
-			+ " and constitutive_word = "
-			+ renominalisation.getConstitutiveWord().getDB_ID()
-			+ " and chapter = "
-			+ renominalisation.getChapter().getDB_ID());
-		/*
-		 * + " and `index` = " +
-		 * renominalisation.getConstitutiveWord().getIndex());
-		 */
-
-		// hole die DB-ID zu der neu angelegten Renominalisation
-		if (res.next())
-		    renominalisation.setDB_ID(key, res.getInt("id"));
-
-		else
-		    throw new DBC_SaveException("Renominalisation "
-			    + renominalisation
-			    + " konnte nicht in der "
-			    + "DB gespeichert werden!");
-	    }
-	    res.close();
-	    // schreibe Ã„nderung in die DB
-	    connection.commit();
-	}
-	connection.setAutoCommit(true);
-	stmt.close();
-	return renominalisations;
+		connection.setAutoCommit(true);
+		stmt.close();
+		return renominalisations;
     }
 
     /**
-     * Erstellt eine Renominalisation-Sammlung Ã¼ber alle in diesem Kapitel
+     * Erstellt eine Renominalisation-Sammlung ueber alle in diesem Kapitel
      * vorkommenden Renominalisation.
      */
     public Renominalisations loadRenominalisations(Integer chapterID)
     throws Exception {
-	Chapter chapter = getChapter(chapterID.intValue());
-	Renominalisations renominalisations = new Renominalisations(chapter);
-	Statement stmt = connection.createStatement();
-	ResultSet res = stmt
-	.executeQuery("SELECT renominalisations.id, renominalisations.constitutive_word,  "
-		+ "renominalisation_categories.category "
-		+ "FROM renominalisations, renominalisation_categories "
-		+ "WHERE renominalisations.chapter = "
-		+ chapter.getDB_ID()
-		+ " and renominalisation_categories.id = renominalisations.category");
-	IllocutionUnitRoots iur = loadIllocutionUnitRoots(chapterID);// Integer.valueOf(res.getInt("chapter")
-	while (res.next()) {
-	    renominalisations.setRenominalisation(key, res.getInt("id"), iur
-		    .getConstitutiveWordWithID(res.getInt("constitutive_word")), res
-		    .getString("category"));
-	}
-	stmt.close();
-	return renominalisations;
+		Chapter chapter = getChapter(chapterID.intValue());
+		Renominalisations renominalisations = new Renominalisations(chapter);
+		Statement stmt = connection.createStatement();
+		ResultSet res = stmt.executeQuery("SELECT renominalisations.id, renominalisations.constitutive_word,  "
+			+ "renominalisation_categories.category "
+			+ "FROM renominalisations, renominalisation_categories "
+			+ "WHERE renominalisations.chapter = "
+			+ chapter.getDB_ID()
+			+ " and renominalisation_categories.id = renominalisations.category");
+		IllocutionUnitRoots iur = loadIllocutionUnitRoots(chapterID);
+		while (res.next()) {
+		    renominalisations.setRenominalisation(key, res.getInt("id"), iur
+			    .getConstitutiveWordWithID(res.getInt("constitutive_word")), res
+			    .getString("category"));
+		}
+		stmt.close();
+		return renominalisations;
     }
 
+    public synchronized WordListElement[] loadWordListElement(String content) throws SQLException
+    {
+		//TODO: change to all possible languages
+		return this.loadWordListElement(content, "DE");
+    }
 
+    public synchronized WordListElement[] loadWordListElement(String content, String language)
+    throws SQLException {
+		PreparedStatement stmt = null;
+		ResultSet res = null;
+		WordListElement[] elements = null;
+	
+		try {
+		    // WLEs with assignation
+		    stmt = connection.prepareStatement(
+			    "SELECT word_list_elements.* " +
+			    "FROM word_list_elements, words " +
+			    "WHERE word_list_elements.word_id = words.id " +
+			    "AND words.content = ? AND language = ?");
+		    stmt.setBytes(1, content.getBytes("ISO-8859-1"));
+		    stmt.setString(2, language);
+	
+		    res = stmt.executeQuery();
+		    res.last();
+		    int rows = res.getRow();
+		    res.beforeFirst();
+	
+		    elements = new WordListElement[rows];
+	
+		    int i=0;
+		    while( res.next() ) {
+		    	elements[i] = new WordListElement(content, language);
+				
+		    	if(res.getInt("assignation_id") > 0 ) 
+				    elements[i].setAssignation(loadAssignation(res.getInt("assignation_id")));
+								
+		    	elements[i].setDB_ID(key, res.getInt("id"));
+				elements[i].resetState(key);
+				i++;
+		    }
+		    stmt.close();
+		}
+		catch ( SQLException e ) {
+		    logger.severe(e.getLocalizedMessage());
+		    throw e;
+		} catch (UnsupportedEncodingException e) {
+		    logger.warning(e.getMessage());
+		}
+		finally {
+		    try {
+				if (res  != null)
+				    res.close();
+				if (stmt  != null)
+				    stmt.close();
+		    }
+		    catch (SQLException e) {
+		    	logger.warning(e.getLocalizedMessage());
+		    }
+		}
+		return elements;
+    }
+
+    public WordListElement loadWordListElement(Integer id) throws SQLException {
+		PreparedStatement stmt = null;
+		ResultSet res = null;
+		WordListElement element = null;
+		
+		try {
+		    stmt = connection.prepareStatement(
+		    		"SELECT * FROM word_list_elements, words "
+		    		+ "WHERE word_list_elements.id = ? "
+		    		+ "AND word_list_elements.word_id = words.id");
+		    stmt.setInt(1, id);
+		    res = stmt.executeQuery();
+		
+		    if(res.next()) {
+				try {
+				    element = new WordListElement(new String(res.getBytes("content"), "ISO-8859-1"), res.getString("language"));
+		    	}catch (UnsupportedEncodingException e) {
+				    logger.warning(e.getMessage());
+				}
+				if(res.getInt("assignation_id") != 0)
+				    element.setAssignation(loadAssignation(res.getInt("assignation_id")));
+				
+				element.setDB_ID(key, id);
+				element.resetState(key);
+		    }
+		}
+		catch ( SQLException e ) {
+		    logger.severe(e.getLocalizedMessage());
+		    throw e;
+		}
+		finally {
+		    try {
+				if (res  != null)
+				    res.close();
+				if (stmt  != null)
+				    stmt.close();
+		    }
+		    catch (SQLException e) {
+		    	logger.warning(e.getLocalizedMessage());
+		    }
+		}
+		return element;
+	}
+
+    /**
+     * 
+     * @param assigID
+     * @return WordListElement[] oder null
+     * @throws SQLException
+     */
+    public WordListElement loadWordListElementWithAssigID(Integer assigID) throws SQLException 
+    {
+    	PreparedStatement stmt = null;
+    	ResultSet res = null;
+    	WordListElement element = null;
+
+    	//TODO: soll das WordListElement mit der Assignation ID assigID zurückgeben
+    	try {
+    		stmt = connection.prepareStatement(
+    			"SELECT * FROM word_list_elements " +
+    			"WHERE word_list_elements.assignation_id = ?");
+    		stmt.setInt(1, assigID);
+    		res = stmt.executeQuery();
+    		
+    		while (res.next()) {
+    			// id laden
+    			int id = res.getInt("id");
+  
+    			// assigantion laden
+    			TR_Assignation assignation = loadAssignation(assigID);
+     			
+    			// zu word_id passenden content laden
+    			int word_id = res.getInt("word_id");
+    			stmt = connection.prepareStatement(
+    					"SELECT content FROM words WHERE id = " + word_id);
+        		res = stmt.executeQuery();
+        		String content = null;
+        		if (res.next()) 
+        			content = res.getString("content");
+        	     		
+        		// wordListElement wird erstellt
+        		element = new WordListElement(content);
+    			element.setAssignation(assignation);
+    			element.setDB_ID(key, id);
+    			element.resetState(key);
+    		}
+    	}
+    	catch ( SQLException e ) {
+    		logger.throwing(this.getClass().getName(), "loadWordListElementWithAssigID", e);
+    		throw e;
+    	}
+    	return element;
+    }
+    
     /**
      * Inserts, updates or removes <code>elements</code> data including their {@link TR_Assignation} and Word data in the Database dependent on their state.
      * @param elements
      * @throws SQLException
      */
-//    public synchronized ArrayList<WordListElement> saveWordListElements(ArrayList<WordListElement> elements) throws SQLException
-    public synchronized WordListElement[] saveWordListElements(WordListElement ... elements) throws SQLException 
-    {
-	PreparedStatement stmt = null, stmt2 = null;
-	ResultSet res = null, res2 = null;
-
-	try {
-	    // save all words and assignations
-	    stmt = connection.prepareStatement(
-
-		    "INSERT IGNORE INTO words " +
-		    "(content, language) " +
-		    "VALUES(?, ?)"
-	    );
-
-	    TR_Assignation[] assignations = new TR_Assignation[elements.length];
-	    
-	    for (int i = 0; i < elements.length; i++) {
-		WordListElement wordListElement = elements[i];
-
-		if(wordListElement == null) {
-		    logger.info("wordListElement is null");
-		    continue;
-		}
-
-		stmt.setBytes(1, wordListElement.getContent().getBytes("ISO-8859-1"));
-		stmt.setString(2, wordListElement.getLanguage());	   
-		stmt.addBatch();
-		
-		assignations[i] = wordListElement.getAssignation();
-		if(assignations[i]==null)
-		    logger.warning("WordListElement without assignation");
-	    }			 
-	    stmt.executeBatch();
-	    saveAssignations(assignations);
-
-	    // save WLEs
-	    stmt = connection.prepareStatement(
-
-		    "SELECT * " +
-		    "FROM word_list_elements " +
-		    "WHERE id = ?"
+    public synchronized WordListElement[] saveWordListElements(WordListElement ... elements) 
+    throws SQLException {
+		PreparedStatement stmt = null, stmt2 = null;
+		ResultSet res = null, res2 = null;
+		try {
+		    // save all words and assignations
+		    stmt = connection.prepareStatement(
+			    "INSERT IGNORE INTO words " +
+			    "(content, language) " +
+			    "VALUES(?, ?)");
+		    TR_Assignation[] assignations = new TR_Assignation[elements.length];
 		    
-		    , ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-
-	    for (WordListElement wordListElement : elements) {
-
-			if(wordListElement == null) {
-			    logger.info("wordListElement is null");
-			    continue;
-			}
+		    for (int i = 0; i < elements.length; i++) {
+				WordListElement wordListElement = elements[i];
+				if(wordListElement == null) {
+				    logger.info("wordListElement is null");
+				    continue;
+				}
+				stmt.setBytes(1, wordListElement.getContent().getBytes("ISO-8859-1"));
+				stmt.setString(2, wordListElement.getLanguage());	   
+				stmt.addBatch();
+				
+				assignations[i] = wordListElement.getAssignation();
+				if(assignations[i]==null)
+				    logger.warning("WordListElement without assignation");
+		    }			 
+		    stmt.executeBatch();
+		    saveAssignations(assignations);
 	
-			if(wordListElement.isUnchanged()) {
-			    logger.finest("wordListElement unchanged");
-			    continue;
-			}
+		    // save WLEs
+		    stmt = connection.prepareStatement(
+			    "SELECT * FROM word_list_elements WHERE id = ?"
+			    , ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 	
-			boolean duplicate = false;
-			WordListElement wle[] = loadWordListElement(wordListElement.getContent());
-			// don't save the same entry several times
-			for(int i = 0; i < wle.length; i++) {
-				int a = wle[i].getAssignation().getDB_ID();
-				int b = wordListElement.getAssignation().getDB_ID();
-				String c = wle[i].getContent();
-				String d =	wordListElement.getContent();			
-				if(a == b && c == d)
-					duplicate = true;
-			}
+		    for (WordListElement wordListElement : elements) {
+				if(wordListElement == null) {
+				    logger.info("wordListElement is null");
+				    continue;
+				}
+				if(wordListElement.isUnchanged()) {
+				    logger.finest("wordListElement unchanged");
+				    continue;
+				}
+				boolean duplicate = false;
+				WordListElement wle[] = loadWordListElement(wordListElement.getContent());
+				// don't save the same entry several times
+				for(int i = 0; i < wle.length; i++) {
+					int a = wle[i].getAssignation().getDB_ID();
+					int b = wordListElement.getAssignation().getDB_ID();
+					String c = wle[i].getContent();
+					String d =	wordListElement.getContent();			
+					if(a == b && c == d)
+						duplicate = true;
+				}
+				
+				if(!duplicate) {
+					stmt.setInt(1, wordListElement.getDB_ID());
+					res = stmt.executeQuery();
 			
-			if(!duplicate) {
-				stmt.setInt(1, wordListElement.getDB_ID());
-				res = stmt.executeQuery();
-		
-				// INSERT or UPDATE
-				if (wordListElement.hasChanged()) {
-				    if(! res.next()) {
-					res.moveToInsertRow();
-				    }
-		
-				    // get word id
-				    stmt2 = connection.prepareStatement(
-		
-					    "SELECT id FROM words " +
-					    "WHERE content = ? AND language = ?"
-				    );
-				    stmt2.setBytes(1, wordListElement.getContent().getBytes("ISO-8859-1"));
-				    stmt2.setString(2, wordListElement.getLanguage());
-				    res2 = stmt2.executeQuery();
-		
-				    // if a word ID could be found
-				    if( res2.next() ) {
-		
-					// write WLE to DB
-					res.updateInt("word_id", res2.getInt(1));
-					if(wordListElement.getAssignation() != null
-						&& wordListElement.getAssignation().getDB_ID() != TR_Assignation.DEFAULT_ID)
-					    res.updateInt("assignation_id", wordListElement.getAssignation().getDB_ID());
-		
-					if(res.isFirst()) {
-					    res.updateRow();
+					// INSERT or UPDATE
+					if (wordListElement.hasChanged()) {
+					    if(! res.next()) {
+					    	res.moveToInsertRow();
+					    }
+			
+					    // get word id
+					    stmt2 = connection.prepareStatement(
+						    "SELECT id FROM words " +
+						    "WHERE content = ? AND language = ?");
+					    stmt2.setBytes(1, wordListElement.getContent().getBytes("ISO-8859-1"));
+					    stmt2.setString(2, wordListElement.getLanguage());
+					    res2 = stmt2.executeQuery();
+			
+					    // if a word ID could be found
+					    if( res2.next() ) {
+							// write WLE to DB
+							res.updateInt("word_id", res2.getInt(1));
+							if(wordListElement.getAssignation() != null
+								&& wordListElement.getAssignation().getDB_ID() != TR_Assignation.DEFAULT_ID)
+							    	res.updateInt("assignation_id", wordListElement.getAssignation().getDB_ID());
+				
+							if(res.isFirst()) 
+							    res.updateRow();
+							else {
+							    res.insertRow();
+							    res.last();
+							    wordListElement.setDB_ID(key, res.getInt("id"));
+							}
+							wordListElement.resetState(key);
+					    }
+					    else {
+							logger.warning("word id not found");
+							continue;
+					    }
 					}
-					else {
-					    res.insertRow();
-					    res.last();
-					    wordListElement.setDB_ID(key, res.getInt("id"));
-					}
-					wordListElement.resetState(key);
-				    }
-				    else {
-					logger.warning("word id not found");
-					continue;
-				    }
-				}
-				// DELETE
-				else if(wordListElement.isRemoved() && res.next()) {
-				    res.deleteRow();
-				}
+					// DELETE
+					else if(wordListElement.isRemoved() && res.next())
+					    res.deleteRow();
+			    }
 		    }
-	    }
+		}
+		catch ( SQLException e ) {
+		    logger.severe(e.getLocalizedMessage());
+		    throw e;
+		} catch (UnsupportedEncodingException e) {
+		    logger.warning(e.getMessage());
+		}
+		finally {
+		    try {
+				connection.setAutoCommit(true);
+				if (res  != null)
+				    res.close();
+				if (stmt  != null)
+				    stmt.close();
+				if (res2  != null)
+				    res2.close();
+				if (stmt2  != null)
+				    stmt2.close();
+		    }
+		    catch (SQLException e) {
+		    	logger.warning(e.getLocalizedMessage());
+		    }
+		}
+		return elements;
 	}
-	catch ( SQLException e ) {
-	    logger.severe(e.getLocalizedMessage());
-	    throw e;
-	} catch (UnsupportedEncodingException e) {
-	    logger.warning(e.getMessage());
-	}
-	finally {
-	    try
-	    {
-		connection.setAutoCommit(true);
-		if (res  != null)
-		    res.close();
-		if (stmt  != null)
-		    stmt.close();
-		if (res2  != null)
-		    res2.close();
-		if (stmt2  != null)
-		    stmt2.close();
-	    }
-	    catch (SQLException e)
-	    {
-		logger.warning(e.getLocalizedMessage());
-	    }
-	}
-	return elements;
-    }
-
-    public synchronized WordListElement[] loadWordListElement(String content) throws SQLException
-    {
-	//TODO: change to all possible languages
-	return this.loadWordListElement(content, "DE");
-    }
-
-    public synchronized WordListElement[] loadWordListElement(String content, String language) throws SQLException
-    {
-	PreparedStatement stmt = null;
-	ResultSet res = null;
-	WordListElement[] elements = null;
-
-	try {
-	    
-	    // WLEs with assignation
-
-	    stmt = connection.prepareStatement(
-
-		    "SELECT word_list_elements.* " +
-		    "FROM word_list_elements, words " +
-		    "WHERE word_list_elements.word_id = words.id " +
-		    "AND words.content = ? AND language = ?"
-	    );
-
-	    stmt.setBytes(1, content.getBytes("ISO-8859-1"));
-	    stmt.setString(2, language);
-	    res = stmt.executeQuery();
-
-	    res.last();
-	    int rows = res.getRow();
-	    res.beforeFirst();
-
-	    elements = new WordListElement[rows];
-
-	    int i=0;
-	    while( res.next() ) 
-	    {
-	    	elements[i] = new WordListElement(content, language);
-			
-	    	if(res.getInt("assignation_id") > 0 ) {
-			    elements[i].setAssignation(loadAssignation(res.getInt("assignation_id")));
-			}
-			
-	    	elements[i].setDB_ID(key, res.getInt("id"));
-			elements[i].resetState(key);
-			i++;
-	    }
-	    
-	    stmt.close();
-	}
-	catch ( SQLException e ) {
-	    logger.severe(e.getLocalizedMessage());
-	    throw e;
-	} catch (UnsupportedEncodingException e) {
-	    logger.warning(e.getMessage());
-	}
-	finally {
-	    try
-	    {
-		if (res  != null)
-		    res.close();
-		if (stmt  != null)
-		    stmt.close();
-	    }
-	    catch (SQLException e)
-	    {
-		logger.warning(e.getLocalizedMessage());
-	    }
-	}
-	return elements;
-    }
-
-    //gibt für jede Assigantion eines Strings die Wortklasse und Subklasse zurück
-//  public Vector loadWordClasses(Vector contents) throws Exception {
-//  Vector<Vector> resultSet = new Vector<Vector>();
-//  for(int i=0; i != contents.size(); ++i)
-//  {
-//  String content = (String)contents.get(i);
-//  Vector assignations = loadWordListElement(content).getAssignations();
-//  Vector<Long> wordClasses = new Vector<Long>();
-//  Vector<Long> wordSubClasses = new Vector<Long>();
-//  for (int j=0; j != assignations.size(); ++j)
-//  {
-//  TR_Assignation assi = (TR_Assignation)assignations.get(j); 
-//  wordClasses.add(assi.getWordclassesBinary());
-//  if (assi.getWordsubclassAdjectivesBinary()        != 0)
-//  wordSubClasses.add(assi.getWordsubclassAdjectivesBinary());
-//  else if (assi.getWordsubclassConnectorsBinary()   != 0)
-//  wordSubClasses.add(assi.getWordsubclassConnectorsBinary());
-//  else if (assi.getWordsubclassPrepositionsBinary() != 0)
-//  wordSubClasses.add(assi.getWordsubclassPrepositionsBinary());
-//  else if (assi.getWordsubclassPronounsBinary()     != 0)
-//  wordSubClasses.add(assi.getWordsubclassPronounsBinary());
-//  else if (assi.getWordsubclassPunctuationMarksBinary()        != 0)
-//  wordSubClasses.add(assi.getWordsubclassPunctuationMarksBinary());
-//  else if (assi.getWordsubclassVerbsBinary()        != 0)
-//  wordSubClasses.add(assi.getWordsubclassVerbsBinary());
-//  else 
-//  wordSubClasses.add(new Long(0));
-//  }
-//  resultSet.add(wordClasses);
-//  resultSet.add(wordSubClasses);
-//  }
-//  return resultSet;	  
-//  }
-
-
+         
     /**
-     * @param assignation
-     * @return the WordListElement characterized by the assignation, <code>null</code> if none exists
-     * @throws SQLException
-     * @throws NullPointerException if the assignation is <code>null</code>
+     * delete wle and the coressponding assignation and set the assignation in cw to null
+     * @param chapterID
+     * @throws Exception
      */
-//  public synchronized WordListElement loadWordListElement(TR_Assignation assignation) throws SQLException, NullPointerException
-//  {	
-//  if(assignation == null) {
-//  throw new NullPointerException("");
-//  }
-//  if(assignation.getDB_ID() == -1) {
-//  return null;
-//  }
-
-//  WordListElement element = null;
-//  PreparedStatement stmt = null;
-//  ResultSet res = null;
-
-//  try {	
-//  stmt = connection.prepareStatement(
-
-//  "SELECT words.content " +
-//  "FROM word_list_elements, words " +
-//  "WHERE assignation_id = ? " +
-//  "AND words.id = assignation_id.word_id");
-
-//  stmt.setInt(1, assignation.getDB_ID());
-
-//  res = stmt.executeQuery();
-
-//  if( res.next() ) {
-//  element = loadWordListElement(res.getString(1));
-//  }
-//  }
-//  catch ( SQLException e ) {
-//  logger.severe(e.getLocalizedMessage());
-//  throw e;
-//  }
-//  finally {
-//  try
-//  {
-//  if (res  != null)
-//  res.close();
-//  if (stmt  != null)
-//  stmt.close();
-//  }
-//  catch (SQLException e)
-//  {
-//  logger.warning(e.getLocalizedMessage());
-//  }
-//  }
-
-//  return element;
-//  }
+    public synchronized void deleteWLE(Integer wleID, Integer assigID)
+    throws Exception {
+		Statement stmt = connection.createStatement();
+		// delete wle
+		stmt.execute("DELETE FROM word_list_elements WHERE id = "+wleID);
+		//	nicht einfach die assig löschen, auch cw bzw. fw updaten
+		stmt.execute("DELETE FROM assignations WHERE id = "+assigID);
+		
+		stmt.execute("UPDATE constitutive_words SET assignation_id = NULL WHERE assignation_id = " + assigID);
+		stmt.execute("UPDATE function_words SET assignation_id = NULL WHERE assignation_id = " + assigID);
+	}
     
-
-    public Vector<String> loadWordsWithAbbreviation(String abbr)
-    {
+/* wenn DELETEWLE funktioniert kann das raus
+ *    public synchronized void deleteWLECW(Integer wleID, Integer assigID)//, Integer cwID)
+    throws Exception {
+		Statement stmt = connection.createStatement();
+		// delete wle
+		stmt.execute("DELETE FROM word_list_elements WHERE id = "+wleID);
+		//	nicht einfach die assig löschen, auch cw updaten
+		stmt.execute("DELETE FROM assignations WHERE id = "+assigID);
+		//stmt.execute("DELETE FROM constitutive_words WHERE id = "+cwID);
+		stmt.execute("UPDATE constitutive_words SET assignation_id = NULL WHERE assignation_id = " + assigID);
+	}*/
+    /**
+     * wenn DELETEWLE funktioniert kann das raus
+     * delete wle and the coressponding assignation and set the assignation in fw to null
+     * @param chapterID
+     * @throws Exception
+     */
+/* wenn DELETEWLE funktioniert kann das raus   
+ * public synchronized void deleteWLEFW(Integer wleID, Integer assigID)
+    throws Exception {
+		Statement stmt = connection.createStatement();
+		// delete wle
+		stmt.execute("DELETE FROM word_list_elements WHERE id = "+wleID);
+		stmt.execute("DELETE FROM assignations WHERE id = "+assigID);
+		stmt.execute("UPDATE function_words SET assignation_id = NULL WHERE assignation_id = " + assigID);
+	}*/
+    
+    public Vector<String> loadWordsWithAbbreviation(String abbr) {
     	Vector<String> words = new Vector<String>();
-    	
-		if (abbr != null)  	
-		{		
-			try 
-	    	{
+    	if (abbr != null) {		
+			try {
 				PreparedStatement stmt = connection.prepareStatement(
 						"SELECT content FROM words WHERE words.id IN" +
 						"(SELECT word_id from word_list_elements where word_list_elements.assignation_id IN " +
@@ -4068,37 +4109,30 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				ResultSet res = stmt.executeQuery();
 	    		
 	    		while (res.next()) 
-	    		{
 	    			words.add(res.getString("content"));
-	    		}
+	    		
 	    		res.close();
 	    		stmt.close();
 	    	}
-			catch (SQLException e) 
-			{
+			catch (SQLException e) {
 				e.printStackTrace();
 			}
 		}
 		return words;
     }
     
-/*    public Vector<String> loadWordsWithConjugation(TR_Assignation.Conjugation conjug)
-    {
+    
+    public Vector<String> loadWordsWithKonjugation(TR_Assignation.Konjugation conjug) {
     	Vector<String> words = new Vector<String>();
-    	
     	byte[] conj = new byte[0];
-    	
-		if (conjug != null) {
+		if (conjug != null) 
 			conj = TR_Assignation.setBit(conj, conjug.ordinal(), true);
-        }	
-		
-		try 
-    	{
+        		
+		try	{
 			// wandelt den byte array in ein int, da es bei der 
 			// setBytes Methode (s.u.) Probleme gab (byte wurde nicht als byte gesendet). 
 			int conjAsInt = 0;
-			for (int i = 0; i < conj.length; i++)
-			{
+			for (int i = 0; i < conj.length; i++) {
 				int n = (conj[i] < 0 ? (int)conj[i] + 256 : (int)conj[i]) << (8 * i);
 				conjAsInt += n;
 			}
@@ -4109,43 +4143,36 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 					ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 			//stmt.setBytes(1, conj);
 			stmt.setInt(1, conjAsInt);
-		
 			ResultSet res = stmt.executeQuery();
     		
     		while (res.next()) 
-    		{
     			words.add(res.getString("content"));
-    		}
+    
     		res.close();
     		stmt.close();
     	}
-		catch (SQLException e) 
-		{
+		catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return words;
     }
-*/    
-    public Vector<String> loadWordsWithPronoun(TR_Assignation.WordsubclassPronoun pron)
-    {
+
+    public Vector<String> loadWordsWithPronoun(TR_Assignation.WordsubclassPronoun pron) {
     	Vector<String> words = new Vector<String>();
-    	
     	byte[] pro = new byte[0];
     	
-		if (pron != null) {
+		if (pron != null) 
 			pro = TR_Assignation.setBit(pro, pron.ordinal(), true);
-        }	
+        
 		// wandelt den byte array in ein int, da es bei der 
 		// setBytes Methode (s.u.) Probleme gab (byte wurde nicht als byte gesendet). 
 		int proAsInt = 0;
-		for (int i = 0; i < pro.length; i++)
-		{
+		for (int i = 0; i < pro.length; i++) {
 			int n = (pro[i] < 0 ? (int)pro[i] + 256 : (int)pro[i]) << (8 * i);
 			proAsInt += n;
 		}
 		
-		try 
-    	{
+		try {
 			PreparedStatement stmt = connection.prepareStatement(
 					"SELECT content FROM words WHERE words.id IN" +
 					"(SELECT word_id from word_list_elements where word_list_elements.assignation_id IN " +
@@ -4156,37 +4183,32 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			ResultSet res = stmt.executeQuery();
     		
     		while (res.next()) 
-    		{
     			words.add(res.getString("content"));
-    		}
+    		
     		res.close();
     		stmt.close();
     	}
-		catch (SQLException e) 
-		{
+		catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return words;
     }
 
-    public Vector<String> loadWordsWithWortArt1(TR_Assignation.Wortart1 wortArt)
-    {
+    public Vector<String> loadWordsWithWortArt1(TR_Assignation.Wortart1 wortArt) {
     	Vector<String> words = new Vector<String>();
     	byte[] wa1 = new byte[0];
     	
-		if (wortArt != null)  	{
+		if (wortArt != null)  	
     		wa1 = TR_Assignation.setBit(wa1, wortArt.ordinal(), true);
-        }
+
 		// wandelt den byte array in ein int, da es bei der 
 		// setBytes Methode (s.u.) Probleme gab (byte wurde nicht als byte gesendet). 
 		int wortArt1AsInt = 0;
-		for (int i = 0; i < wa1.length; i++)
-		{
+		for (int i = 0; i < wa1.length; i++) {
 			int n = (wa1[i] < 0 ? (int)wa1[i] + 256 : (int)wa1[i]) << (8 * i);
 			wortArt1AsInt += n;
 		}
-		try 
-    	{
+		try {
 			PreparedStatement stmt = connection.prepareStatement(
 					"SELECT content FROM words WHERE words.id IN" +
 					"(SELECT word_id from word_list_elements where word_list_elements.assignation_id IN " +
@@ -4197,48 +4219,44 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			ResultSet res = stmt.executeQuery();
     		
     		while (res.next()) 
-    		{
     			words.add(res.getString("content"));
-    		}
+    		
     		res.close();
     		stmt.close();
     	}
-		catch (SQLException e) 
-		{
+		catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return words;
     }
     
+   
     /**
      * TODO: Vernünftigen Kommentar schreiben :)
      * @throws Exception
      */
-	public Vector<WorkingTranslation_DB> loadWorkingTranslations(String pLg,
-			String pOriginal) throws Exception {
+	public Vector<WorkingTranslation_DB> loadWorkingTranslations(String pLg, String pOriginal)
+	throws Exception {
 		Vector<WorkingTranslation_DB> result = new Vector<WorkingTranslation_DB>();
 		PreparedStatement stmt = null;
 		ResultSet res = null;
 
 		try {
-			stmt = connection
-					.prepareStatement(
-
-					"SELECT * FROM working_translation WHERE language = ? and original = ? ORDER BY translation ASC");
+			stmt = connection.prepareStatement(
+					"SELECT * FROM working_translation WHERE language = ? " 
+					+ "AND original = ? ORDER BY translation ASC");
 			stmt.setString(1, pLg);
 			stmt.setString(2, pOriginal);
 			res = stmt.executeQuery();
 			WorkingTranslation_DB complex = null;
 			while (res.next()) {
-				complex = new WorkingTranslation(key).new WorkingTranslation_DB(
-						key);
+				complex = new WorkingTranslation(key).new WorkingTranslation_DB(key);
 				complex.setDB_ID(key, res.getInt("id"));
 				complex.setLanguage(res.getString("language"));
 				complex.setOrginal(res.getString("original"));
 				complex.setTranslation(res.getString("translation"));
 				complex.resetState(key);
 				result.add(complex);
-				
 			}
 		} catch (SQLException e) {
 			logger.severe(e.getLocalizedMessage());
@@ -4259,13 +4277,13 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 	public Vector<String> loadWorkingTranslationsLanguage() throws Exception {
 
-        Vector<String> result = new Vector<String>();
+		Vector<String> result = new Vector<String>();
         Statement stmt = null;
         ResultSet res = null;
         try {
             stmt = connection.createStatement();
-           
-            res = stmt.executeQuery("SELECT distinct language FROM working_translation ORDER BY language DESC");
+            res = stmt.executeQuery("SELECT distinct language FROM working_translation" 
+            		+ "ORDER BY language DESC");
            
             while (res.next())
                 result.add(res.getString("language"));
@@ -4287,266 +4305,19 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
         return result;
     }
 
+      
 	
-//    /**
-//     * 
-//     * @param assigID
-//     * @return WordListElement[] oder null
-//     * @throws SQLException
-//     */
-/*    public WordListElement[] loadWordListElementWithAssigID(Integer assigID) throws SQLException 
-    {
-    	PreparedStatement stmt = null;
-    	ResultSet res = null;
-    	WordListElement[] elements = null;
 
-    	//TODO: soll das WordListElement mit der Assignation ID assigID zurückgeben
-    	try 
-    	{
-    		stmt = connection.prepareStatement("SELECT * FROM word_list_elements WHERE word_list_elements.assignation_id = " + assigID);
-    		res = stmt.executeQuery();
-    		
-    		while (res.next()) 
-    		{
-    			// zu word_id passenden content laden
-    			int word_id = res.getInt("word_id");
-    			stmt = connection.prepareStatement("SELECT content FROM words WHERE id = " + word_id);
-        		res = stmt.executeQuery();
-        		String content = null;
-        		while (res.next()) {
-        			content = res.getString("content");
-        		}
-    			
-        		if (content != null) {
-        			elements = loadWordListElement(content);
-    			}
-    		}
-    	}
-    	catch ( SQLException e ) {
-    		e.printStackTrace();
-    	}
-    	return elements;
-    }
-*/    
-    /**
-     * 
-     * @param assigID
-     * @return WordListElement[] oder null
-     * @throws SQLException
-     */
-    public WordListElement loadWordListElementWithAssigID(Integer assigID) throws SQLException 
-    {
-    	PreparedStatement stmt = null;
-    	ResultSet res = null;
-    	WordListElement element = null;
-
-    	//TODO: soll das WordListElement mit der Assignation ID assigID zurückgeben
-    	try 
-    	{
-    		stmt = connection.prepareStatement(
-    			
-    			"SELECT * " +
-    			"FROM word_list_elements " +
-    			"WHERE word_list_elements.assignation_id = ?");
-    		
-    		stmt.setInt(1, assigID);
-    		
-    		res = stmt.executeQuery();
-    		
-    		while (res.next()) 
-    		{
-    			// id wird geladen
-    			int id = res.getInt("id");
-  
-    			// assigantion wird geladen
-    			TR_Assignation assignation = loadAssignation(assigID);
-     			
-    			// zu word_id passenden content laden
-    			int word_id = res.getInt("word_id");
-    			stmt = connection.prepareStatement("SELECT content FROM words WHERE id = " + word_id);
-        		res = stmt.executeQuery();
-        		String content = null;
-        		if (res.next()) {
-        			content = res.getString("content");
-        		}
-        		
-        		// wordListElement wird erstellt
-        		element = new WordListElement(content);
-    			element.setAssignation(assignation);
-    			element.setDB_ID(key, id);
-    			element.resetState(key);
-    		}
-    	}
-    	catch ( SQLException e ) {
-    		logger.throwing(this.getClass().getName(), "loadWordListElementWithAssigID", e);
-    		throw e;
-    	}
-    	return element;
-    }
- 
-    public WordListElement loadWordListElement(Integer id) throws SQLException {
-		PreparedStatement stmt = null;
-		ResultSet res = null;
-		WordListElement element = null;
-		
-		try {
-		
-		    stmt = connection.prepareStatement("SELECT * FROM word_list_elements, words WHERE word_list_elements.id = ? AND word_list_elements.word_id = words.id");
-		    stmt.setInt(1, id);
-		
-		    res = stmt.executeQuery();
-		    if(res.next()) {
-			try {
-			    element = new WordListElement(new String(res.getBytes("content"), "ISO-8859-1"), res.getString("language"));
-			} catch (UnsupportedEncodingException e) {
-			    logger.warning(e.getMessage());
-			}
-			if(res.getInt("assignation_id") != 0)
-			    element.setAssignation(loadAssignation(res.getInt("assignation_id")));
-			element.setDB_ID(key, id);
-			element.resetState(key);
-		    }
-		}
-		catch ( SQLException e ) {
-		    logger.severe(e.getLocalizedMessage());
-		    throw e;
-		}
-		finally {
-		    try
-		    {
-			if (res  != null)
-			    res.close();
-			if (stmt  != null)
-			    stmt.close();
-		    }
-		    catch (SQLException e)
-		    {
-			logger.warning(e.getLocalizedMessage());
-		    }
-		}
-		return element;
-	}
-    
 	/**
-     * Inserts, updates or removes <code>assignations</code> in the Database dependent on their state.
-     * @param assignations
-     * @return assignations with updates DB_IDs
+     * Inserts, updates or removes <code>relations</code> in the Database dependent on their state.
+     * @param relations
      * @throws SQLException
-     * @throws NullPointerException if <code>assignations</code> is null
+     * @throws DBC_SaveException
      */
-    private synchronized TR_Assignation[] saveAssignations(TR_Assignation ... assignations) throws SQLException, NullPointerException
-    {
-		logger.entering(this.getClass().getName(), "saveAssignation", assignations);
-		
-		if(assignations == null)
-		    throw new IllegalArgumentException("");
-
-		PreparedStatement stmt = null;
-		ResultSet res = null;
-		
-		try 
-		{
-		    for (TR_Assignation tr_assignation : assignations)
-		    {
-			if(tr_assignation == null) {
-			    logger.info("assignation is null");
-			    continue;
-			}
-
-			if(tr_assignation.isUnchanged()) {
-			    logger.finest("assignation unchanged");
-			    continue;
-			}
-
-			TR_Assignation_DB assignation_db = tr_assignation.new TR_Assignation_DB();
-
-			stmt = connection.prepareStatement(
-				
-				"SELECT * " +
-				"FROM assignations " +
-				"WHERE id = ?",
-				
-				ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-			
-			stmt.setInt(1, assignation_db.getDB_ID());
-			res = stmt.executeQuery();
-
-			if (assignation_db.hasChanged()) 
-			{
-			    if(! res.next()) {
-				res.moveToInsertRow();
-			    }
-
-			    res.updateBytes("tr_type", assignation_db.getTypesBinary());
-			    res.updateBytes("tr_genus", assignation_db.getGeneraBinary());
-			    res.updateBytes("tr_numerus", assignation_db.getNumeriBinary());
-			    res.updateBytes("tr_determination", assignation_db.getDeterminationsBinary());
-			    res.updateBytes("tr_case", assignation_db.getCasesBinary());
-			    res.updateBytes("tr_person", assignation_db.getPersonsBinary());
-			    res.updateBytes("tr_tempus", assignation_db.getTemporaBinary());
-			    res.updateBytes("tr_konjugation", assignation_db.getKonjugationBinary());
-			    res.updateBytes("tr_diathese", assignation_db.getDiathesesBinary());
-			    res.updateBytes("tr_wordclass", assignation_db.getWordclassesBinary());
-			    res.updateBytes("tr_wortart1", assignation_db.getWortarten1Binary());
-			    res.updateBytes("tr_wortart2", assignation_db.getWortarten2Binary());
-			    res.updateBytes("tr_wortart3", assignation_db.getWortarten3Binary());
-			    res.updateBytes("tr_wortart4", assignation_db.getWortarten4Binary());
-			    res.updateBytes("tr_subclass_verb", assignation_db.getWordsubclassesVerbBinary());
-			    res.updateBytes("tr_subclass_adjective", assignation_db.getWordsubclassesAdjectiveBinary());
-			    res.updateBytes("tr_subclass_pronoun", assignation_db.getWordsubclassesPronounBinary());
-			    res.updateBytes("tr_subclass_punctuationmark", assignation_db.getWordsubclassesPunctuationMarkBinary());
-
-			    res.updateString("description", assignation_db.getDescription());
-			    res.updateString("etymol", assignation_db.getEtymol());
-
-			    if(res.isFirst()) {
-				res.updateRow();
-			    }
-			    else {
-				res.insertRow();
-				res.last();
-				tr_assignation.setDB_ID(key, res.getInt("id"));
-				logger.fine("new assignation inserted. ID="+tr_assignation.getDB_ID());
-			    }
-			    assignation_db.resetState(key);
-			}
-			else if(assignation_db.isRemoved() && res.next()) {
-			    res.deleteRow();
-			}
-		    }
-		}
-		catch ( SQLException e ) {
-			System.err.println(e.getMessage());
-		    logger.severe(e.getLocalizedMessage());
-		    throw e;
-		}
-		finally {
-		    try
-		    {
-			if (res  != null)
-			    res.close();
-			if (stmt  != null)
-			    stmt.close();
-		    }
-		    catch (SQLException e)
-		    {
-		    	logger.warning(e.getLocalizedMessage());
-		    }
-		}
-		return assignations;
-	    }
-	
-	    /**
-	     * Inserts, updates or removes <code>relations</code> in the Database dependent on their state.
-	     * @param relations
-	     * @throws SQLException
-	     * @throws DBC_SaveException
-	     */
-	    public synchronized Relation[] saveRelations(Relation ... relations) throws SQLException, DBC_SaveException
-	    {
-		if(relations == null) {
+    public synchronized Relation[] saveRelations(Relation ... relations)
+    throws SQLException, DBC_SaveException {
+		if(relations == null) 
 		    throw new NullPointerException("");
-		}
 	
 		PreparedStatement stmt = null;
 		ResultSet res = null;
@@ -4554,50 +4325,40 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	
 		try {
 		    for (Relation relation : relations) {
-	
-	
-			if(relation.getOrigin().getDB_ID() == -1 || relation.getTarget().getDB_ID() == -1) {
-			    logger.finest("origin or target not in DB. Skipping");
-			    continue;
-			    //throw new DBC_SaveException("Speichern der relation fehlgeschlagen: Assignation muss vorher gespeichert werden");
-			}
-	
-			if(relation.isUnchanged()) {
-			    logger.finest("relation unchanged");
-			    continue;
-			}
-	
-			stmt = connection.prepareStatement(
-	
-				"SELECT * FROM word_list_relations WHERE id = ?",
-	
-				ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE
-			);
-			stmt.setInt(1, relation.getDB_ID());
-			res = stmt.executeQuery();
-	
-			if (relation.hasChanged()) {
-			    if(! res.next()) {
-				res.moveToInsertRow();
-			    }	
-	
-			    res.updateInt("origin", relation.getOrigin().getDB_ID());
-			    res.updateInt("target", relation.getTarget().getDB_ID());
-			    res.updateString("type", relation.getType().name());
-	
-			    if(res.isFirst()) {
-				res.updateRow();
-			    }
-			    else {
-				res.insertRow();
-				res.last();
-				relation.setDB_ID(key, res.getInt("id"));
-			    }
-			    relation.resetState(key);
-			}
-			else if(relation.isRemoved() && res.next()) {
-			    res.deleteRow();
-			}
+				if(relation.getOrigin().getDB_ID() == -1 || relation.getTarget().getDB_ID() == -1) {
+				    logger.finest("origin or target not in DB. Skipping");
+				    continue;
+				    //throw new DBC_SaveException("Speichern der relation fehlgeschlagen: Assignation muss vorher gespeichert werden");
+				}
+				if(relation.isUnchanged()) {
+				    logger.finest("relation unchanged");
+				    continue;
+				}
+		
+				stmt = connection.prepareStatement(
+					"SELECT * FROM word_list_relations WHERE id = ?",
+					ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+				stmt.setInt(1, relation.getDB_ID());
+				res = stmt.executeQuery();
+		
+				if (relation.hasChanged()) {
+				    if(! res.next()) 
+				    	res.moveToInsertRow();
+				    res.updateInt("origin", relation.getOrigin().getDB_ID());
+				    res.updateInt("target", relation.getTarget().getDB_ID());
+				    res.updateString("type", relation.getType().name());
+		
+				    if(res.isFirst())
+				    	res.updateRow();
+				    else {
+						res.insertRow();
+						res.last();
+						relation.setDB_ID(key, res.getInt("id"));
+				    }
+				    relation.resetState(key);
+				}
+				else if(relation.isRemoved() && res.next())
+				    res.deleteRow();
 		    }
 		    connection.commit();
 		}
@@ -4606,140 +4367,112 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		    throw e;
 		}
 		finally {
-		    try
-		    {
-			connection.setAutoCommit(true);
-			if (res  != null)
-			    res.close();
-			if (stmt  != null)
-			    stmt.close();
+		    try {
+				connection.setAutoCommit(true);
+				if (res  != null)
+				    res.close();
+				if (stmt  != null)
+				    stmt.close();
 		    }
-		    catch (SQLException e)
-		    {
-			logger.warning(e.getLocalizedMessage());
+		    catch (SQLException e) {
+		    	logger.warning(e.getLocalizedMessage());
 		    }
 		}
 		return relations;
     }
 
-    public Relation_DB[] loadRelations(WordListElement wordlistelement) throws SQLException
-    {
-	if(wordlistelement == null) {
-	    throw new NullPointerException("");
-	}
-
-
-	if(wordlistelement.getDB_ID() == -1){
-	    logger.info("WordListElement ist noch nicht gespeichert, daher können keine Relations geladen werden.");
-	    return new Relation_DB[0];
-	}
-	ResultSet res = null;
-	PreparedStatement stmt = null;
-
-	stmt = connection.prepareStatement(
-
-		"SELECT word_list_elements.id, word_list_relations.id AS relationID, word_list_relations.type AS relationType " +
-		"FROM word_list_elements, word_list_relations " +
-		"WHERE word_list_elements.id = word_list_relations.target " +
-	"AND word_list_relations.origin = ?");
-
-	stmt.setInt(1, wordlistelement.getDB_ID());
-	res = stmt.executeQuery();
-
-	res.last();
-	Relation_DB[] resultSet = new Relation_DB[res.getRow()];
-	res.beforeFirst();
-	int i = 0;
-
-	while ( res.next() ) {
-
-	    Relation_DB r = new Relation(key).new Relation_DB(key);
-	    r.origin_cw_id = wordlistelement.getDB_ID();
-	    r.target_cw_id = res.getInt("id");
-	    r.setType(Relation.Types.valueOf(res.getString("relationType")));
-	    r.setDB_ID(key, res.getInt("relationID"));
-	    r.resetState(key);
-	    resultSet[i] =  r;
-
-	    ++i;
-	}
-
-	return resultSet;
+    public Relation_DB[] loadRelations(WordListElement wordlistelement)
+    throws SQLException {
+		if(wordlistelement == null)
+		    throw new NullPointerException("");
+	
+		if(wordlistelement.getDB_ID() == -1){
+		    logger.info("WordListElement ist noch nicht gespeichert, daher können keine Relations geladen werden.");
+		    return new Relation_DB[0];
+		}
+		ResultSet res = null;
+		PreparedStatement stmt = null;
+		stmt = connection.prepareStatement(
+			"SELECT word_list_elements.id, word_list_relations.id AS relationID, word_list_relations.type AS relationType " +
+			"FROM word_list_elements, word_list_relations " +
+			"WHERE word_list_elements.id = word_list_relations.target " +
+			"AND word_list_relations.origin = ?");
+		stmt.setInt(1, wordlistelement.getDB_ID());
+		res = stmt.executeQuery();
+	
+		res.last();
+		Relation_DB[] resultSet = new Relation_DB[res.getRow()];
+		res.beforeFirst();
+		int i = 0;
+	
+		while ( res.next() ) {
+		    Relation_DB r = new Relation(key).new Relation_DB(key);
+		    r.origin_cw_id = wordlistelement.getDB_ID();
+		    r.target_cw_id = res.getInt("id");
+		    r.setType(Relation.Types.valueOf(res.getString("relationType")));
+		    r.setDB_ID(key, res.getInt("relationID"));
+		    r.resetState(key);
+		    resultSet[i] =  r;
+	
+		    ++i;
+		}
+	
+		return resultSet;
     }
 
-    public boolean isEdited(Chapter c, int category) throws SQLException{
-	Vector resultSet = new Vector();
-	connection.setAutoCommit(false);
-	Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-	ResultSet res = null;
-	switch(category){
-
-	case ChapterEditingTester.CONSTITUTIVE_WORD:
-	    res = stmt.executeQuery("SELECT * FROM constitutive_words WHERE chapter="+c.getDB_ID());
-	    break;
-	case ChapterEditingTester.FUNCTION_WORD:
-	    res = stmt.executeQuery("SELECT * FROM function_words WHERE chapter="+c.getDB_ID());
-	    break;
-	case ChapterEditingTester.COMPLEX:
-	    res = stmt.executeQuery("SELECT * FROM complexes WHERE chapter="+c.getDB_ID());
-	    break;
-	case ChapterEditingTester.DIALOG:
-	    res = stmt.executeQuery("SELECT * FROM dialogs WHERE chapter="+c.getDB_ID());
-	    break;
-	case ChapterEditingTester.DIRECT_SPEECH:
-	    res = stmt.executeQuery("SELECT * FROM direct_speeches WHERE chapter="+c.getDB_ID());
-	    break;
-	case ChapterEditingTester.ILLOCUTION_UNIT:
-	    res = stmt.executeQuery("SELECT * FROM illocution_units WHERE chapter="+c.getDB_ID());
-	    break;
-	case ChapterEditingTester.ISOTOPE:
-	    res = stmt.executeQuery("SELECT * FROM isotopes WHERE chapter="+c.getDB_ID());
-	    break;
-	case ChapterEditingTester.MACRO_SENTENCE:
-	    res = stmt.executeQuery("SELECT * FROM macro_sentences WHERE chapter="+c.getDB_ID());
-	    break;
-	case ChapterEditingTester.RENOMINALISATION:
-	    res = stmt.executeQuery("SELECT * FROM renominalisations WHERE chapter="+c.getDB_ID());
-	    break;
-	case ChapterEditingTester.THEMA:
-	    res = stmt.executeQuery("SELECT * FROM themas WHERE chapter="+c.getDB_ID());
-	    break;
-	}
-
-	return res.next();
-    }
-
+    
     /**
-     * Bereitet den übergebenen String zur Verwendung in einer mySQL Abfrage vor, indem jedes Vorkommen von `'' mit `\'' ersetzt.
-     * @param s
-     * @return Den maskierten String
-     * @deprecated Bitte prepared statements benutzen! http://www.sdnshare.com/view.jsp?id=525
+     * TODO: KOMMENTAR BITTE von irgendwem!!
+     * @param c
+     * @param category
+     * @return
+     * @throws SQLException
      */
-    private static String mask(String s) {
-	char[] s1 = s.toCharArray();
-	int found = 0;
-
-	for (int i = 0; i < s1.length; i++)
-	    if (s1[i] == '\'')
-		found++;
-
-	char[] s2 = new char[s1.length + found];
-	for (int i = 0, j = 0; i < s1.length; i++) {
-	    if (s1[i] == '\'') {
-		s2[j++] = '\\';
-	    }
-	    s2[j++] = s1[i];
-	}
-	return new String(s2);
+    public boolean isEdited(Chapter c, int category) throws SQLException {
+		Vector resultSet = new Vector();
+		connection.setAutoCommit(false);
+		Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+		ResultSet res = null;
+		switch(category){
+			case ChapterEditingTester.CONSTITUTIVE_WORD:
+			    res = stmt.executeQuery("SELECT * FROM constitutive_words WHERE chapter="+c.getDB_ID());
+			    break;
+			case ChapterEditingTester.FUNCTION_WORD:
+			    res = stmt.executeQuery("SELECT * FROM function_words WHERE chapter="+c.getDB_ID());
+			    break;
+			case ChapterEditingTester.COMPLEX:
+			    res = stmt.executeQuery("SELECT * FROM complexes WHERE chapter="+c.getDB_ID());
+			    break;
+			case ChapterEditingTester.DIALOG:
+			    res = stmt.executeQuery("SELECT * FROM dialogs WHERE chapter="+c.getDB_ID());
+			    break;
+			case ChapterEditingTester.DIRECT_SPEECH:
+			    res = stmt.executeQuery("SELECT * FROM direct_speeches WHERE chapter="+c.getDB_ID());
+			    break;
+			case ChapterEditingTester.ILLOCUTION_UNIT:
+			    res = stmt.executeQuery("SELECT * FROM illocution_units WHERE chapter="+c.getDB_ID());
+			    break;
+			case ChapterEditingTester.ISOTOPE:
+			    res = stmt.executeQuery("SELECT * FROM isotopes WHERE chapter="+c.getDB_ID());
+			    break;
+			case ChapterEditingTester.MACRO_SENTENCE:
+			    res = stmt.executeQuery("SELECT * FROM macro_sentences WHERE chapter="+c.getDB_ID());
+			    break;
+			case ChapterEditingTester.RENOMINALISATION:
+			    res = stmt.executeQuery("SELECT * FROM renominalisations WHERE chapter="+c.getDB_ID());
+			    break;
+			case ChapterEditingTester.THEMA:
+			    res = stmt.executeQuery("SELECT * FROM themas WHERE chapter="+c.getDB_ID());
+			    break;
+		}
+	
+		return res.next();
     }
 
-    public void setKey(DBC_Key key) {
-	this.key = key;
-    }
-    
-    
+  
     /**
-     * Alle Einträge der text_raw Tabelle werden geladen. Die Bedingungen können durch die Parameter angegeben werden.
+     * Alle Einträge der text_raw Tabelle werden geladen. 
+     * Die Bedingungen können durch die Parameter angegeben werden.
      * @param strTitle
      * @param strId
      * @param strCreator
@@ -4749,43 +4482,32 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
      */
     public Vector<Vector<String>> loadText_Raw (String strTitle, String strId, String strCreator, String strLang, String strDate)
     {
-//    strTitle = jtTitle.getText();
-//    strId = jtId.getText();
-//    strCreator = jtCreator.getText();
-//    strLang = jtLang.getText();
-//    strDate = jtDate.getText();
-    	
 	    String sqlStatement = "SELECT * FROM text_raw WHERE ";
-	    if (!strTitle.equals("")) 
-	    {
+	    if (!strTitle.equals("")) {
 	        if (sqlStatement.endsWith("WHERE "))
 	            sqlStatement += "title LIKE '%" + strTitle + "%' ";
 	        else
 	            sqlStatement += "AND title LIKE '%" + strTitle + "%' ";
 	    }
-	    if (!strId.equals("")) 
-	    {
+	    if (!strId.equals("")) {
 	        if (sqlStatement.endsWith("WHERE "))
 	            sqlStatement += "id LIKE '%" + strId + "%' ";
 	        else
 	            sqlStatement += "AND id LIKE '%" + strId + "%' ";
 	    }
-	    if (!strCreator.equals("")) 
-	    {
+	    if (!strCreator.equals("")) {
 	        if (sqlStatement.endsWith("WHERE "))
 	            sqlStatement += "creator LIKE '%" +	strCreator + "%' ";
 	        else
 	            sqlStatement += "AND creator LIKE '%" +	strCreator + "%' ";
 	    }
-	    if (!strLang.equals("")) 
-	    {
+	    if (!strLang.equals("")) {
 	        if (sqlStatement.endsWith("WHERE "))
 	            sqlStatement += "language LIKE '%" + strLang + "%' ";
 	        else
 	            sqlStatement += "AND language LIKE '%" + strLang + "%' ";
 	    }
-	    if (!strDate.equals("")) 
-	    {
+	    if (!strDate.equals("")) {
 	        if (sqlStatement.endsWith("WHERE "))
 	            sqlStatement += "created LIKE '%" +	strDate + "%' ";
 	        else
@@ -4797,13 +4519,11 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	    ResultSet res = null;
 	    Vector<Vector<String>> toChange = new Vector<Vector<String>>();
 	   
-	    try 
-	    {
+	    try {
 	    	PreparedStatement stmt = connection.prepareStatement(sqlStatement);
 			res = stmt.executeQuery();    		
 			
-    		while (res.next()) 
-    		{
+    		while (res.next()) {
     			String id = res.getString("id");
     			String title = res.getString("title");
     			String creator = res.getString("creator");
@@ -4872,6 +4592,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	        */
 	   }
     
+   
     /**
      * save all of <code>translations</code> whose state indicates an "out of sync with DB" status.
      * @param translations
@@ -4880,23 +4601,27 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
      */
     public synchronized ArrayList<WorkingTranslation_DB> saveWorkingTranslations(
 			ArrayList<WorkingTranslation_DB> translations) throws SQLException {
-		connection.setAutoCommit(false);
+		
+    	connection.setAutoCommit(false);
 		PreparedStatement stmt_insert = null, stmt_delete = null, stmt_max_id = null, stmt_count = null;
 		ResultSet res = null;
 		int max_id = 0;
 
 		try {			
-			stmt_count = connection.prepareStatement("SELECT count(*) FROM working_translation WHERE language = ? AND translation = ?");
+			stmt_count = connection.prepareStatement(
+				"SELECT count(*) FROM working_translation " 
+				+ "WHERE language = ? AND translation = ?");
 			stmt_insert = connection.prepareStatement(
-				"INSERT INTO working_translation (id, language, original, translation) VALUES (null, ?, ?, ?)");
+				"INSERT INTO working_translation (id, language, original, translation)"
+				+ "VALUES (null, ?, ?, ?)");
 			stmt_delete = connection.prepareStatement(
-				"DELETE FROM working_translation WHERE id = ?");
+					"DELETE FROM working_translation WHERE id = ?");
 
 			for (WorkingTranslation_DB translation_DB : translations) {
 
-				if (translation_DB.getStateAsInt() == WorkingTranslation_DB.NEW) {
+				if (translation_DB.getStateAsInt() == WorkingTranslation_DB.NEW)
 					translation_DB.setDB_ID(key, ++max_id);
-				}
+				
 				// remove existing entries
 				if (translation_DB.getStateAsInt() == WorkingTranslation_DB.REMOVE
 						|| translation_DB.getStateAsInt() == WorkingTranslation_DB.CHANGE) {
@@ -4950,310 +4675,292 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	}
 
     
+  
     /**
      * save all of <code>criticisms</code> whose state indicates an "out of sync with DB" status.
      * @param criticisms
      * @return <code>criticisms</code> with updated states and DB_IDs
      * @throws SQLException
      */
-    public synchronized ArrayList<LiteraryCriticism1_DB> saveLiteraryCriticism1( ArrayList<LiteraryCriticism1_DB> criticisms) throws SQLException
-    {
-	connection.setAutoCommit(false);
-	PreparedStatement stmt_insert = null, stmt_delete = null, stmt_max_id = null;
-	ResultSet res = null;
-	int max_id = 0;
-
-	try {
-	    // compute free id value for insertion
-	    stmt_max_id = connection.prepareStatement("SELECT MAX(id) FROM literary_criticism_1");
-	    res = stmt_max_id.executeQuery();
-	    connection.commit();
-	    if( res.next()) {
-		max_id = res.getInt(1);
-	    }
-
-	    stmt_insert = connection.prepareStatement(
-
-		    "INSERT INTO literary_criticism_1 (id, chapter_id, char_pos1_start, char_pos1_end, char_pos2_start, char_pos2_end, annotation) VALUES (?, ?, ?, ?, ?, ?, ?)"
-	    );
-	    stmt_delete = connection.prepareStatement(
-
-		    "DELETE FROM literary_criticism_1 WHERE id = ?"
-	    );
-
-	    for (LiteraryCriticism1_DB criticism_DB : criticisms) {
-
-		if(criticism_DB.getStateAsInt() == LiteraryCriticism1_DB.NEW) {
-		    criticism_DB.setDB_ID(key, ++max_id);
+    public synchronized ArrayList<LiteraryCriticism1_DB> saveLiteraryCriticism1( ArrayList<LiteraryCriticism1_DB> criticisms) 
+    throws SQLException {
+		connection.setAutoCommit(false);
+		PreparedStatement stmt_insert = null, stmt_delete = null, stmt_max_id = null;
+		ResultSet res = null;
+		int max_id = 0;
+	
+		try {
+		    // compute free id value for insertion
+		    stmt_max_id = connection.prepareStatement("SELECT MAX(id) FROM literary_criticism_1");
+		    res = stmt_max_id.executeQuery();
+		    connection.commit();
+		    if( res.next())
+		    	max_id = res.getInt(1);
+		    
+		    stmt_insert = connection.prepareStatement(
+			    "INSERT INTO literary_criticism_1 "
+		    	+ "(id, chapter_id, char_pos1_start, char_pos1_end, char_pos2_start, char_pos2_end, annotation)"
+		    	+ " VALUES (?, ?, ?, ?, ?, ?, ?)");
+		    stmt_delete = connection.prepareStatement("DELETE FROM literary_criticism_1 WHERE id = ?");
+	
+		    for (LiteraryCriticism1_DB criticism_DB : criticisms) {
+				if(criticism_DB.getStateAsInt() == LiteraryCriticism1_DB.NEW) 
+				    criticism_DB.setDB_ID(key, ++max_id);
+				
+				// remove existing entries
+				if(criticism_DB.getStateAsInt() == LiteraryCriticism1_DB.REMOVE
+					|| criticism_DB.getStateAsInt() == LiteraryCriticism1_DB.CHANGE) {
+				    stmt_delete.setInt(1, criticism_DB.getDB_ID());
+				    stmt_delete.addBatch();
+				}
+				
+				if(criticism_DB.getStateAsInt() == LiteraryCriticism1_DB.NEW
+					|| criticism_DB.getStateAsInt() == LiteraryCriticism1_DB.CHANGE) {
+				    // add noun
+				    stmt_insert.setInt(1, criticism_DB.getDB_ID());
+				    stmt_insert.setInt(2, criticism_DB.chapterID);
+				    stmt_insert.setInt(3, criticism_DB.getPos1_start());
+				    stmt_insert.setInt(4, criticism_DB.getPos1_end());
+				    stmt_insert.setInt(5, criticism_DB.getPos2_start());
+				    stmt_insert.setInt(6, criticism_DB.getPos2_end());
+				    stmt_insert.setString(7, criticism_DB.getAnnotation());
+				    stmt_insert.addBatch();
+		
+				    criticism_DB.resetState(key);
+				}
+		    }
+		    stmt_delete.executeBatch();
+		    stmt_insert.executeBatch();
+		    connection.commit();
 		}
-		// remove existing entries
-		if(criticism_DB.getStateAsInt() == LiteraryCriticism1_DB.REMOVE
-			|| criticism_DB.getStateAsInt() == LiteraryCriticism1_DB.CHANGE) {
-		    stmt_delete.setInt(1, criticism_DB.getDB_ID());
-		    stmt_delete.addBatch();
+		catch ( SQLException e ) {
+		    connection.rollback();
+		    logger.severe(e.getLocalizedMessage());
+		    throw e;
 		}
-		if(criticism_DB.getStateAsInt() == LiteraryCriticism1_DB.NEW
-			|| criticism_DB.getStateAsInt() == LiteraryCriticism1_DB.CHANGE) {
-		    // add noun
-		    stmt_insert.setInt(1, criticism_DB.getDB_ID());
-		    stmt_insert.setInt(2, criticism_DB.chapterID);
-		    stmt_insert.setInt(3, criticism_DB.getPos1_start());
-		    stmt_insert.setInt(4, criticism_DB.getPos1_end());
-		    stmt_insert.setInt(5, criticism_DB.getPos2_start());
-		    stmt_insert.setInt(6, criticism_DB.getPos2_end());
-		    stmt_insert.setString(7, criticism_DB.getAnnotation());
-		    stmt_insert.addBatch();
-
-		    criticism_DB.resetState(key);
+		finally {
+		    try {
+				connection.setAutoCommit(true);
+				if (res  != null)
+				    res.close();
+				if (stmt_insert  != null)
+				    stmt_insert.close();
+				if (stmt_delete  != null)
+				    stmt_delete.close();
+				if (stmt_max_id  != null)
+				    stmt_max_id.close();
+		    }
+		    catch (SQLException e) {
+		    	logger.warning(e.getLocalizedMessage());
+		    }
 		}
-	    }
-	    stmt_delete.executeBatch();
-	    stmt_insert.executeBatch();
-	    connection.commit();
-	}
-	catch ( SQLException e ) {
-	    connection.rollback();
-	    logger.severe(e.getLocalizedMessage());
-	    throw e;
-	}
-	finally {
-	    try
-	    {
-		connection.setAutoCommit(true);
-		if (res  != null)
-		    res.close();
-		if (stmt_insert  != null)
-		    stmt_insert.close();
-		if (stmt_delete  != null)
-		    stmt_delete.close();
-		if (stmt_max_id  != null)
-		    stmt_max_id.close();
-	    }
-	    catch (SQLException e)
-	    {
-		logger.warning(e.getLocalizedMessage());
-	    }
-	}
-	return criticisms;
+		return criticisms;
     }
     
+  
     /**
      * Load all complexes in chapter with ID <code>chapterID</code>
      * @param chapterID
      * @return a Vector of PronounComplex_DB. All elements are expected to get converted into PronounComplex on the client side.
      * @throws Exception
      */
-    public Vector<LiteraryCriticism1_DB> loadLiteraryCriticism1(Integer chapterID) throws Exception
-    {
-	Vector<LiteraryCriticism1_DB> result = new Vector<LiteraryCriticism1_DB>();
-	PreparedStatement stmt = null;
-	ResultSet res = null;
-
-	try {
-	    stmt = connection.prepareStatement(
-
-		    "SELECT * FROM literary_criticism_1 WHERE chapter_id = ? ORDER BY id"
-	    );
-	    stmt.setInt(1, chapterID);
-	    res = stmt.executeQuery();
-	    LiteraryCriticism1_DB criticism = null;
-	    while(res.next()) {
-		criticism = new LiteraryCriticism1(key).new LiteraryCriticism1_DB(key);
-		criticism.setDB_ID(key, res.getInt("id"));
-		criticism.chapterID = chapterID;
-		criticism.setPos1_start(res.getInt("char_pos1_start"));
-		criticism.setPos1_end(res.getInt("char_pos1_end"));
-		criticism.setPos2_start(res.getInt("char_pos2_start"));
-		criticism.setPos2_end(res.getInt("char_pos2_end"));
-		criticism.setAnnotation(res.getString("annotation"));
-		criticism.resetState(key);
-		result.add(criticism);
-	    }
-	}
-	catch ( SQLException e ) {
-	    logger.severe(e.getLocalizedMessage());
-	    throw e;
-	}
-	finally {
-	    try
-	    {
-		connection.setAutoCommit(true);
-		if (res  != null)
-		    res.close();
-		if (stmt  != null)
-		    stmt.close();
-	    }
-	    catch (SQLException e)
-	    {
-		logger.warning(e.getLocalizedMessage());
-	    }
-	}
-	return result;
+    public Vector<LiteraryCriticism1_DB> loadLiteraryCriticism1(Integer chapterID) 
+    throws Exception {
+		Vector<LiteraryCriticism1_DB> result = new Vector<LiteraryCriticism1_DB>();
+		PreparedStatement stmt = null;
+		ResultSet res = null;
+	
+		try {
+		    stmt = connection.prepareStatement(
+			    "SELECT * FROM literary_criticism_1 WHERE chapter_id = ? ORDER BY id");
+		    stmt.setInt(1, chapterID);
+		    res = stmt.executeQuery();
+		    LiteraryCriticism1_DB criticism = null;
+		    while(res.next()) {
+				criticism = new LiteraryCriticism1(key).new LiteraryCriticism1_DB(key);
+				criticism.setDB_ID(key, res.getInt("id"));
+				criticism.chapterID = chapterID;
+				criticism.setPos1_start(res.getInt("char_pos1_start"));
+				criticism.setPos1_end(res.getInt("char_pos1_end"));
+				criticism.setPos2_start(res.getInt("char_pos2_start"));
+				criticism.setPos2_end(res.getInt("char_pos2_end"));
+				criticism.setAnnotation(res.getString("annotation"));
+				criticism.resetState(key);
+				result.add(criticism);
+		    }
+		}
+		catch ( SQLException e ) {
+		    logger.severe(e.getLocalizedMessage());
+		    throw e;
+		}
+		finally {
+		    try {
+				connection.setAutoCommit(true);
+				if (res  != null)
+				    res.close();
+				if (stmt  != null)
+				    stmt.close();
+		    }
+		    catch (SQLException e) {
+		    	logger.warning(e.getLocalizedMessage());
+		    }
+		}
+		return result;
     }
     
+   
     /**
      * save all of <code>criticisms</code> whose state indicates an "out of sync with DB" status.
      * @param criticisms
      * @return <code>criticisms</code> with updated states and DB_IDs
      * @throws SQLException
      */
-    public synchronized ArrayList<LiteraryCriticism2_DB> saveLiteraryCriticism2( ArrayList<LiteraryCriticism2_DB> criticisms) throws SQLException
-    {
-	connection.setAutoCommit(false);
-	PreparedStatement stmt_insert = null, stmt_delete = null, stmt_max_id = null;
-	ResultSet res = null;
-	int max_id = 0;
-
-	try {
-	    // compute free id value for insertion
-	    stmt_max_id = connection.prepareStatement("SELECT MAX(id) FROM literary_criticism_2");
-	    res = stmt_max_id.executeQuery();
-	    connection.commit();
-	    if( res.next()) {
-		max_id = res.getInt(1);
-	    }
-
-	    stmt_insert = connection.prepareStatement(
-
-		    "INSERT INTO literary_criticism_2 (id, chapter_id, char_pos_start, char_pos_end, type, annotation1, annotation2) VALUES (?, ?, ?, ?, ?, ?, ?)"
-	    );
-	    stmt_delete = connection.prepareStatement(
-
-		    "DELETE FROM literary_criticism_2 WHERE id = ?"
-	    );
-
-	    for (LiteraryCriticism2_DB criticism_DB : criticisms) {
-
-		if(criticism_DB.getStateAsInt() == LiteraryCriticism2_DB.NEW) {
-		    criticism_DB.setDB_ID(key, ++max_id);
+    public synchronized ArrayList<LiteraryCriticism2_DB> saveLiteraryCriticism2( ArrayList<LiteraryCriticism2_DB> criticisms) 
+    throws SQLException {
+		connection.setAutoCommit(false);
+		PreparedStatement stmt_insert = null, stmt_delete = null, stmt_max_id = null;
+		ResultSet res = null;
+		int max_id = 0;
+	
+		try {
+		    // compute free id value for insertion
+		    stmt_max_id = connection.prepareStatement("SELECT MAX(id) FROM literary_criticism_2");
+		    res = stmt_max_id.executeQuery();
+		    connection.commit();
+		    if( res.next()) 
+		    	max_id = res.getInt(1);
+		    
+		    stmt_insert = connection.prepareStatement(
+			    "INSERT INTO literary_criticism_2 "
+		    	+ "(id, chapter_id, char_pos_start, char_pos_end, type, annotation1, annotation2)"
+		    	+ " VALUES (?, ?, ?, ?, ?, ?, ?)"
+		    );
+		    stmt_delete = connection.prepareStatement("DELETE FROM literary_criticism_2 WHERE id = ?");
+	
+		    for (LiteraryCriticism2_DB criticism_DB : criticisms) {
+				if(criticism_DB.getStateAsInt() == LiteraryCriticism2_DB.NEW)
+				    criticism_DB.setDB_ID(key, ++max_id);
+	
+				// remove existing entries
+				if(criticism_DB.getStateAsInt() == LiteraryCriticism2_DB.REMOVE
+						|| criticism_DB.getStateAsInt() == LiteraryCriticism2_DB.CHANGE) {
+				    stmt_delete.setInt(1, criticism_DB.getDB_ID());
+				    stmt_delete.addBatch();
+				}
+				
+				if(criticism_DB.getStateAsInt() == LiteraryCriticism2_DB.NEW
+						|| criticism_DB.getStateAsInt() == LiteraryCriticism2_DB.CHANGE) {
+					// add noun
+				    stmt_insert.setInt(1, criticism_DB.getDB_ID());
+				    stmt_insert.setInt(2, criticism_DB.chapterID);
+				    stmt_insert.setInt(3, criticism_DB.getPos_start());
+				    stmt_insert.setInt(4, criticism_DB.getPos_end());
+				    stmt_insert.setInt(5, criticism_DB.getType());
+				    stmt_insert.setString(6, criticism_DB.getAnnotation1());
+				    stmt_insert.setString(7, criticism_DB.getAnnotation2());
+				    stmt_insert.addBatch();
+		
+				    criticism_DB.resetState(key);
+				}
+		    }
+		    stmt_delete.executeBatch();
+		    stmt_insert.executeBatch();
+		    connection.commit();
 		}
-		// remove existing entries
-		if(criticism_DB.getStateAsInt() == LiteraryCriticism2_DB.REMOVE
-			|| criticism_DB.getStateAsInt() == LiteraryCriticism2_DB.CHANGE) {
-		    stmt_delete.setInt(1, criticism_DB.getDB_ID());
-		    stmt_delete.addBatch();
+		catch ( SQLException e ) {
+		    connection.rollback();
+		    logger.severe(e.getLocalizedMessage());
+		    throw e;
 		}
-		if(criticism_DB.getStateAsInt() == LiteraryCriticism2_DB.NEW
-			|| criticism_DB.getStateAsInt() == LiteraryCriticism2_DB.CHANGE) {
-		    // add noun
-		    stmt_insert.setInt(1, criticism_DB.getDB_ID());
-		    stmt_insert.setInt(2, criticism_DB.chapterID);
-		    stmt_insert.setInt(3, criticism_DB.getPos_start());
-		    stmt_insert.setInt(4, criticism_DB.getPos_end());
-		    stmt_insert.setInt(5, criticism_DB.getType());
-		    stmt_insert.setString(6, criticism_DB.getAnnotation1());
-		    stmt_insert.setString(7, criticism_DB.getAnnotation2());
-		    stmt_insert.addBatch();
-
-		    criticism_DB.resetState(key);
+		finally {
+		    try {
+			connection.setAutoCommit(true);
+			if (res  != null)
+			    res.close();
+			if (stmt_insert  != null)
+			    stmt_insert.close();
+			if (stmt_delete  != null)
+			    stmt_delete.close();
+			if (stmt_max_id  != null)
+			    stmt_max_id.close();
+		    }
+		    catch (SQLException e) {
+		    	logger.warning(e.getLocalizedMessage());
+		    }
 		}
-	    }
-	    stmt_delete.executeBatch();
-	    stmt_insert.executeBatch();
-	    connection.commit();
-	}
-	catch ( SQLException e ) {
-	    connection.rollback();
-	    logger.severe(e.getLocalizedMessage());
-	    throw e;
-	}
-	finally {
-	    try
-	    {
-		connection.setAutoCommit(true);
-		if (res  != null)
-		    res.close();
-		if (stmt_insert  != null)
-		    stmt_insert.close();
-		if (stmt_delete  != null)
-		    stmt_delete.close();
-		if (stmt_max_id  != null)
-		    stmt_max_id.close();
-	    }
-	    catch (SQLException e)
-	    {
-		logger.warning(e.getLocalizedMessage());
-	    }
-	}
-	return criticisms;
+		return criticisms;
     }
     
+  
     /**
      * Load all complexes in chapter with ID <code>chapterID</code>
      * @param chapterID
      * @return a Vector of PronounComplex_DB. All elements are expected to get converted into PronounComplex on the client side.
      * @throws Exception
      */
-    public Vector<LiteraryCriticism2_DB> loadLiteraryCriticism2(Integer chapterID) throws Exception
-    {
-	Vector<LiteraryCriticism2_DB> result = new Vector<LiteraryCriticism2_DB>();
-	PreparedStatement stmt = null;
-	ResultSet res = null;
+    public Vector<LiteraryCriticism2_DB> loadLiteraryCriticism2(Integer chapterID)
+    throws Exception {
+		Vector<LiteraryCriticism2_DB> result = new Vector<LiteraryCriticism2_DB>();
+		PreparedStatement stmt = null;
+		ResultSet res = null;
+	
+		try {
+		    stmt = connection.prepareStatement(
+			    "SELECT * FROM literary_criticism_2 WHERE chapter_id = ? ORDER BY id");
+		    stmt.setInt(1, chapterID);
+		    res = stmt.executeQuery();
+		    LiteraryCriticism2_DB criticism = null;
 
-	try {
-	    stmt = connection.prepareStatement(
-
-		    "SELECT * FROM literary_criticism_2 WHERE chapter_id = ? ORDER BY id"
-	    );
-	    stmt.setInt(1, chapterID);
-	    res = stmt.executeQuery();
-	    LiteraryCriticism2_DB criticism = null;
-	    while(res.next()) {
-		criticism = new LiteraryCriticism2(key).new LiteraryCriticism2_DB(key);
-		criticism.setDB_ID(key, res.getInt("id"));
-		criticism.chapterID = chapterID;
-		criticism.setPos_start(res.getInt("char_pos_start"));
-		criticism.setPos_end(res.getInt("char_pos_end"));
-		criticism.setType(res.getInt("type"));
-		criticism.setAnnotation1(res.getString("annotation1"));
-		criticism.setAnnotation2(res.getString("annotation2"));
-		criticism.resetState(key);
-		result.add(criticism);
-	    }
-	}
-	catch ( SQLException e ) {
-	    logger.severe(e.getLocalizedMessage());
-	    throw e;
-	}
-	finally {
-	    try
-	    {
-		connection.setAutoCommit(true);
-		if (res  != null)
-		    res.close();
-		if (stmt  != null)
-		    stmt.close();
-	    }
-	    catch (SQLException e)
-	    {
-		logger.warning(e.getLocalizedMessage());
-	    }
-	}
-	return result;
+		    while(res.next()) {
+				criticism = new LiteraryCriticism2(key).new LiteraryCriticism2_DB(key);
+				criticism.setDB_ID(key, res.getInt("id"));
+				criticism.chapterID = chapterID;
+				criticism.setPos_start(res.getInt("char_pos_start"));
+				criticism.setPos_end(res.getInt("char_pos_end"));
+				criticism.setType(res.getInt("type"));
+				criticism.setAnnotation1(res.getString("annotation1"));
+				criticism.setAnnotation2(res.getString("annotation2"));
+				criticism.resetState(key);
+				result.add(criticism);
+		    }
+		}
+		catch ( SQLException e ) {
+		    logger.severe(e.getLocalizedMessage());
+		    throw e;
+		}
+		finally {
+		    try {
+				connection.setAutoCommit(true);
+				if (res  != null)
+				    res.close();
+				if (stmt  != null)
+				    stmt.close();
+		    }
+		    catch (SQLException e) {
+		    	logger.warning(e.getLocalizedMessage());
+		    }
+		}
+		return result;
     }
     
-    /*
+   
+    /**
      * ==========================================
      * =============== IU_Comment ===============
      * ========================================== 
      */
-    public synchronized ArrayList<IU_Comment> loadIUComments (Integer chapterID) throws Exception
-    {
+    public synchronized ArrayList<IU_Comment> loadIUComments (Integer chapterID)
+    throws Exception {
     	Chapter chapter = getChapter(chapterID.intValue());
-
     	ArrayList<IU_Comment> comments = new ArrayList<IU_Comment>();
-
     	Statement stmt = connection.createStatement();
     	ResultSet res;
 
-    	PreparedStatement preStmt = connection.prepareStatement("SELECT * "
-    				+ "FROM iu_comments WHERE "
-    				+ "chapter = " + chapter.getDB_ID());
-
+    	PreparedStatement preStmt = connection.prepareStatement(
+    		"SELECT * FROM iu_comments WHERE chapter = " + chapter.getDB_ID());
     	res = preStmt.executeQuery();
 
-    	while ( res.next() )
-    	{
+    	while ( res.next() ) {
     		IU_Comment comment = new IU_Comment(res.getInt("ID"), res.getInt("iu"), res.getString("comment"), chapter.getDB_ID(), res.getString("author"), res.getTimestamp("last_update"));
     		comments.add(comment);
     	}
@@ -5262,18 +4969,19 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     	return comments;
     }
 
-    public synchronized void saveIUComment(IU_Comment comment)  throws Exception
-    {
+    public synchronized void saveIUComment(IU_Comment comment) throws Exception {
     	connection.setAutoCommit(false);
     	Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-    	stmt.executeUpdate("INSERT INTO iu_comments (iu, chapter, comment, author) VALUES('" + comment.IU_ID + "', '" + comment.chapter + "', '" + comment.text + "', '" + comment.author +"')");
+    	stmt.executeUpdate(
+    		"INSERT INTO iu_comments (iu, chapter, comment, author) "
+    		+ "VALUES('" + comment.IU_ID + "', '" + comment.chapter + "', '" 
+    		+ comment.text + "', '" + comment.author +"')");
     	stmt.close();
     	connection.commit();
     	connection.setAutoCommit(true);
     }
 
-    public synchronized void deleteIUComment(Integer IU_ID)  throws Exception
-    {
+    public synchronized void deleteIUComment(Integer IU_ID) throws Exception {
     	connection.setAutoCommit(false);
     	Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
     	stmt.executeUpdate("DELETE FROM iu_comments WHERE ID=" + IU_ID.toString());
@@ -5282,8 +4990,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     	connection.setAutoCommit(true);
     }
 
-    public synchronized void editIUComment(Integer IU_ID, String text)  throws Exception
-    {
+    public synchronized void editIUComment(Integer IU_ID, String text) throws Exception {
     	connection.setAutoCommit(false);
     	Statement stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
     	stmt.executeUpdate("UPDATE iu_comments SET comment='" + text + "' WHERE ID=" + IU_ID.toString());
@@ -5292,8 +4999,9 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     	connection.setAutoCommit(true);
     }
 
+  
     /**
-     * Das gleiche wie die Wortlisten, bloï¿½, dass die Ausgabe in der Klasse
+     * Das gleiche wie die Wortlisten, bloß, dass die Ausgabe in der Klasse
      * LonleyConstitutiveWord gekapselt ist.
      * 
      * @param content
@@ -5314,12 +5022,12 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 //	for (int i = 0; i < list.size(); i++) {
 //	DB_Tupel tupel = (DB_Tupel) list.get(i);
 
-//	// Tupel soll gelï¿½scht werden
+//	// Tupel soll geloescht werden
 //	if (tupel.getState() == DB_Tupel.DELETE) {
 //	res = stmt.executeQuery("SELECT * FROM word_list WHERE id = "
 //	+ tupel.getInt("id"));
 //	if (res.next()) {
-//	// logger.info("lï¿½sche "+ tupel);
+//	// logger.info("loesche "+ tupel);
 //	res.deleteRow();
 //	connection.commit();
 //	}
@@ -5525,4 +5233,167 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 //	stmt.close();
 //	connection.setAutoCommit(true);
     }
+    
+  
+    /**
+     * Bereitet den übergebenen String zur Verwendung in einer mySQL Abfrage vor, indem jedes Vorkommen von `'' mit `\'' ersetzt.
+     * @param s
+     * @return Den maskierten String
+     * @deprecated Bitte prepared statements benutzen! http://www.sdnshare.com/view.jsp?id=525
+     */
+    private static String mask(String s) {
+	char[] s1 = s.toCharArray();
+	int found = 0;
+
+	for (int i = 0; i < s1.length; i++)
+	    if (s1[i] == '\'')
+		found++;
+
+	char[] s2 = new char[s1.length + found];
+	for (int i = 0, j = 0; i < s1.length; i++) {
+	    if (s1[i] == '\'') {
+		s2[j++] = '\\';
+	    }
+	    s2[j++] = s1[i];
+	}
+	return new String(s2);
+    }
+
+    public void setKey(DBC_Key key) {
+	this.key = key;
+    }
 }
+
+
+//gibt für jede Assigantion eines Strings die Wortklasse und Subklasse zurück
+//public Vector loadWordClasses(Vector contents) throws Exception {
+//Vector<Vector> resultSet = new Vector<Vector>();
+//for(int i=0; i != contents.size(); ++i)
+//{
+//String content = (String)contents.get(i);
+//Vector assignations = loadWordListElement(content).getAssignations();
+//Vector<Long> wordClasses = new Vector<Long>();
+//Vector<Long> wordSubClasses = new Vector<Long>();
+//for (int j=0; j != assignations.size(); ++j)
+//{
+//TR_Assignation assi = (TR_Assignation)assignations.get(j); 
+//wordClasses.add(assi.getWordclassesBinary());
+//if (assi.getWordsubclassAdjectivesBinary()        != 0)
+//wordSubClasses.add(assi.getWordsubclassAdjectivesBinary());
+//else if (assi.getWordsubclassConnectorsBinary()   != 0)
+//wordSubClasses.add(assi.getWordsubclassConnectorsBinary());
+//else if (assi.getWordsubclassPrepositionsBinary() != 0)
+//wordSubClasses.add(assi.getWordsubclassPrepositionsBinary());
+//else if (assi.getWordsubclassPronounsBinary()     != 0)
+//wordSubClasses.add(assi.getWordsubclassPronounsBinary());
+//else if (assi.getWordsubclassPunctuationMarksBinary()        != 0)
+//wordSubClasses.add(assi.getWordsubclassPunctuationMarksBinary());
+//else if (assi.getWordsubclassVerbsBinary()        != 0)
+//wordSubClasses.add(assi.getWordsubclassVerbsBinary());
+//else 
+//wordSubClasses.add(new Long(0));
+//}
+//resultSet.add(wordClasses);
+//resultSet.add(wordSubClasses);
+//}
+//return resultSet;	  
+//}
+
+
+/**
+ * @param assignation
+ * @return the WordListElement characterized by the assignation, <code>null</code> if none exists
+ * @throws SQLException
+ * @throws NullPointerException if the assignation is <code>null</code>
+ */
+//public synchronized WordListElement loadWordListElement(TR_Assignation assignation) throws SQLException, NullPointerException
+//{	
+//if(assignation == null) {
+//throw new NullPointerException("");
+//}
+//if(assignation.getDB_ID() == -1) {
+//return null;
+//}
+
+//WordListElement element = null;
+//PreparedStatement stmt = null;
+//ResultSet res = null;
+
+//try {	
+//stmt = connection.prepareStatement(
+
+//"SELECT words.content " +
+//"FROM word_list_elements, words " +
+//"WHERE assignation_id = ? " +
+//"AND words.id = assignation_id.word_id");
+
+//stmt.setInt(1, assignation.getDB_ID());
+
+//res = stmt.executeQuery();
+
+//if( res.next() ) {
+//element = loadWordListElement(res.getString(1));
+//}
+//}
+//catch ( SQLException e ) {
+//logger.severe(e.getLocalizedMessage());
+//throw e;
+//}
+//finally {
+//try
+//{
+//if (res  != null)
+//res.close();
+//if (stmt  != null)
+//stmt.close();
+//}
+//catch (SQLException e)
+//{
+//logger.warning(e.getLocalizedMessage());
+//}
+//}
+
+//return element;
+//}
+
+
+///**
+//* 
+//* @param assigID
+//* @return WordListElement[] oder null
+//* @throws SQLException
+//*/
+/*    public WordListElement[] loadWordListElementWithAssigID(Integer assigID) throws SQLException 
+{
+	PreparedStatement stmt = null;
+	ResultSet res = null;
+	WordListElement[] elements = null;
+
+	//TODO: soll das WordListElement mit der Assignation ID assigID zurückgeben
+	try 
+	{
+		stmt = connection.prepareStatement("SELECT * FROM word_list_elements WHERE word_list_elements.assignation_id = " + assigID);
+		res = stmt.executeQuery();
+		
+		while (res.next()) 
+		{
+			// zu word_id passenden content laden
+			int word_id = res.getInt("word_id");
+			stmt = connection.prepareStatement("SELECT content FROM words WHERE id = " + word_id);
+  		res = stmt.executeQuery();
+  		String content = null;
+  		while (res.next()) {
+  			content = res.getString("content");
+  		}
+			
+  		if (content != null) {
+  			elements = loadWordListElement(content);
+			}
+		}
+	}
+	catch ( SQLException e ) {
+		e.printStackTrace();
+	}
+	return elements;
+}
+*/

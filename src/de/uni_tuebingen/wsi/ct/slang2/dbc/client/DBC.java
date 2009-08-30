@@ -648,7 +648,7 @@ public class DBC implements DBC_KeyAcceptor {
 	 *         <li><b>tr_determination (byte)</b>Determination</li>
 	 *         <li><b>tr_person (byte)</b>Person</li>
 	 *         <li><b>tr_wordclass (byte)</b>Wortart</li>
-	 *         <li><b>tr_conjunction (byte)</b>Konjunktion</li>
+	 *         <li><b>tr_konjunction (byte)</b>Konjunktion</li>
 	 *         <li><b>tr_pronoun (byte)</b>Pronomen</li>
 	 *         <li><b>tr_tempus (byte)</b>Tempus</li>
 	 *         <li><b>tr_diathese (byte)</b>Diathese oder Genus Verbi</li>
@@ -1236,7 +1236,7 @@ public class DBC implements DBC_KeyAcceptor {
 		WordListElement[] answer;
 		try {
 			answer = (WordListElement[]) connection.call(new Message(key, "saveWordListElements", new Object[] {(Object[]) element}))
-			.getArguments()[0];
+				.getArguments()[0];
 		} catch (MysqlDataTruncation e){
 			throw new DBC_SaveException(e.getMessage());
 		} catch (Exception e){
@@ -1293,7 +1293,7 @@ public class DBC implements DBC_KeyAcceptor {
 		Object o = oa.getArguments()[0];
 		WordListElement wle = (WordListElement) o;
 	
-		return wle;//(WordListElement) connection.call(new Message(key, "loadWordListElementWithAssigID", assigID)).getArguments()[0];
+		return wle;
 	}
 
 	/**

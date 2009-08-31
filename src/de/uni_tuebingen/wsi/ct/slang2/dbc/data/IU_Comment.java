@@ -62,7 +62,7 @@ public class IU_Comment implements Serializable {
      * damit sie bearbeitet und gelöscht werden können.
      * @return ein HTML-formatierter String
      */
-    public String toHTML()
+    public String toHTML(boolean addHyperlinks)
     {
     	String formattedText = "<table border=0 width=400>";
     	
@@ -81,14 +81,17 @@ public class IU_Comment implements Serializable {
 		formattedText += "</td>";
     	formattedText += "</tr>";
     	
-    	formattedText += "<tr>";
-		formattedText += "<td bgcolor='#C0C0C0'>";
-		formattedText += "<a href='delete" + ID + "'>L&ouml;schen</a>";
-    	formattedText += "</td>";
-		formattedText += "<td align=right bgcolor='#C0C0C0'>";
-		formattedText += "<a href='edit" + ID + "'>Bearbeiten</a>";
-	    formattedText += "</td>";
-		formattedText += "</tr>";
+    	if(addHyperlinks)
+    	{
+	    	formattedText += "<tr>";
+			formattedText += "<td bgcolor='#C0C0C0'>";
+			formattedText += "<a href='delete" + ID + "'>L&ouml;schen</a>";
+	    	formattedText += "</td>";
+			formattedText += "<td align=right bgcolor='#C0C0C0'>";
+			formattedText += "<a href='edit" + ID + "'>Bearbeiten</a>";
+		    formattedText += "</td>";
+			formattedText += "</tr>";
+    	}
     	
     	formattedText += "</table>";
     	return formattedText;

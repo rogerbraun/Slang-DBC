@@ -299,7 +299,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	stmt.close();
 	return book;
     }
-
+    
     public synchronized Book saveBook(Book book)
     throws Exception {
 	connection.setAutoCommit(false);
@@ -1454,6 +1454,29 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		stmt.close();
 	}
 
+    public Vector<String> getDBUsers() throws Exception
+    {
+		Statement stmt = connection.createStatement();
+		ResultSet res = stmt.executeQuery("SHOW FULL PROCESSLIST");
+
+		Vector<String> user = new Vector<String>();
+		
+		while (res.next())
+		{
+			String s = "";
+			
+			s += "Host: "+res.getString("Host")+" ";
+			s += "Command: "+res.getString("Command")+" ";
+			s += "State: "+res.getString("State")+" ";
+			s += "Time: "+res.getString("Time")+" ";
+			s += "DB: "+res.getString("DB")+" ";
+			
+			user.add(s);
+		}
+		stmt.close();
+		return user;
+    }
+    
 	public synchronized Dialogs loadDialogs(Integer chapterID, Integer level) throws Exception 
 	{
 		Chapter chapter = getChapter(chapterID.intValue());

@@ -29,9 +29,9 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DialogTarget;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Dialogs;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DirectSpeech;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.DirectSpeeches;
+import de.uni_tuebingen.wsi.ct.slang2.dbc.data.IU_Comment;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.IllocutionUnitRoots;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Isotopes;
-import de.uni_tuebingen.wsi.ct.slang2.dbc.data.IU_Comment;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.LiteraryCriticism1;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.LiteraryCriticism2;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Pattern;
@@ -365,7 +365,14 @@ public class DBC implements DBC_KeyAcceptor {
 		ds.setChapter(key, chapter);
 		return ds;
 	}
-
+    
+	public Vector<String> getDBUsers()
+	throws Exception {
+		Message answer = connection.call(new Message(key, "getDBUsers"));
+		Vector<String> user = (Vector<String>) answer.getArguments()[0];
+		return user;
+	}
+	
 	public void saveSpeakers(Chapter chapter, ArrayList<DialogSpeaker> speakers, int level)
 	throws Exception {
 		try {
@@ -378,6 +385,7 @@ public class DBC implements DBC_KeyAcceptor {
 			throw new DBC_SaveException(e.getMessage());
 		}
 	}
+	
 	
 	public void saveSpeakerChanges(Chapter chapter, ArrayList<DialogSpeakerChange> changes, int level) throws Exception {
 		try {

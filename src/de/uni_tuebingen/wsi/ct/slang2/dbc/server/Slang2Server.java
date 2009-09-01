@@ -158,7 +158,7 @@ public class Slang2Server implements Daemon, Runnable {
 		if(connections.remove(null))
 			cleanup_connections();
 	}
-
+    
 	public static void main(String[] args) throws IOException {
 		/*
 		 * Try loading Server-Properties from file

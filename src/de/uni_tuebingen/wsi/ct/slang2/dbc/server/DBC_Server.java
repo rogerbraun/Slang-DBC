@@ -1465,11 +1465,11 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		{
 			String s = "";
 			
-			s += "Host: "+res.getString("Host")+" ";
-			s += "Command: "+res.getString("Command")+" ";
-			s += "State: "+res.getString("State")+" ";
-			s += "Time: "+res.getString("Time")+" ";
-			s += "DB: "+res.getString("DB")+" ";
+			s += res.getString("Host")+" ";
+			s += res.getString("Command")+" ";
+			s += res.getString("State")+" ";
+			s += res.getString("Time")+" ";
+			s += res.getString("DB")+" ";
 			
 			user.add(s);
 		}

@@ -1467,9 +1467,9 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			
 			s += res.getString("Host")+" ";
 			s += res.getString("Command")+" ";
-			s += res.getString("State")+" ";
 			s += res.getString("Time")+" ";
-			s += res.getString("DB")+" ";
+			s += res.getString("Info").replace(' ', '_')+" ";
+			s += res.getString("DB")+";";
 			
 			user.add(s);
 		}
@@ -4234,8 +4234,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		try {
 			PreparedStatement stmt = connection.prepareStatement(
 					"SELECT content FROM words WHERE words.id IN" +
-					"(SELECT word_id FROM word_list_elements WHERE word_list_elements.assignation_id IN " +
-					"(SELECT id FROM assignations WHERE tr_wortart1 & wa1));",
+					"(SELECT word_id from word_list_elements where word_list_elements.assignation_id IN " +
+					"(SELECT id FROM assignations WHERE tr_tempus & wa1));",
 					ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 			//stmt.setBytes(1, wa1);
 			stmt.setInt(1, wortArt1AsInt);

@@ -63,6 +63,8 @@ public final class Renominalisations
          Vector v = (Vector) renominalisations.get(index);
          if (!v.contains(i))
             v.add(i);
+         else
+             v.setElementAt(i,index);
       }
       else {
          Vector v = new Vector();

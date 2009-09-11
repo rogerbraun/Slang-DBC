@@ -4145,7 +4145,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     }
     
     
-    public Vector<String> loadWordsWithKonjugation(TR_Assignation.Konjugation conjug) {
+   /* public Vector<String> loadWordsWithKonjugation(TR_Assignation.Konjugation conjug) {
     	Vector<String> words = new Vector<String>();
     	byte[] conj = new byte[0];
 		if (conjug != null) 
@@ -4162,7 +4162,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			PreparedStatement stmt = connection.prepareStatement(
 					"SELECT content FROM words WHERE id IN " +
 					"(SELECT word_id FROM word_list_elements WHERE assignation_id IN " +
-					"(SELECT id FROM assignations WHERE tr_conjugation & ? ));",
+					"(SELECT id FROM assignations WHERE tr_konjugation & ? ));",
 					ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 			//stmt.setBytes(1, conj);
 			stmt.setInt(1, conjAsInt);
@@ -4178,7 +4178,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			e.printStackTrace();
 		}
 		return words;
-    }
+    }*/
 
     public Vector<String> loadWordsWithPronoun(TR_Assignation.WordsubclassPronoun pron) {
     	Vector<String> words = new Vector<String>();

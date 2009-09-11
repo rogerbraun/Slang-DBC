@@ -64,7 +64,7 @@ public final class Renominalisations
          if (!v.contains(i))
             v.add(i);
          else
-             v.setElementAt(i,index);
+             v.setElementAt(i,v.indexOf(i));
       }
       else {
          Vector v = new Vector();

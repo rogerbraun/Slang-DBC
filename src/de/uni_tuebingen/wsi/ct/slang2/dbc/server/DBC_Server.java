@@ -4305,8 +4305,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
         ResultSet res = null;
         try {
             stmt = connection.createStatement();
-            res = stmt.executeQuery("SELECT distinct language FROM working_translation" 
-            		+ "ORDER BY language DESC");
+            res = stmt.executeQuery("SELECT language FROM working_translation" 
+            		+ " ORDER BY language DESC");
            
             while (res.next())
                 result.add(res.getString("language"));

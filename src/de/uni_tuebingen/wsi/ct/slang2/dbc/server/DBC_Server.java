@@ -4253,85 +4253,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		return words;
     }
     
-   
-    /**
-     * TODO: Vernünftigen Kommentar schreiben :)
-     * @throws Exception
-     */
-	public Vector<WorkingTranslation_DB> loadWorkingTranslations(String pLg, String pOriginal)
-	throws Exception {
-		Vector<WorkingTranslation_DB> result = new Vector<WorkingTranslation_DB>();
-		PreparedStatement stmt = null;
-		ResultSet res = null;
-
-		try {
-			stmt = connection.prepareStatement(
-					"SELECT * FROM working_translation WHERE language = ? " 
-					+ "AND original = ? ORDER BY translation ASC");
-			stmt.setString(1, pLg);
-			stmt.setString(2, pOriginal);
-			res = stmt.executeQuery();
-			WorkingTranslation_DB complex = null;
-			while (res.next()) {
-				complex = new WorkingTranslation(key).new WorkingTranslation_DB(key);
-				complex.setDB_ID(key, res.getInt("id"));
-				complex.setLanguage(res.getString("language"));
-				complex.setOrginal(res.getString("original"));
-				complex.setTranslation(res.getString("translation"));
-				complex.resetState(key);
-				result.add(complex);
-			}
-		} catch (SQLException e) {
-			logger.severe(e.getLocalizedMessage());
-			throw e;
-		} finally {
-			try {
-				connection.setAutoCommit(true);
-				if (res != null)
-					res.close();
-				if (stmt != null)
-					stmt.close();
-			} catch (SQLException e) {
-				logger.warning(e.getLocalizedMessage());
-			}
-		}
-		return result;
-	}
-
-	public Vector<String> loadWorkingTranslationsLanguage() throws Exception {
-
-		Vector<String> result = new Vector<String>();
-        Statement stmt = null;
-        ResultSet res = null;
-        try {
-            stmt = connection.createStatement();
-            res = stmt.executeQuery("SELECT language FROM working_translation" 
-            		+ " ORDER BY language DESC");
-           
-            while (res.next())
-                result.add(res.getString("language"));
-           
-        } catch (SQLException e) {
-            logger.severe(e.getLocalizedMessage());
-            throw e;
-        } finally {
-            try {
-                connection.setAutoCommit(true);
-                if (res != null)
-                    res.close();
-                if (stmt != null)
-                    stmt.close();
-            } catch (SQLException e) {
-                logger.warning(e.getLocalizedMessage());
-            }
-        }
-        return result;
-    }
-
-      
-	
-
-	/**
+ 	/**
      * Inserts, updates or removes <code>relations</code> in the Database dependent on their state.
      * @param relations
      * @throws SQLException
@@ -4696,10 +4618,82 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		}
 		return translations;
 	}
-
     
-  
     /**
+     * TODO: Vernünftigen Kommentar schreiben :)
+     * @throws Exception
+     */
+	public Vector<WorkingTranslation_DB> loadWorkingTranslations(String pLg, String pOriginal)
+	throws Exception {
+		Vector<WorkingTranslation_DB> result = new Vector<WorkingTranslation_DB>();
+		PreparedStatement stmt = null;
+		ResultSet res = null;
+
+		try {
+			stmt = connection.prepareStatement(
+					"SELECT * FROM working_translation WHERE language = ? " 
+					+ "AND original = ? ORDER BY translation ASC");
+			stmt.setString(1, pLg);
+			stmt.setString(2, pOriginal);
+			res = stmt.executeQuery();
+			WorkingTranslation_DB complex = null;
+			while (res.next()) {
+				complex = new WorkingTranslation(key).new WorkingTranslation_DB(key);
+				complex.setDB_ID(key, res.getInt("id"));
+				complex.setLanguage(res.getString("language"));
+				complex.setOrginal(res.getString("original"));
+				complex.setTranslation(res.getString("translation"));
+				complex.resetState(key);
+				result.add(complex);
+			}
+		} catch (SQLException e) {
+			logger.severe(e.getLocalizedMessage());
+			throw e;
+		} finally {
+			try {
+				connection.setAutoCommit(true);
+				if (res != null)
+					res.close();
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				logger.warning(e.getLocalizedMessage());
+			}
+		}
+		return result;
+	}
+
+	public Vector<String> loadWorkingTranslationsLanguage() throws Exception {
+
+		Vector<String> result = new Vector<String>();
+        Statement stmt = null;
+        ResultSet res = null;
+        try {
+            stmt = connection.createStatement();
+            res = stmt.executeQuery("SELECT language FROM working_translation" 
+            		+ " ORDER BY language DESC");
+           
+            while (res.next())
+                result.add(res.getString("language"));
+           
+        } catch (SQLException e) {
+            logger.severe(e.getLocalizedMessage());
+            throw e;
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+                if (res != null)
+                    res.close();
+                if (stmt != null)
+                    stmt.close();
+            } catch (SQLException e) {
+                logger.warning(e.getLocalizedMessage());
+            }
+        }
+        return result;
+    }
+
+	/**
      * save all of <code>criticisms</code> whose state indicates an "out of sync with DB" status.
      * @param criticisms
      * @return <code>criticisms</code> with updated states and DB_IDs

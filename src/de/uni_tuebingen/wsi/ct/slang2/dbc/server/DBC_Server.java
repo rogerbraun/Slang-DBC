@@ -4145,27 +4145,27 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     }
     
     
-   /* public Vector<String> loadWordsWithKonjugation(TR_Assignation.Konjugation conjug) {
+   /* public Vector<String> loadWordsWithKonjugation(TR_Assignation.Konjugation konjug) {
     	Vector<String> words = new Vector<String>();
-    	byte[] conj = new byte[0];
-		if (conjug != null) 
-			conj = TR_Assignation.setBit(conj, conjug.ordinal(), true);
+    	byte[] konj = new byte[0];
+		if (konjug != null) 
+			konj = TR_Assignation.setBit(konj, konjug.ordinal(), true);
         		
 		try	{
 			// wandelt den byte array in ein int, da es bei der 
 			// setBytes Methode (s.u.) Probleme gab (byte wurde nicht als byte gesendet). 
-			int conjAsInt = 0;
-			for (int i = 0; i < conj.length; i++) {
-				int n = (conj[i] < 0 ? (int)conj[i] + 256 : (int)conj[i]) << (8 * i);
-				conjAsInt += n;
+			int konjAsInt = 0;
+			for (int i = 0; i < konj.length; i++) {
+				int n = (konj[i] < 0 ? (int)konj[i] + 256 : (int)konj[i]) << (8 * i);
+				konjAsInt += n;
 			}
 			PreparedStatement stmt = connection.prepareStatement(
 					"SELECT content FROM words WHERE id IN " +
 					"(SELECT word_id FROM word_list_elements WHERE assignation_id IN " +
 					"(SELECT id FROM assignations WHERE tr_konjugation & ? ));",
 					ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-			//stmt.setBytes(1, conj);
-			stmt.setInt(1, conjAsInt);
+			//stmt.setBytes(1, konj);
+			stmt.setInt(1, konjAsInt);
 			ResultSet res = stmt.executeQuery();
     		
     		while (res.next()) 

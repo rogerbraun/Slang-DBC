@@ -57,8 +57,8 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.tools.dialogs.chapterloader.ChapterLoa
 import de.uni_tuebingen.wsi.ct.slang2.dbc.tools.pathselector.PathNode;
 
 /**
- * Die Schnittstelle zur Slang2-Datenbank, mit der Mï¿½glichkeit, ganze Kapitel
- * und dazugehï¿½rige Zusatzinformationen auszulesen und zu speichern. <br>
+ * Die Schnittstelle zur Slang2-Datenbank, mit der Moeglichkeit, ganze Kapitel
+ * und dazugehoerige Zusatzinformationen auszulesen und zu speichern. <br>
  * Codebeispiel: <br>
  * 
  * <pre>
@@ -97,6 +97,7 @@ public class DBC implements DBC_KeyAcceptor {
 	public DBC_Key getKey() {
 		return key;
 	}
+	
 	/**
 	 * Öffnet eine geschlossene Verbindung.
 	 * 
@@ -114,7 +115,6 @@ public class DBC implements DBC_KeyAcceptor {
 			}
 			catch (Exception e) {
 				// close socket
-
 				try {
 					// close connection
 					if(connection != null)
@@ -124,7 +124,6 @@ public class DBC implements DBC_KeyAcceptor {
 				} catch (IOException e1) {
 					// Ignore
 				}
-
 				// throw message
 				String message = e.getMessage();
 				// The "real" exception might be wraped in an InvocationTargetException
@@ -244,7 +243,7 @@ public class DBC implements DBC_KeyAcceptor {
 	}
 
 	/**
-	 * Lï¿½dt ein Kapitel aus der Datenbank.
+	 * Laedt ein Kapitel aus der Datenbank.
 	 * 
 	 * @param id
 	 *        Die ID des zu ladenden Kapitels
@@ -281,32 +280,12 @@ public class DBC implements DBC_KeyAcceptor {
 	 */
 	public void deleteChapter(int id)
 	throws Exception {
-		Message answer = connection.call(new Message(key, "deleteChapter", new Integer(id)));
+		//Message answer = connection.call(new Message(key, "deleteChapter", new Integer(id)));
+		connection.call(new Message(key, "deleteChapter", new Integer(id)));
 	}
 	
 	/**
-	 *  delete wle and the coressponding assignation and set the assignation in cw to null
-	 */
-	public void deleteWLE(int wleID, int assigID)
-	throws Exception {
-		Message answer = connection.call(new Message(key, "deleteWLE", new Integer(wleID), new Integer(assigID)));
-	}
-/*	public void deleteWLECW(int wleID, int assigID)
-	throws Exception {
-		Message answer = connection.call(new Message(key, "deleteWLECW", new Integer(wleID), new Integer(assigID)));
-	}
-*/	
-	/**
-	 *  delete wle and the coressponding assignation and set the assignation in cw to null
-	 */
-/*	public void deleteWLEFW(int wleID, int assigID)
-	throws Exception {
-		Message answer = connection.call(new Message(key, "deleteWLEFW", new Integer(wleID), new Integer(assigID)));
-	}*/
-	
-	
-	/**
-	 * Lï¿½dt alle Direkten Reden aus der Datenbank, die zu diesem Kapitel
+	 * Laedt alle Direkten Reden aus der Datenbank, die zu diesem Kapitel
 	 * gespeichert wurden.
 	 * 
 	 * @param chapter, das Kapitel
@@ -321,7 +300,6 @@ public class DBC implements DBC_KeyAcceptor {
 		dss.setChapter(key, chapter);
 		return dss;
 	}
-
 
 	public void saveDirectSpeeches(Chapter chapter, DirectSpeeches newdirectSpeeches, DirectSpeeches olddirectSpeeches, int level)
 	throws Exception {
@@ -351,7 +329,7 @@ public class DBC implements DBC_KeyAcceptor {
 	}
 	
 	/**
-	 * Lï¿½dt alle Dialoge des Kapitels aus der Datenbank.
+	 * Laedt alle Dialoge des Kapitels aus der Datenbank.
 	 * 
 	 * @param chapter - das Kapitel, dessen Dialoge geladen werden sollen
 	 *        level
@@ -385,9 +363,9 @@ public class DBC implements DBC_KeyAcceptor {
 			throw new DBC_SaveException(e.getMessage());
 		}
 	}
-	
-	
-	public void saveSpeakerChanges(Chapter chapter, ArrayList<DialogSpeakerChange> changes, int level) throws Exception {
+		
+	public void saveSpeakerChanges(Chapter chapter, ArrayList<DialogSpeakerChange> changes, int level)
+	throws Exception {
 		try {
 			connection.call(new Message(key, "saveSpeakerChanges", new Integer(chapter.getDB_ID()), changes, level));
 		} catch (MysqlDataTruncation e){
@@ -397,7 +375,8 @@ public class DBC implements DBC_KeyAcceptor {
 		}
 	}
 	
-	public void saveD_Themat(Chapter chapter, ArrayList<DialogD_Themat> themats, int level) throws Exception {
+	public void saveD_Themat(Chapter chapter, ArrayList<DialogD_Themat> themats, int level)
+	throws Exception {
 		try {
 			connection.call(new Message(key, "saveD_Themat", new Integer(chapter.getDB_ID()), themats, level));
 		} catch (MysqlDataTruncation e){
@@ -407,7 +386,8 @@ public class DBC implements DBC_KeyAcceptor {
 		}
 	}
 	
-	public void saveFaces(Chapter chapter, ArrayList<DialogFaces> faces, int level) throws Exception {
+	public void saveFaces(Chapter chapter, ArrayList<DialogFaces> faces, int level)
+	throws Exception {
 		try {
 			connection.call(new Message(key, "saveFaces", new Integer(chapter.getDB_ID()), faces, level));
 		} catch (MysqlDataTruncation e){
@@ -417,7 +397,8 @@ public class DBC implements DBC_KeyAcceptor {
 		}
 	}
 	
-	public void saveTargets(Chapter chapter, ArrayList<DialogTarget> targets, int level) throws Exception {
+	public void saveTargets(Chapter chapter, ArrayList<DialogTarget> targets, int level)
+	throws Exception {
 		try {
 			connection.call(new Message(key, "saveTargets", new Integer(chapter.getDB_ID()), targets, level));
 		} catch (MysqlDataTruncation e){
@@ -427,7 +408,8 @@ public class DBC implements DBC_KeyAcceptor {
 		}
 	}
 	
-	public void saveISignals(Chapter chapter, ArrayList<DialogISignal> signals, int level) throws Exception {
+	public void saveISignals(Chapter chapter, ArrayList<DialogISignal> signals, int level)
+	throws Exception {
 		try {
 			connection.call(new Message(key, "saveISignals", new Integer(chapter.getDB_ID()), signals, level));
 		} catch (MysqlDataTruncation e){
@@ -437,7 +419,8 @@ public class DBC implements DBC_KeyAcceptor {
 		}
 	}
 	
-	public void saveComments(Chapter chapter, ArrayList<DialogComment> comments, int level) throws Exception {
+	public void saveComments(Chapter chapter, ArrayList<DialogComment> comments, int level)
+	throws Exception {
 		try {
 			connection.call(new Message(key, "saveComments", new Integer(chapter.getDB_ID()), comments, level));
 		} catch (MysqlDataTruncation e){
@@ -446,86 +429,78 @@ public class DBC implements DBC_KeyAcceptor {
 			throw new DBC_SaveException(e.getMessage());
 		}
 	}
+	
 	public ArrayList<DialogSpeaker> loadSpeakers(Chapter chapter, String typ, int level)
-	throws Exception 
-	{
+	throws Exception {
 		Message answer = connection.call(new Message(key, "loadSpeakers", new Integer(chapter.getDB_ID()), typ, level));
 		ArrayList<DialogSpeaker> speakers = (ArrayList<DialogSpeaker>) answer.getArguments()[0];
-		for (int i=0; i != speakers.size(); ++i)
-		{
+		for (int i=0; i != speakers.size(); ++i) {
 			DialogSpeaker speaker = speakers.get(i);
 			speaker.setChapter(key, chapter);
 		}
 		return speakers;
 	}
 
-	public synchronized ArrayList<DialogSpeakerChange> loadSpeakerChanges (Chapter chapter, String typ, int level) throws Exception 
-	{
+	public synchronized ArrayList<DialogSpeakerChange> loadSpeakerChanges (Chapter chapter, String typ, int level)
+	throws Exception {
 		Message answer = connection.call(new Message(key, "loadSpeakerChanges", new Integer(chapter.getDB_ID()), typ, level));
 		ArrayList<DialogSpeakerChange> changes = (ArrayList<DialogSpeakerChange>) answer.getArguments()[0];
-		for (int i=0; i != changes.size(); ++i)
-		{
+		for (int i=0; i != changes.size(); ++i)	{
 			DialogSpeakerChange change = changes.get(i);
 			change.setChapter(key, chapter);
 		}
 		return changes;
 	}
 
-	public synchronized ArrayList<DialogD_Themat> loadD_Themat (Chapter chapter, int level) throws Exception
-	{
+	public synchronized ArrayList<DialogD_Themat> loadD_Themat (Chapter chapter, int level)
+	throws Exception {
 		Message answer = connection.call(new Message(key, "loadD_Themat", new Integer(chapter.getDB_ID()), level));
 		ArrayList<DialogD_Themat> d_themas = (ArrayList<DialogD_Themat>) answer.getArguments()[0];
-		for (int i=0; i != d_themas.size(); ++i)
-		{
+		for (int i=0; i != d_themas.size(); ++i) {
 			DialogD_Themat d_thema = d_themas.get(i);
 			d_thema.setChapter(key, chapter);
 		}
 		return d_themas;
 	}
 
-	
-	public synchronized ArrayList<DialogFaces> loadFaces (Chapter chapter, int level) throws Exception 
-	{
+	public synchronized ArrayList<DialogFaces> loadFaces (Chapter chapter, int level)
+	throws Exception {
 		Message answer = connection.call(new Message(key, "loadFaces", new Integer(chapter.getDB_ID()), level));
 		ArrayList<DialogFaces> faces = (ArrayList<DialogFaces>) answer.getArguments()[0];
-		for (int i=0; i != faces.size(); ++i)
-		{
+		for (int i=0; i != faces.size(); ++i) {
 			DialogFaces face = faces.get(i);
 			face.setChapter(key, chapter);
 		}
 		return faces;
 	}
 
-	public synchronized ArrayList<DialogTarget> loadTargets (Chapter chapter, int level) throws Exception 
-	{
+	public synchronized ArrayList<DialogTarget> loadTargets (Chapter chapter, int level)
+	throws Exception {
 		Message answer = connection.call(new Message(key, "loadTargets", new Integer(chapter.getDB_ID()), level));
 		ArrayList<DialogTarget> targets = (ArrayList<DialogTarget>) answer.getArguments()[0];
-		for (int i=0; i != targets.size(); ++i)
-		{
+		for (int i=0; i != targets.size(); ++i)	{
 			DialogTarget target = targets.get(i);
 			target.setChapter(key, chapter);
 		}
 		return targets;
 	}
 
-	public synchronized ArrayList<DialogISignal> loadISignals (Chapter chapter, int level) throws Exception 
-	{
+	public synchronized ArrayList<DialogISignal> loadISignals (Chapter chapter, int level)
+	throws Exception {
 		Message answer = connection.call(new Message(key, "loadISignals", new Integer(chapter.getDB_ID()), level));
 		ArrayList<DialogISignal> signals = (ArrayList<DialogISignal>) answer.getArguments()[0];
-		for (int i=0; i != signals.size(); ++i)
-		{
+		for (int i=0; i != signals.size(); ++i)	{
 			DialogISignal signal = signals.get(i);
 			signal.setChapter(key, chapter);
 		}
 		return signals;
 	}
 	
-	public synchronized ArrayList<DialogComment> loadComments (Chapter chapter, int level) throws Exception
-	{
+	public synchronized ArrayList<DialogComment> loadComments (Chapter chapter, int level)
+	throws Exception {
 		Message answer = connection.call(new Message(key, "loadComments", new Integer(chapter.getDB_ID()), level));
 		ArrayList<DialogComment> comments = (ArrayList<DialogComment>) answer.getArguments()[0];
-		for (int i=0; i != comments.size(); ++i)
-		{
+		for (int i=0; i != comments.size(); ++i) {
 			DialogComment comment = comments.get(i);
 			comment.setChapter(key, chapter);
 		}
@@ -533,13 +508,13 @@ public class DBC implements DBC_KeyAcceptor {
 	}
 
 	/**
-	 * Lï¿½dt eine Unterart der ï¿½uï¿½erungseinheit, der Sememegruppen, Semantische
-	 * Einheiten und isolierte Funktionswï¿½rter usw. untergeordnet sind.
+	 * Laedt eine Unterart der Aeusserungseinheit, der Sememegruppen, Semantische
+	 * Einheiten und isolierte Funktionswoerter usw. untergeordnet sind.
 	 * 
 	 * @param chapter
 	 *        Das Kapitel, dessen Daten geladen werden sollen
-	 * @return Ein Vektor mit allen Wurzeln zu den ï¿½uï¿½erungseinheiten. Wurden zu
-	 *         einer ï¿½uï¿½erungseinheit keine Sememegruppen o.ï¿½. angegeben, wird
+	 * @return Ein Vektor mit allen Wurzeln zu den Aeusserungseinheiten. Wurden zu
+	 *         einer Aeusserungseinheit keine Sememegruppen o.ae. angegeben, wird
 	 *         eine leere Wurzel erzeugt.
 	 * @see #saveIllocutionUnitRoots(IllocutionUnitRoots)
 	 */
@@ -552,7 +527,7 @@ public class DBC implements DBC_KeyAcceptor {
 	}
 
 	/**
-	 * Speichert die Wurzeln der ï¿½uï¿½erungseinheiten in der Datenbank
+	 * Speichert die Wurzeln der Aeusserungseinheiten in der Datenbank
 	 * 
 	 * @see #loadIllocutionUnitRoots(Chapter)
 	 */
@@ -569,7 +544,7 @@ public class DBC implements DBC_KeyAcceptor {
 	}
 
 	/**
-	 * Alle Funktionswï¿½rter, ohne Zusammenhang zu dem Text. Deswegen nur Strings
+	 * Alle Funktionswoerter, ohne Zusammenhang zu dem Text. Deswegen nur Strings
 	 */
 	public Vector loadFunctionWords() throws Exception {
 		Vector answer = (Vector) connection.call(new Message(key,
@@ -615,7 +590,7 @@ public class DBC implements DBC_KeyAcceptor {
 	 * ist nur der Content wichtig, die Position im Kapitel spielt keine Rolle.
 	 * 
 	 * @param word
-	 *        Das zu ï¿½berprï¿½fende Wort
+	 *        Das zu ueberpruefende Wort
 	 * @return true, falls ein Funktionswort zu diesem Wort angelegt wurde.
 	 */
 	public boolean existsFunctionWord(Word word) throws Exception {
@@ -626,12 +601,12 @@ public class DBC implements DBC_KeyAcceptor {
 	}
 
 	/**
-	 * ï¿½berprï¿½ft, ob zu diesem Wort in einem Kapitel ein Konstitutives Wort
-	 * gespeichert wurde. Dabei werden keine Teilwï¿½rter beachtet. Bei dem Wort
+	 * ueberprueft, ob zu diesem Wort in einem Kapitel ein Konstitutives Wort
+	 * gespeichert wurde. Dabei werden keine Teilwoerter beachtet. Bei dem Wort
 	 * ist nur der Content wichtig, die Position im Kapitel spielt keine Rolle.
 	 * 
 	 * @param word
-	 *        Das zu ï¿½berprï¿½fende Wort
+	 *        Das zu ueberpruefende Wort
 	 * @return true, falls ein Konstitutives Wort zu diesem Wort angelegt wurde.
 	 */
 	public boolean existsConstitutiveWord(Word word) throws Exception {
@@ -642,12 +617,12 @@ public class DBC implements DBC_KeyAcceptor {
 	}
 
 	/**
-	 * Gibt alle CWs zurï¿½ck, die zu dieser Sprache gespeichert wurden
+	 * Gibt alle CWs zurueck, die zu dieser Sprache gespeichert wurden
 	 * 
 	 * @param language
 	 *        Die Sprache, z.B. DE oder EN
 	 * @return Ein Vektor mit DB_Tupeln, welche das CW plus Zusatzinformationen
-	 *         speichern. Das Tupel besitzt folgende Eintrï¿½ge:
+	 *         speichern. Das Tupel besitzt folgende Eintraege:
 	 *         <ul>
 	 *         <li><b>content (String) </b>: Der Inhalt des CW</li>
 	 *         <li><b>tr_genus (byte)</b>Genus</li>
@@ -668,7 +643,7 @@ public class DBC implements DBC_KeyAcceptor {
 	}
 
 	/**
-	 * Gibt alle FWs zurï¿½ck, die zu dieser Sprache gespeichert wurden
+	 * Gibt alle FWs zurueck, die zu dieser Sprache gespeichert wurden
 	 * 
 	 * @param language
 	 *        Die Sprache, z.B. DE oder EN
@@ -681,18 +656,18 @@ public class DBC implements DBC_KeyAcceptor {
 	}
 
 	/**
-	 * Gibt eine Liste mit Konstitutiven Wï¿½rtern zurï¿½ck, die entweder aus dem
-	 * ï¿½bergebenen Wort bestehen oder ein Teilwort von diesem sind und aus der
+	 * Gibt eine Liste mit Konstitutiven Woertern zurueck, die entweder aus dem
+	 * uebergebenen Wort bestehen oder ein Teilwort von diesem sind und aus der
 	 * gleichen Sprache kommen. Dabei werden alle in der Datenbank gespeicherten
 	 * Kapitel durchsucht. <br>
-	 * Bei dem Wort "Kï¿½nigshaus" bekommt man zum Beispiel folgendes Ergebnis
-	 * (sofern die CWs zu diesem Wort schon gespeichert wurden) [Kï¿½nig, haus].
-	 * Die Groï¿½- und Kleinschreibung wird ignoriert.
+	 * Bei dem Wort "Koenigshaus" bekommt man zum Beispiel folgendes Ergebnis
+	 * (sofern die CWs zu diesem Wort schon gespeichert wurden) [Koenig, haus].
+	 * Die Groß- und Kleinschreibung wird ignoriert.
 	 * 
 	 * @param word
 	 *        Das Wort, auf welchem die gefundenen CWs aufbauen.
 	 * @return Ein Vektor mit DB_Tupeln, welche das CW plus Zusatzinformationen
-	 *         speichern. Das Tupel besitzt folgende Eintrï¿½ge:
+	 *         speichern. Das Tupel besitzt folgende Eintraege:
 	 *         <ul>
 	 *         <li><b>content (String) </b>: Der Inhalt des CW</li>
 	 *         <li><b>start (int) </b>: Die Startposition des CW, ausgehend vom
@@ -723,20 +698,20 @@ public class DBC implements DBC_KeyAcceptor {
 	}
 
 	/**
-	 * Gibt eine Liste mit Konstitutiven Wï¿½rtern zurï¿½ck, die entweder aus dem
-	 * ï¿½bergebenen Wort bestehen oder ein Teilwort von diesem sind und aus der
+	 * Gibt eine Liste mit Konstitutiven Woertern zurueck, die entweder aus dem
+	 * uebergebenen Wort bestehen oder ein Teilwort von diesem sind und aus der
 	 * gleichen Sprache kommen. Dabei werden alle in der Datenbank gespeicherten
 	 * Kapitel durchsucht. <br>
-	 * Bei dem Wort "Kï¿½nigshaus" bekommt man zum Beispiel folgendes Ergebnis
-	 * (sofern die CWs zu diesem Wort schon gespeichert wurden) [Kï¿½nig, haus].
-	 * Die Groï¿½- und Kleinschreibung wird ignoriert.
+	 * Bei dem Wort "oenigshaus" bekommt man zum Beispiel folgendes Ergebnis
+	 * (sofern die CWs zu diesem Wort schon gespeichert wurden) [Koenig, haus].
+	 * Die Groß- und Kleinschreibung wird ignoriert.
 	 * 
 	 * @param content
 	 *        Der Inhalt des zu suchenden Wortes
 	 * @param language
 	 *        Die Sprache des Wortes
 	 * @return Ein Vektor mit DB_Tupeln, welche das CW plus Zusatzinformationen
-	 *         speichern. Das Tupel besitzt folgende Eintrï¿½ge:
+	 *         speichern. Das Tupel besitzt folgende Eintraege:
 	 *         <ul>
 	 *         <li><b>content (String) </b>: Der Inhalt des CW</li>
 	 *         <li><b>start (int) </b>: Die Startposition des CW, ausgehend vom
@@ -764,25 +739,26 @@ public class DBC implements DBC_KeyAcceptor {
 	 *         </ul>
 	 * @throws Exception
 	 */
-	public Vector<DB_Tupel> getConstitutiveWords(String content, String language) throws Exception {
+	public Vector<DB_Tupel> getConstitutiveWords(String content, String language)
+	throws Exception {
 		Message answer = connection.call(new Message(key, "getConstitutiveWords",
 				content, language));
 		return (Vector<DB_Tupel>) answer.getArguments()[0];
 	}
 
 	/**
-	 * Gibt eine Liste mit Funktionswï¿½rtern zurï¿½ck, die entweder aus dem
-	 * ï¿½bergebenen Wort bestehen oder ein Teilwort von diesem sind und aus der
+	 * Gibt eine Liste mit Funktionswoertern zurueck, die entweder aus dem
+	 * uebergebenen Wort bestehen oder ein Teilwort von diesem sind und aus der
 	 * gleichen Sprache kommen. Dabei werden alle in der Datenbank gespeicherten
 	 * Kapitel durchsucht. <br>
-	 * Bei dem Wort "Kï¿½nigshaus" bekommt man zum Beispiel folgendes Ergebnis
+	 * Bei dem Wort "Koenigshaus" bekommt man zum Beispiel folgendes Ergebnis
 	 * (sofern die FWs zu diesem Wort schon gespeichert wurden) [s]. Die Groï¿½-
 	 * und Kleinschreibung wird ignoriert.
 	 * 
 	 * @param word
 	 *        Das Wort, auf welchem die gefundenen FWs aufbauen.
 	 * @return Ein Vektor mit DB_Tupeln, welche das FW plus Zusatzinformationen
-	 *         speichern. Das Tupel besitzt folgende Eintrï¿½ge:
+	 *         speichern. Das Tupel besitzt folgende Eintraege:
 	 *         <ul>
 	 *         <li><b>content (String) </b>: Der Inhalt des CW</li>
 	 *         <li><b>start (int) </b>: Die Startposition des CW, ausgehend vom
@@ -803,12 +779,12 @@ public class DBC implements DBC_KeyAcceptor {
 	}
 
 	/**
-	 * Gibt eine Liste mit Funktionswï¿½rtern zurï¿½ck, die entweder aus dem
-	 * ï¿½bergebenen Wort bestehen oder ein Teilwort von diesem sind und aus der
+	 * Gibt eine Liste mit Funktionswoertern zurueck, die entweder aus dem
+	 * uebergebenen Wort bestehen oder ein Teilwort von diesem sind und aus der
 	 * gleichen Sprache kommen. Dabei werden alle in der Datenbank gespeicherten
 	 * Kapitel durchsucht. <br>
-	 * Bei dem Wort "Kï¿½nigshaus" bekommt man zum Beispiel folgendes Ergebnis
-	 * (sofern die FWs zu diesem Wort schon gespeichert wurden) [s]. Die Groï¿½-
+	 * Bei dem Wort "Koenigshaus" bekommt man zum Beispiel folgendes Ergebnis
+	 * (sofern die FWs zu diesem Wort schon gespeichert wurden) [s]. Die Groß-
 	 * und Kleinschreibung wird ignoriert.
 	 * 
 	 * @param content
@@ -816,7 +792,7 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @param language
 	 *        Die Sprache des Wortes
 	 * @return Ein Vektor mit DB_Tupeln, welche das FW plus Zusatzinformationen
-	 *         speichern. Das Tupel besitzt folgende Eintrï¿½ge:
+	 *         speichern. Das Tupel besitzt folgende Eintraege:
 	 *         <ul>
 	 *         <li><b>content (String) </b>: Der Inhalt des CW</li>
 	 *         <li><b>start (int) </b>: Die Startposition des CW, ausgehend vom
@@ -838,11 +814,11 @@ public class DBC implements DBC_KeyAcceptor {
 
 	/**
 	 * Speichert Themas (Themen, Themata..?) in die Datenbank. Dabei werden alle
-	 * alten Eintrï¿½ge zu dem Kapitel gelï¿½scht. Es mï¿½ssen also alle Themas von
-	 * diesem Kapitel ï¿½bergeben werden.
+	 * alten Eintraege zu dem Kapitel geloescht. Es muessen also alle Themas von
+	 * diesem Kapitel uebergeben werden.
 	 * 
 	 * @param chapter
-	 *        Das Kapitel, zu dem die Themas gehï¿½ren
+	 *        Das Kapitel, zu dem die Themas gehoeren
 	 * @param themas
 	 *        Ein Vektor mit Themas
 	 * @throws Exception
@@ -858,7 +834,7 @@ public class DBC implements DBC_KeyAcceptor {
 	}
 
 	/**
-	 * Lï¿½dt alle Themas von einem Kapitel und gibt sie in einem Vektor zurï¿½ck.
+	 * Laedt alle Themas von einem Kapitel und gibt sie in einem Vektor zurueck.
 	 * 
 	 * @param chapter
 	 *        Das Kapitel, vondem die Themas geladen werden sollen.
@@ -876,7 +852,7 @@ public class DBC implements DBC_KeyAcceptor {
 	}
 
 	/**
-	 * Erstellt eine Isotopie-Sammlung ï¿½ber alle in diesem Kapitel vorkommenden
+	 * Erstellt eine Isotopie-Sammlung ueber alle in diesem Kapitel vorkommenden
 	 * Isotopien.
 	 */
 	public Isotopes loadIsotopes(Chapter chapter) throws Exception {
@@ -911,10 +887,10 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @param chapter
 	 *        Das Kapitel, in dem die Isotopien vorkommen.
 	 * @param hierachy
-	 *        Ein Vektor, der die Hierachie reprï¿½sentiert. Der nï¿½here Aufbau des
+	 *        Ein Vektor, der die Hierachie repraesentiert. Der naehere Aufbau des
 	 *        Vektors ist egal, er wird serialisiert in der Datenbank
-	 *        gespeichert. Die maximale Grï¿½ï¿½e des serialisierten vektors darf
-	 *        65535 Zeichen nicht ï¿½berschreiten.
+	 *        gespeichert. Die maximale Groeße des serialisierten Vektors darf
+	 *        65535 Zeichen nicht ueberschreiten.
 	 */
 	public void saveIsotopeHierachy(Chapter chapter, Vector hierachy) throws Exception {
 		try {
@@ -927,11 +903,11 @@ public class DBC implements DBC_KeyAcceptor {
 	}
 
 	/**
-	 * Lï¿½dt die Hierachien von Isotopien eines Kapitels.
+	 * Laedt die Hierachien von Isotopien eines Kapitels.
 	 * 
 	 * @param chapter
 	 *        Das Kapitel, dessen Isotopien-Hierachie geladen werden soll.
-	 * @return Ein Vektor, der die Hierachie reprï¿½sentiert.
+	 * @return Ein Vektor, der die Hierachie repraesentiert.
 	 */
 	public Vector loadIsotopeHierachy(Chapter chapter) throws Exception {
 		return (Vector) connection.call(new Message(key, "loadIsotopeHierachy",
@@ -941,30 +917,30 @@ public class DBC implements DBC_KeyAcceptor {
 	/**
 	 * Alle in der Datenbank gespeicherten Sprachen
 	 * 
-	 * @return Ein Vektor mit Lï¿½nderkï¿½rzeln wie "DE" oder "EN"
+	 * @return Ein Vektor mit Laenderkuerzeln wie "DE" oder "EN"
 	 */
 	public Vector getLanguages() throws Exception {
-		return (Vector) connection.call(new Message(key, "getLanguages"))
-		.getArguments()[0];
+		return (Vector) connection.call(new Message(key, "getLanguages")).getArguments()[0];
 	}
 
 	/**
-	 * Lï¿½dt alle Kommentare, die zu ï¿½uï¿½erungseinheiten eines Kapitels
+	 * Laedt alle Kommentare, die zu Aeusserungseinheiten eines Kapitels
 	 * abgespeichert wurden.
 	 * 
 	 * @param comments
 	 *        Die Kommentarsammlung, zu der die neuen Kommentare hinzugefï¿½gt
 	 *        werden sollen
 	 * @param chapter
-	 *        Das Kapitel, in dem die ï¿½uï¿½erungseinheiten stehen
+	 *        Das Kapitel, in dem die Aeusserungseinheiten stehen
 	 * @throws Exception
 	 */
-	public void loadIllocutionUnitComments(Comments comments, Chapter chapter, int level) throws Exception {
+	public void loadIllocutionUnitComments(Comments comments, Chapter chapter, int level)
+	throws Exception {
 		comments.add(loadComments(chapter, Comments.CLASS_CODE_ILLOCUTION_UNIT, level));
 	}
 
 	/**
-	 * Lï¿½dt alle Kommentare, die zu direkten Reden eines Kapitels abgespeichert
+	 * Laedt alle Kommentare, die zu direkten Reden eines Kapitels abgespeichert
 	 * wurden.
 	 * 
 	 * @param comments
@@ -981,8 +957,8 @@ public class DBC implements DBC_KeyAcceptor {
 
 
 	/**
-	 * Lï¿½dt alle Kommentare, die zu Dialogen eines Kapitels abgespeichert wurden.
-	 * Dazu gehï¿½ren auch Vor- und Nachfeld der Dialoge.
+	 * Laedt alle Kommentare, die zu Dialogen eines Kapitels abgespeichert wurden.
+	 * Dazu gehoeren auch Vor- und Nachfeld der Dialoge.
 	 * 
 	 * @param comments
 	 *        Die Kommentarsammlung, zu der die neuen Kommentare hinzugefï¿½gt
@@ -995,8 +971,6 @@ public class DBC implements DBC_KeyAcceptor {
 	throws Exception {
 		comments.add(loadComments(chapter, Comments.CLASS_CODE_DIALOG, level));
 		comments.add(loadComments(chapter, Comments.CLASS_CODE_DIALOG_COSMOLOGIES, level));
-		//comments.add(loadComments(chapter, Comments.CLASS_CODE_DIALOG_FOLLOWUP));
-		//comments.add(loadComments(chapter, Comments.CLASS_CODE_DIALOG_RUNUP));
 	}
 
 	private Comments loadComments(Chapter chapter, int ownerClassCode, int level)
@@ -1069,9 +1043,9 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @return
 	 * @throws Exception
 	 */
-	public Vector<PronounComplex> loadComplexes(IllocutionUnitRoots roots) throws Exception {
+	public Vector<PronounComplex> loadComplexes(IllocutionUnitRoots roots)
+	throws Exception {
 		Message answer = connection.call(new Message(key, "loadComplexes", new Integer(roots.getChapter().getDB_ID())));
-		
 		Vector<PronounComplex> complexes = new Vector<PronounComplex>();
 		
 		// materialize complexes
@@ -1086,7 +1060,8 @@ public class DBC implements DBC_KeyAcceptor {
 		return complexes;
 	}
 
-	public void saveRenominalisations(Renominalisations renominalisations) throws Exception {
+	public void saveRenominalisations(Renominalisations renominalisations)
+	throws Exception {
 		try {
 			Renominalisations answer = (Renominalisations) connection.call(new Message(key, "saveRenominalisations", renominalisations,
 					new Integer(renominalisations.getChapter().getDB_ID()))).getArguments()[0];
@@ -1102,137 +1077,14 @@ public class DBC implements DBC_KeyAcceptor {
 	 * Erstellt eine Isotopie-Sammlung Ã¼ber alle in diesem Kapitel vorkommenden
 	 * Isotopien.
 	 */
-	public Renominalisations loadRenominalisations(Chapter chapter) throws Exception {
+	public Renominalisations loadRenominalisations(Chapter chapter)
+	throws Exception {
 		Message answer = connection.call(new Message(key,
 				"loadRenominalisations", new Integer(chapter.getDB_ID())));
 		Renominalisations renominalisations = (Renominalisations) answer.getArguments()[0];
 		IllocutionUnitRoots iur = loadIllocutionUnitRoots(chapter);
 		renominalisations.setChapter(key, chapter, iur);
 		return renominalisations;
-	}
-
-	/**
-		 * Gibt alle Eintrï¿½ge aus der Wortliste zurï¿½ck, die sich auf das Wort
-		 * beziehen
-		 * 
-		 * @param word
-		 *        Das Wort (Groï¿½/Kleinschreibung wird ignoriert)
-		 * @param language
-		 *        Die Sprache des Wortes (DE, EN, usw.)
-		 * @return Ein Vektor mit DB_Tupeln
-		 *         <ul>
-		 *         <li><b>content (String) </b>: Das Wort</li>
-		 *         <li><b>language (String) </b>: Die Sprache des Wortes</li>
-		 *         <li><b>id (int) </b>: Die ID des Eintrages in der Wortliste</li>
-		 *         <li><b>tr_genus (byte) </b>: Genus. Beliebiger Wert, muss aber
-		 *         nicht unbedingt gesetzt sein</li>
-		 *         <li><b>tr_numerus (byte) </b>: Numerus. Beliebiger Wert, muss
-		 *         aber nicht unbedingt gesetzt sein</li>
-		 *         <li><b>tr_case (byte) </b>: Fall. Beliebiger Wert, muss aber
-		 *         nicht unbedingt gesetzt sein</li>
-		 *         <li><b>tr_determination (byte) </b>: Determination. Beliebiger
-		 *         Wert, muss aber nicht unbedingt gesetzt sein</li>
-		 *         <li><b>tr_person (byte) </b>: Person. Beliebiger Wert, muss aber
-		 *         nicht unbedingt gesetzt sein</li>
-		 *         <li><b>tr_wordclass (byte) </b>: Wordclass. Beliebiger Wert, muss
-		 *         aber nicht unbedingt gesetzt sein</li>
-		 *         <li><b>tr_wordsubclass (byte) </b>: Wordsubclass. Beliebiger
-		 *         Wert, muss aber nicht unbedingt gesetzt sein</li>
-		 *         <li><b>tr_conjugation (byte) </b>: Konjunktion. Beliebiger Wert,
-		 *         muss aber nicht unbedingt gesetzt sein</li>
-		 *         <li><b>tr_pronoun (byte) </b>: Pronomen. Beliebiger Wert, muss
-		 *         aber nicht unbedingt gesetzt sein</li>
-		 *         <li><b>tr_tempus (byte) </b>: Zeit. Beliebiger Wert, muss aber
-		 *         nicht unbedingt gesetzt sein</li>
-		 *         <li><b>tr_diathese (byte) </b>: Diathese. Beliebiger Wert, muss
-		 *         aber nicht unbedingt gesetzt sein</li>
-		 *         <li><b>type (byte) </b>: Type des Wortes, also FW (1), CW (2)
-		 *         oder unbekannt (0). Muss aber nicht unbedingt gesetzt sein</li>
-		 *         <li><b>multiple (int) </b>: Beliebiger Wert, muss aber nicht
-		 *         unbedingt gesetzt sein</li>
-		 *         </ul>
-		 * @throws Exception
-		 * @deprecated Ohne Funktion! Wortliste ist nun über WordListElements erreichbar.
-		 */
-		public Vector getWordList(String word, String language) throws Exception
-		{
-	//		return (Vector) connection.call(new Message(key, "getWordList", word,
-	//		language)).getArguments()[0];
-			return null;
-		}
-
-	/**
-		 * Gibt alle Eintrï¿½ge aus der Wortliste zurï¿½ck, deren Werte mit denen des
-		 * Query-DB-Tupel ï¿½bereinstimmen
-		 * 
-		 * @param query
-		 *        ein DB_Tupel, um die Auswahl aus der Wortliste einzugrenzen.
-		 *        Erlaubte Eintrï¿½ge sind content, language (aber nur mit content
-		 *        zusammen), tr_genus, tr_numerus, tr_determination, tr_case,
-		 *        tr_person, tr_wordclass, tr_wordsubclass, tr_conjugation,
-		 *        tr_pronoun, tr_tempus, tr_diathese, type und multiple. Alle
-		 *        Eintrï¿½ge sind optional.
-		 * @return ein Vektor mit DB-Tupel, die diese Einschrï¿½nkungen erfï¿½llen
-		 * @throws Exception
-		 * @deprecated Ohne Funktion! Wortliste ist nun über WordListElements erreichbar.
-		 */
-		public Vector getWordList(DB_Tupel query) throws Exception
-		{
-	//		return (Vector) connection.call(new Message(key, "getWordList", query))
-	//		.getArguments()[0];
-			return null;
-		}
-
-	/**
-	 * Speichert eine Liste von Tupel in die Wortliste der Datenbank. Dabei
-	 * kï¿½nnen auch mehrere Eintrï¿½ge zu einem Content gespeichert werden,
-	 * vorrausgesetzt die Bestimmung ist unterschiedlich (z.B. bei Bank). ï¿½ber
-	 * die Funktion setStateSave(), setStateChange() und setStateDelete() von
-	 * DB-Tupel kann entschieden werden, ob dieses Tupel gespeichert, geï¿½ndert
-	 * oder gelï¿½scht werden soll. Beim Lï¿½schen eines Tupels wird der Eintrag "id"
-	 * (int) benï¿½tigt, der beim Auslesen der Wortliste gesetzt wird.
-	 * 
-	 * @param list
-	 *        ein Vector mit DB_Tupeln
-	 *        <ul>
-	 *        <li><b>content (String) </b>: Das Wort, muss angegeben werden</li>
-	 *        <li><b>language (String) </b>: Die Sprache des Wortes, muss
-	 *        angegeben werden</li>
-	 *        <li><b>id (int) </b>: Die ID des Tupels, wird zum ï¿½ndern und
-	 *        lï¿½schen benï¿½tigt</li>
-	 *        <li><b>tr_genus (byte) </b>: Genus. Beliebiger Wert, muss aber
-	 *        nicht unbedingt gesetzt sein</li>
-	 *        <li><b>tr_numerus (byte) </b>: Numerus. Beliebiger Wert, muss aber
-	 *        nicht unbedingt gesetzt sein</li>
-	 *        <li><b>tr_case (byte) </b>: Fall. Beliebiger Wert, muss aber nicht
-	 *        unbedingt gesetzt sein</li>
-	 *        <li><b>tr_determination (byte) </b>: Determination. Beliebiger
-	 *        Wert, muss aber nicht unbedingt gesetzt sein</li>
-	 *        <li><b>tr_person (byte) </b>: Person. Beliebiger Wert, muss aber
-	 *        nicht unbedingt gesetzt sein</li>
-	 *        <li><b>tr_wordclass (byte) </b>: Wordclass. Beliebiger Wert, muss
-	 *        aber nicht unbedingt gesetzt sein</li>
-	 *        <li><b>tr_wordsubclass (byte) </b>: Wordsubclass. Beliebiger Wert,
-	 *        muss aber nicht unbedingt gesetzt sein</li>
-	 *        <li><b>tr_conjugation (byte) </b>: Konjunktion. Beliebiger Wert,
-	 *        muss aber nicht unbedingt gesetzt sein</li>
-	 *        <li><b>tr_pronoun (byte) </b>: Pronomen. Beliebiger Wert, muss
-	 *        aber nicht unbedingt gesetzt sein</li>
-	 *        <li><b>tr_tempus (byte) </b>: Zeit. Beliebiger Wert, muss aber
-	 *        nicht unbedingt gesetzt sein</li>
-	 *        <li><b>tr_diathese (byte) </b>: Diathese. Beliebiger Wert, muss
-	 *        aber nicht unbedingt gesetzt sein</li>
-	 *        <li><b>type (byte) </b>: Type des Wortes, also FW (1), CW (2) oder
-	 *        unbekannt (0). Muss aber nicht unbedingt gesetzt sein</li>
-	 *        <li><b>multiple (Object) </b>: Beliebiger Wert, muss aber nicht
-	 *        unbedingt gesetzt sein</li>
-	 *        </ul>
-	 * @throws Exception
-	 * @deprecated Ohne Funktion! Wortliste ist nun über WordListElements erreichbar.
-	 */
-	public void saveWordList(Vector list)
-	throws Exception {
-		connection.call(new Message(key, "saveWordList", list));
 	}
 
 	/**
@@ -1263,7 +1115,8 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @return all WordListElements that exist in the DB with word = <code>content</code>
 	 * @throws Exception
 	 */
-	public WordListElement[] loadWordListElement(String content) throws Exception {
+	public WordListElement[] loadWordListElement(String content) 
+	throws Exception {
 		//key.unlock();
 		return (WordListElement[]) connection.call(new Message(key, "loadWordListElement", content)) .getArguments()[0];
 	}
@@ -1274,7 +1127,8 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @return all WordListElements that exist in the DB with word = <code>content</code> and language = <code>language</code>
 	 * @throws Exception
 	 */
-	public WordListElement[] loadWordListElement(String content, String language) throws Exception {
+	public WordListElement[] loadWordListElement(String content, String language) 
+	throws Exception {
 		//key.unlock();
 		return (WordListElement[]) connection.call(new Message(key, "loadWordListElement", content, language)) .getArguments()[0];
 	}
@@ -1295,7 +1149,8 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @param AssigID
 	 * @return
 	 */
-	public WordListElement loadWordListElementWithAssigID(int assigID) throws Exception {
+	public WordListElement loadWordListElementWithAssigID(int assigID)
+	throws Exception {
 		Message m = new Message(key, "loadWordListElementWithAssigID", assigID);
 		Message oa = connection.call(m);
 		Object o = oa.getArguments()[0];
@@ -1303,14 +1158,36 @@ public class DBC implements DBC_KeyAcceptor {
 	
 		return wle;
 	}
-
+	
+	/**
+	 *  delete wle and the coressponding assignation and set the assignation in cw to null
+	 */
+	public void deleteWLE(int wleID, int assigID)
+	throws Exception {
+		// Message answer = connection.call(new Message(key, "deleteWLE", new Integer(wleID), new Integer(assigID)));
+		connection.call(new Message(key, "deleteWLE", new Integer(wleID), new Integer(assigID)));
+	}
+		/*	public void deleteWLECW(int wleID, int assigID)
+			throws Exception {
+				Message answer = connection.call(new Message(key, "deleteWLECW", new Integer(wleID), new Integer(assigID)));
+			}
+		*/	
+			/**
+			 *  delete wle and the coressponding assignation and set the assignation in cw to null
+			 */
+		/*	public void deleteWLEFW(int wleID, int assigID)
+			throws Exception {
+				Message answer = connection.call(new Message(key, "deleteWLEFW", new Integer(wleID), new Integer(assigID)));
+			}*/
+	
 	/**
 	 * Load the Words appropriated to the given Wortart
 	 * @param wortArt, Enum from TR_Assignation
 	 * @return 
 	 * @throws Exception
 	 */
-	public Vector<String> loadWordsWithWortArt1(TR_Assignation.Wortart1 wortArt) throws Exception {
+	public Vector<String> loadWordsWithWortArt1(TR_Assignation.Wortart1 wortArt)
+	throws Exception {
 		Message message = new Message(key, "loadWordsWithWortArt1", wortArt);
 		Message mes = connection.call(message);
 		return (Vector<String>)mes.getArguments()[0];
@@ -1335,8 +1212,8 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @return 
 	 * @throws Exception
 	 */
-/*	public Vector<String> loadWordsWithConjugation(TR_Assignation.Conjugation conjug) throws Exception {
-		Message message = new Message(key, "loadWordsWithConjugation", conjug);
+/*	public Vector<String> loadWordsWithKonjugation(TR_Assignation.Konjugation konjug) throws Exception {
+		Message message = new Message(key, "loadWordsWithKonjugation", konjug);
 		Message mes = connection.call(message);
 			
 		return (Vector<String>)mes.getArguments()[0];
@@ -1348,7 +1225,8 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @return 
 	 * @throws Exception
 	 */
-	public Vector<String> loadWordsWithPronoun(TR_Assignation.WordsubclassPronoun pron) throws Exception {
+	public Vector<String> loadWordsWithPronoun(TR_Assignation.WordsubclassPronoun pron)
+	throws Exception {
 		 Message message = new Message(key, "loadWordsWithPronoun", pron);
 		 Message mes = connection.call(message);
 				
@@ -1358,7 +1236,7 @@ public class DBC implements DBC_KeyAcceptor {
 	public Vector loadWordClasses(Vector contents) throws Exception {
 		//key.unlock();
 		Vector answer = (Vector) connection.call(new Message(key, "loadWordClasses", contents))
-		.getArguments()[0];
+				.getArguments()[0];
 		return answer;
 	}
 
@@ -1398,7 +1276,8 @@ public class DBC implements DBC_KeyAcceptor {
 	}
 	
 	/**
-	 * Delegates to {@link loadRelations(WordListElement wle, Collection<WordListElement> possibleTargets)} with <code>possibleTargets</code> as an empty Collection.
+	 * Delegates to {@link loadRelations(WordListElement wle, Collection<WordListElement>
+	 *  possibleTargets)} with <code>possibleTargets</code> as an empty Collection.
 	 * @param wle
 	 * @return
 	 * @throws Exception
@@ -1452,13 +1331,16 @@ public class DBC implements DBC_KeyAcceptor {
 	    DBC.key = key;
 	}
 	
-	public Vector<Vector<String>> loadText_Raw (String strTitle, String strId, String strCreator, String strLang, String strDate) throws Exception {
-	    Message answer = connection.call(new Message(key, "loadText_Raw", strTitle, strId, strCreator, strLang, strDate));
+	public Vector<Vector<String>> loadText_Raw (String strTitle, String strId, String strCreator, 
+			String strLang, String strDate)
+	throws Exception {
+	    Message answer = connection.call(new Message(key, "loadText_Raw", strTitle, strId, 
+	    		strCreator, strLang, strDate));
 	    return (Vector<Vector<String>>) answer.getArguments()[0];
-
 	}
 	
-	public void saveWorkingTranslations(WorkingTranslation ... translations) throws Exception {
+	public void saveWorkingTranslations(WorkingTranslation ... translations) 
+	throws Exception {
 	    // get all complexes that have changed as DB Version
 	    ArrayList<WorkingTranslation> translations_oos = new ArrayList<WorkingTranslation>();
 	    ArrayList<WorkingTranslation_DB> translations_db = new ArrayList<WorkingTranslation_DB>();
@@ -1485,11 +1367,13 @@ public class DBC implements DBC_KeyAcceptor {
 			for (WorkingTranslation_DB workingTranslation_DB : translations_db) {
 			    workingTranslation_DB.changeState(key, DB_Element.ERROR);
 			}
-			throw new DBC_SaveException("WorkingTranslation could (probably) be saved but server did not return all of them");
+			throw new DBC_SaveException("WorkingTranslation could (probably) be saved but" +
+					" server did not return all of them");
 	    }
 	    else {
 			for (int i = 0; i < answer.size(); i++) {
-			    translations_oos.get(i).setDB_ID(key, answer.toArray(new WorkingTranslation_DB[0])[i].getDB_ID());
+			    translations_oos.get(i).setDB_ID(key, answer.toArray(
+			    		new WorkingTranslation_DB[0])[i].getDB_ID());
 			    translations_oos.get(i).changeState(key, DB_Element.NORMAL);
 			}
 	    }	
@@ -1500,10 +1384,9 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @return
 	 * @throws Exception
 	 */
-	public Vector<WorkingTranslation> loadWorkingTranslations(String pLg, String pOriginal) throws Exception
-	{
+	public Vector<WorkingTranslation> loadWorkingTranslations(String pLg, String pOriginal)
+	throws Exception {
 		Message answer = connection.call(new Message(key, "loadWorkingTranslations", pLg, pOriginal));
-		
 		Vector<WorkingTranslation> translations = new Vector<WorkingTranslation>();
 		
 		// materialize complexes
@@ -1512,15 +1395,14 @@ public class DBC implements DBC_KeyAcceptor {
 				translations.add(new WorkingTranslation(key, pronounComplex));
 			}
 			catch (Exception e) {
-				
+			// TODO
 			}
 		}
 		return translations;
 	}
 	
-	//@SuppressWarnings("unchecked")
-    public Vector<String> loadWorkingTranslationsLanguage() throws Exception
-    {
+	public Vector<String> loadWorkingTranslationsLanguage() 
+	throws Exception {
         Message answer = connection.call(new Message(key, "loadWorkingTranslationsLanguage"));
         Vector<String> lgs = (Vector<String>)answer.getArguments()[0];
         return lgs;   
@@ -1551,10 +1433,11 @@ public class DBC implements DBC_KeyAcceptor {
 		}
 	    // update
 	    if(answer.size() != criticisms_db.size()) {
-		for (LiteraryCriticism1_DB criticism_DB : criticisms_db) {
-		    criticism_DB.changeState(key, DB_Element.ERROR);
-		}
-		throw new DBC_SaveException("LiteraryCriticism1 could (probably) be saved but server did not return all of them");
+			for (LiteraryCriticism1_DB criticism_DB : criticisms_db) {
+			    criticism_DB.changeState(key, DB_Element.ERROR);
+			}
+			throw new DBC_SaveException("LiteraryCriticism1 could (probably) be saved but server " +
+					"did not return all of them");
 	    }
 	    else {
 			for (int i = 0; i < answer.size(); i++) {
@@ -1585,7 +1468,8 @@ public class DBC implements DBC_KeyAcceptor {
 		return criticisms;
 	}
 
-	public void saveLiteraryCriticism2(LiteraryCriticism2 ... criticisms) throws Exception {
+	public void saveLiteraryCriticism2(LiteraryCriticism2 ... criticisms) 
+	throws Exception {
 	    // get all complexes that have changed as DB Version
 	    ArrayList<LiteraryCriticism2> criticisms_oos = new ArrayList<LiteraryCriticism2>();
 	    ArrayList<LiteraryCriticism2_DB> criticisms_db = new ArrayList<LiteraryCriticism2_DB>();
@@ -1628,7 +1512,8 @@ public class DBC implements DBC_KeyAcceptor {
 	 * @return
 	 * @throws Exception
 	 */
-	public Vector<LiteraryCriticism2> loadLiteraryCriticism2(Chapter chapter) throws Exception {
+	public Vector<LiteraryCriticism2> loadLiteraryCriticism2(Chapter chapter) 
+	throws Exception {
 		Message answer = connection.call(new Message(key, "loadLiteraryCriticism2", new Integer(chapter.getDB_ID())));
 		Vector<LiteraryCriticism2> criticisms = new Vector<LiteraryCriticism2>();
 		
@@ -1649,7 +1534,6 @@ public class DBC implements DBC_KeyAcceptor {
 	 * ================= IU_Comment =================
 	 * ==============================================
 	 */
-	
 	public ArrayList<IU_Comment> loadIUComments(int id) throws Exception {
 		Message answer = connection.call(new Message(key, "loadIUComments", new Integer(id)));
 		return (ArrayList<IU_Comment>) answer.getArguments()[0];
@@ -1672,4 +1556,128 @@ public class DBC implements DBC_KeyAcceptor {
 	public void editIUComment(Integer IU_ID, String text) throws Exception {
 		connection.call(new Message(key, "editIUComment", IU_ID, text));
 	}
+	
+		/**
+		 * Gibt alle Eintraege aus der Wortliste zurueck, die sich auf das Wort
+		 * beziehen
+		 * 
+		 * @param word
+		 *        Das Wort (Groï¿½/Kleinschreibung wird ignoriert)
+		 * @param language
+		 *        Die Sprache des Wortes (DE, EN, usw.)
+		 * @return Ein Vektor mit DB_Tupeln
+		 *         <ul>
+		 *         <li><b>content (String) </b>: Das Wort</li>
+		 *         <li><b>language (String) </b>: Die Sprache des Wortes</li>
+		 *         <li><b>id (int) </b>: Die ID des Eintrages in der Wortliste</li>
+		 *         <li><b>tr_genus (byte) </b>: Genus. Beliebiger Wert, muss aber
+		 *         nicht unbedingt gesetzt sein</li>
+		 *         <li><b>tr_numerus (byte) </b>: Numerus. Beliebiger Wert, muss
+		 *         aber nicht unbedingt gesetzt sein</li>
+		 *         <li><b>tr_case (byte) </b>: Fall. Beliebiger Wert, muss aber
+		 *         nicht unbedingt gesetzt sein</li>
+		 *         <li><b>tr_determination (byte) </b>: Determination. Beliebiger
+		 *         Wert, muss aber nicht unbedingt gesetzt sein</li>
+		 *         <li><b>tr_person (byte) </b>: Person. Beliebiger Wert, muss aber
+		 *         nicht unbedingt gesetzt sein</li>
+		 *         <li><b>tr_wordclass (byte) </b>: Wordclass. Beliebiger Wert, muss
+		 *         aber nicht unbedingt gesetzt sein</li>
+		 *         <li><b>tr_wordsubclass (byte) </b>: Wordsubclass. Beliebiger
+		 *         Wert, muss aber nicht unbedingt gesetzt sein</li>
+		 *         <li><b>tr_conjugation (byte) </b>: Konjunktion. Beliebiger Wert,
+		 *         muss aber nicht unbedingt gesetzt sein</li>
+		 *         <li><b>tr_pronoun (byte) </b>: Pronomen. Beliebiger Wert, muss
+		 *         aber nicht unbedingt gesetzt sein</li>
+		 *         <li><b>tr_tempus (byte) </b>: Zeit. Beliebiger Wert, muss aber
+		 *         nicht unbedingt gesetzt sein</li>
+		 *         <li><b>tr_diathese (byte) </b>: Diathese. Beliebiger Wert, muss
+		 *         aber nicht unbedingt gesetzt sein</li>
+		 *         <li><b>type (byte) </b>: Type des Wortes, also FW (1), CW (2)
+		 *         oder unbekannt (0). Muss aber nicht unbedingt gesetzt sein</li>
+		 *         <li><b>multiple (int) </b>: Beliebiger Wert, muss aber nicht
+		 *         unbedingt gesetzt sein</li>
+		 *         </ul>
+		 * @throws Exception
+		 * @deprecated Ohne Funktion! Wortliste ist nun über WordListElements erreichbar.
+		 */
+		public Vector getWordList(String word, String language) throws Exception
+		{
+			//		return (Vector) connection.call(new Message(key, "getWordList", word,
+			//		language)).getArguments()[0];
+			return null;
+		}
+	
+		/**
+		 * Gibt alle Eintraege aus der Wortliste zurueck, deren Werte mit denen des
+		 * Query-DB-Tupel uebereinstimmen
+		 * 
+		 * @param query
+		 *        ein DB_Tupel, um die Auswahl aus der Wortliste einzugrenzen.
+		 *        Erlaubte Eintraege sind content, language (aber nur mit content
+		 *        zusammen), tr_genus, tr_numerus, tr_determination, tr_case,
+		 *        tr_person, tr_wordclass, tr_wordsubclass, tr_conjugation,
+		 *        tr_pronoun, tr_tempus, tr_diathese, type und multiple. Alle
+		 *        Eintraege sind optional.
+		 * @return ein Vektor mit DB-Tupel, die diese Einschrï¿½nkungen erfï¿½llen
+		 * @throws Exception
+		 * @deprecated Ohne Funktion! Wortliste ist nun über WordListElements erreichbar.
+		 */
+		public Vector getWordList(DB_Tupel query) throws Exception
+		{
+			//		return (Vector) connection.call(new Message(key, "getWordList", query))
+			//		.getArguments()[0];
+			return null;
+		}
+	
+		/**
+		 * Speichert eine Liste von Tupel in die Wortliste der Datenbank. Dabei
+		 * koennen auch mehrere Eintraege zu einem Content gespeichert werden,
+		 * vorrausgesetzt die Bestimmung ist unterschiedlich (z.B. bei Bank). Ueber
+		 * die Funktion setStateSave(), setStateChange() und setStateDelete() von
+		 * DB-Tupel kann entschieden werden, ob dieses Tupel gespeichert, geaendert
+		 * oder geloescht werden soll. Beim loeschen eines Tupels wird der Eintrag "id"
+		 * (int) benoetigt, der beim Auslesen der Wortliste gesetzt wird.
+		 * 
+		 * @param list
+		 *        ein Vector mit DB_Tupeln
+		 *        <ul>
+		 *        <li><b>content (String) </b>: Das Wort, muss angegeben werden</li>
+		 *        <li><b>language (String) </b>: Die Sprache des Wortes, muss
+		 *        angegeben werden</li>
+		 *        <li><b>id (int) </b>: Die ID des Tupels, wird zum aendern und
+		 *        loeschen benoetigt</li>
+		 *        <li><b>tr_genus (byte) </b>: Genus. Beliebiger Wert, muss aber
+		 *        nicht unbedingt gesetzt sein</li>
+		 *        <li><b>tr_numerus (byte) </b>: Numerus. Beliebiger Wert, muss aber
+		 *        nicht unbedingt gesetzt sein</li>
+		 *        <li><b>tr_case (byte) </b>: Fall. Beliebiger Wert, muss aber nicht
+		 *        unbedingt gesetzt sein</li>
+		 *        <li><b>tr_determination (byte) </b>: Determination. Beliebiger
+		 *        Wert, muss aber nicht unbedingt gesetzt sein</li>
+		 *        <li><b>tr_person (byte) </b>: Person. Beliebiger Wert, muss aber
+		 *        nicht unbedingt gesetzt sein</li>
+		 *        <li><b>tr_wordclass (byte) </b>: Wordclass. Beliebiger Wert, muss
+		 *        aber nicht unbedingt gesetzt sein</li>
+		 *        <li><b>tr_wordsubclass (byte) </b>: Wordsubclass. Beliebiger Wert,
+		 *        muss aber nicht unbedingt gesetzt sein</li>
+		 *        <li><b>tr_conjugation (byte) </b>: Konjunktion. Beliebiger Wert,
+		 *        muss aber nicht unbedingt gesetzt sein</li>
+		 *        <li><b>tr_pronoun (byte) </b>: Pronomen. Beliebiger Wert, muss
+		 *        aber nicht unbedingt gesetzt sein</li>
+		 *        <li><b>tr_tempus (byte) </b>: Zeit. Beliebiger Wert, muss aber
+		 *        nicht unbedingt gesetzt sein</li>
+		 *        <li><b>tr_diathese (byte) </b>: Diathese. Beliebiger Wert, muss
+		 *        aber nicht unbedingt gesetzt sein</li>
+		 *        <li><b>type (byte) </b>: Type des Wortes, also FW (1), CW (2) oder
+		 *        unbekannt (0). Muss aber nicht unbedingt gesetzt sein</li>
+		 *        <li><b>multiple (Object) </b>: Beliebiger Wert, muss aber nicht
+		 *        unbedingt gesetzt sein</li>
+		 *        </ul>
+		 * @throws Exception
+		 * @deprecated Ohne Funktion! Wortliste ist nun über WordListElements erreichbar.
+		 */
+		public void saveWordList(Vector list)
+		throws Exception {
+			connection.call(new Message(key, "saveWordList", list));
+		}
 }

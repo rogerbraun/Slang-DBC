@@ -31,11 +31,7 @@ public class PathNode
    /**
     * Wird vom DBC benötigt
     */
-   public PathNode(DBC_Key key,
-         int id,
-         PathNode root,
-         String name,
-         String description) {
+   public PathNode(DBC_Key key, int id, PathNode root, String name, String description) {
       key.unlock();
       this.id = id;
       this.root = root;

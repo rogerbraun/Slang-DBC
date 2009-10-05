@@ -45,8 +45,8 @@ class Connection {
     	  throw new IOException("Socket is null");
    }
 
-   synchronized Message call(Message output) throws Exception 
-   {
+   synchronized Message call(Message output) 
+   throws Exception {
 	   try {
 		   if(in != null && out != null && output != null) {
 	

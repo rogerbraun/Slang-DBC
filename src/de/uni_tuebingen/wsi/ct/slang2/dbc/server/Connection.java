@@ -40,8 +40,8 @@ public class Connection implements Runnable {
     * @throws IOException
     * @throws NullPointerException
     */
-   Connection(Socket socket, DBC_Server dbc) throws IOException, NullPointerException
-   {    
+   Connection(Socket socket, DBC_Server dbc)
+   throws IOException, NullPointerException {    
 	   connection_status = STATUS_WAIT_FOR_HELLO;
 	   if(socket != null && dbc != null ) {
     	  this.socket = socket;
@@ -64,8 +64,7 @@ public class Connection implements Runnable {
    /* (non-Javadoc)
     * @see java.lang.Thread#run()
     */
-   public void run()
-   {
+   public void run() {
       while ( connection_status != STATUS_CLOSE ) {
          try {
             Message input = (Message) in.readObject();
@@ -106,8 +105,7 @@ public class Connection implements Runnable {
     * @return An answer message which has either method 'OK' and the object returned by the called DBC_server method named equal to <code>input.getMethod()</code> and accepting arguments equal to <code>input.getArguments()</code>,<br>
     * or method 'ERROR' and an Exception object as argument.
     */
-   private synchronized Message getAnswer(Message input)
-   {
+   private synchronized Message getAnswer(Message input) {
 	   if ( connection_status == STATUS_WAIT_FOR_HELLO ) {
 		   if(input.getMethod().equals("hello")) {
 			   connection_status = STATUS_CONNECTED;
@@ -155,8 +153,7 @@ public class Connection implements Runnable {
    /**
     * Set the connection status to <code>STATUS_CLOSE</code> and try to close the opened Object-Streams.
     */
-   synchronized void close()
-   {
+   synchronized void close() {
 	   connection_status = STATUS_CLOSE;
 	   try {
 		   if(out != null)
@@ -168,5 +165,4 @@ public class Connection implements Runnable {
 			   Slang2Server.logger.info("Failed closing Connection"+e.getMessage());
 	   }
    }
-
 }

@@ -13,9 +13,7 @@ import java.io.Serializable;
  * 
  * @author Volker Klöbb
  */
-public class Message
-      implements
-         Serializable {
+public class Message implements Serializable {
 
    /**
     * 
@@ -25,8 +23,8 @@ public class Message
    private Object[]          arguments;
 
 
-   public Message(DBC_Key key, String method, Object ... arguments) throws NullPointerException
-   {
+   public Message(DBC_Key key, String method, Object ... arguments) 
+   throws NullPointerException {
 	   if(key == null || method == null)
 		   throw new NullPointerException("key or method is null");
 	   key.unlock();
@@ -63,8 +61,7 @@ public class Message
     * @return the classes of the arguments. If an argument is <code>null</code>, it's class is <code>null</code>
     */
    @SuppressWarnings("unchecked")
-   public Class[] getParameterTypes()
-   {
+   public Class[] getParameterTypes() {
 	   Class[] types = null;
 	   if(arguments != null) {
 		   types = new Class[arguments.length];
@@ -86,5 +83,4 @@ public class Message
       res.append(")");
       return res.toString();
    }
-
 }

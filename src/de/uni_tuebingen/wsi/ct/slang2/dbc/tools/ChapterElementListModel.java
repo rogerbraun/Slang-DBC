@@ -84,8 +84,11 @@ public class ChapterElementListModel<E extends ChapterElement>
 				break;
 			}
 		}
-		ret = this.elements.add(o);
-		if(ret) {
+		if (ret == false) {
+			this.elements.add(o);
+			ret = this.elements.get(size() - 1) == o;
+		}
+		if (ret) {
 			int index = this.elements.indexOf(o);
 			fireIntervalAdded(this, index, index);
 		}

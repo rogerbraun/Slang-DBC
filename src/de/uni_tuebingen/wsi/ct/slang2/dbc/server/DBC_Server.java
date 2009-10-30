@@ -4473,7 +4473,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     			String title = res.getString("title");
     			String creator = res.getString("creator");
     			String language = res.getString("language");
-    			Date created = res.getDate("created"); 
+    			Date created = res.getDate("created");
+    			String uri = res.getString("uri");
     			
     			Vector<String> tmp = new Vector<String>();
     			if (id != null)
@@ -4498,6 +4499,10 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     			
     			if (created != null)
     				tmp.add(created.toString());
+    			else
+    				tmp.add("");
+    			if (uri != null)
+    				tmp.add(uri.toString());
     			else
     				tmp.add("");
     			

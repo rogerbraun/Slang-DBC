@@ -1190,7 +1190,7 @@ public class DBC implements DBC_KeyAcceptor {
 	throws Exception {
 		Message message = new Message(key, "loadWordsWithWortArt1", wortArt);
 		Message mes = connection.call(message);
-		return (Vector<String>)mes.getArguments()[0];
+		return (Vector<String>) mes.getArguments()[0];
     }
 	
 	/**

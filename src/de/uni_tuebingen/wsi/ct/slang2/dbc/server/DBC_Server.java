@@ -4428,6 +4428,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     public Vector<Vector<String>> loadText_Raw (String strTitle, String strId, String strCreator, String strLang, String strDate)
     {
 	    String sqlStatement = "SELECT * FROM text_raw WHERE ";
+	    
 	    if (!strTitle.equals("")) {
 	        if (sqlStatement.endsWith("WHERE "))
 	            sqlStatement += "title LIKE '%" + strTitle + "%' ";
@@ -4461,6 +4462,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	    if (sqlStatement.endsWith("WHERE "))
 	        sqlStatement = "SELECT * FROM text_raw";
 	    
+	    
 	    ResultSet res = null;
 	    Vector<Vector<String>> toChange = new Vector<Vector<String>>();
 	   
@@ -4474,7 +4476,45 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     			String creator = res.getString("creator");
     			String language = res.getString("language");
     			Date created = res.getDate("created");
-    			String uri = res.getString("uri");
+    			
+    			String sqlStatement2 = "SELECT uri FROM text_raw WHERE ";
+    			
+    		    if (!strTitle.equals("")) {
+    		        if (sqlStatement2.endsWith("WHERE "))
+    		        	sqlStatement2 += "title LIKE '%" + strTitle + "%' ";
+    		        else
+    		        	sqlStatement2 += "AND title LIKE '%" + strTitle + "%' ";
+    		    }
+    		    if (!strId.equals("")) {
+    		        if (sqlStatement2.endsWith("WHERE "))
+    		        	sqlStatement2 += "id LIKE '%" + strId + "%' ";
+    		        else
+    		        	sqlStatement2 += "AND id LIKE '%" + strId + "%' ";
+    		    }
+    		    if (!strCreator.equals("")) {
+    		        if (sqlStatement2.endsWith("WHERE "))
+    		        	sqlStatement2 += "creator LIKE '%" +	strCreator + "%' ";
+    		        else
+    		        	sqlStatement2 += "AND creator LIKE '%" +	strCreator + "%' ";
+    		    }
+    		    if (!strLang.equals("")) {
+    		        if (sqlStatement2.endsWith("WHERE "))
+    		        	sqlStatement2 += "language LIKE '%" + strLang + "%' ";
+    		        else
+    		        	sqlStatement2 += "AND language LIKE '%" + strLang + "%' ";
+    		    }
+    		    if (!strDate.equals("")) {
+    		        if (sqlStatement2.endsWith("WHERE "))
+    		        	sqlStatement2 += "created LIKE '%" +	strDate + "%' ";
+    		        else
+    		        	sqlStatement2 += "AND created LIKE '%" +	strDate + "%' ";
+    		    }
+    		    
+    			PreparedStatement stmt2 = connection.prepareStatement(sqlStatement2);
+    			ResultSet res2 = null;
+    			res2 = stmt2.executeQuery();
+    			res2.next();
+    			String uri = res2.getString("uri");
     			
     			Vector<String> tmp = new Vector<String>();
     			if (id != null)

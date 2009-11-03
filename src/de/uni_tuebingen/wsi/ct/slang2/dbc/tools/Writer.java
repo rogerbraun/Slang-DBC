@@ -49,13 +49,13 @@ public class Writer implements DBC_KeyAcceptor {
    }
 
    /**
-    * Legt ein neues Buch an. Existiert in der Datenbank scho ein solches Buch,
+    * Legt ein neues Buch an. Existiert in der Datenbank schon ein solches Buch,
     * wird das schon gespeicherte verwendet. Doppeleinträge sind nicht möglich.
     * 
     * @param title
     *        Der Titel des Buches
     * @param author
-    *        Der Author des Buches
+    *        Der Autor des Buches
     * @param year
     *        Der Erscheinungsjahr
     */

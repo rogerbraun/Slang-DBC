@@ -4476,45 +4476,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     			String creator = res.getString("creator");
     			String language = res.getString("language");
     			Date created = res.getDate("created");
-    			
-    			String sqlStatement2 = "SELECT uri FROM text_raw WHERE ";
-    			
-    		    if (!strTitle.equals("")) {
-    		        if (sqlStatement2.endsWith("WHERE "))
-    		        	sqlStatement2 += "title LIKE '%" + strTitle + "%' ";
-    		        else
-    		        	sqlStatement2 += "AND title LIKE '%" + strTitle + "%' ";
-    		    }
-    		    if (!strId.equals("")) {
-    		        if (sqlStatement2.endsWith("WHERE "))
-    		        	sqlStatement2 += "id LIKE '%" + strId + "%' ";
-    		        else
-    		        	sqlStatement2 += "AND id LIKE '%" + strId + "%' ";
-    		    }
-    		    if (!strCreator.equals("")) {
-    		        if (sqlStatement2.endsWith("WHERE "))
-    		        	sqlStatement2 += "creator LIKE '%" +	strCreator + "%' ";
-    		        else
-    		        	sqlStatement2 += "AND creator LIKE '%" +	strCreator + "%' ";
-    		    }
-    		    if (!strLang.equals("")) {
-    		        if (sqlStatement2.endsWith("WHERE "))
-    		        	sqlStatement2 += "language LIKE '%" + strLang + "%' ";
-    		        else
-    		        	sqlStatement2 += "AND language LIKE '%" + strLang + "%' ";
-    		    }
-    		    if (!strDate.equals("")) {
-    		        if (sqlStatement2.endsWith("WHERE "))
-    		        	sqlStatement2 += "created LIKE '%" +	strDate + "%' ";
-    		        else
-    		        	sqlStatement2 += "AND created LIKE '%" +	strDate + "%' ";
-    		    }
-    		    
-    			PreparedStatement stmt2 = connection.prepareStatement(sqlStatement2);
-    			ResultSet res2 = null;
-    			res2 = stmt2.executeQuery();
-    			res2.next();
-    			String uri = res2.getString("uri");
+    			String uri = res.getString("uri");
     			
     			Vector<String> tmp = new Vector<String>();
     			if (id != null)
@@ -4555,31 +4517,6 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 	    }
 	    
 	    return toChange;
-	        
-	        /*
-	        DBHandler.connect(config.db.host,
-	config.db.port, config.db.database,
-	                config.db.username,
-	config.db.password);
-	        Vector<Object[]> results = DBHandler
-	
-	.sqlQueryMultipleResult(sqlStatement);
-	        System.out.println("Fired Query: " +
-	sqlStatement);
-	        System.out.println("Affected Rows: " +
-	results.size());
-	        for (Object[] temp : results) {
-	            Vector<String> t = new Vector<String>();
-	            for (int i = 0; i < temp.length; i++) {
-	                if (temp[i] != null)
-	
-	t.add(temp[i].toString());
-	                else
-	                    t.add("");
-	            }
-	            toChange.add(t);
-	        }
-	        */
 	   }
     
    

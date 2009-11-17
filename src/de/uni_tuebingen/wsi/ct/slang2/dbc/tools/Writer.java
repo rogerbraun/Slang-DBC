@@ -76,7 +76,13 @@ public class Writer implements DBC_KeyAcceptor {
    public void makeChapter(String title, int index, String date) {
       chapter = new Chapter(key, -1, -1, index, title, date);
    }
-
+   
+   public void makeChapter( Book book , String title , int index , String date )
+   {
+	   this.book = book;
+	   chapter = new Chapter(key, -1, book.getDB_ID(), index, title, date);
+   }
+   
    public void setChapter(Chapter chapter) {
       this.chapter = chapter;
       chapter.setBookID(key, -1);

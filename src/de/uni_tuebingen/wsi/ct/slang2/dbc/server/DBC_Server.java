@@ -672,14 +672,14 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 					stmt = connection.prepareStatement("INSERT IGNORE INTO words " + "(content, language) "
 							+ "VALUES(?, ?)", ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 					
-					byte[] pro = word.getContent().getBytes("ISO-8859-1");
-					int proAsInt = 0;
-				       for (int j = 0; j < pro.length; j++) {
-				           int n = (pro[j] < 0 ? (int)pro[j] + 256 : (int)pro[j]) << (8 * j);
-				           proAsInt += n;
-				       }
-				       stmt.setInt(1, proAsInt);
-				       
+					byte[] content = new byte[0];
+					content = word.getContent().getBytes("ISO-8859-1");
+					int contentAsInt = 0;
+				    for (int j = 0; j < content.length; j++) {
+				    	int n = (content[j] < 0 ? (int)content[j] + 256 : (int)content[j]) << (8 * j);
+				        contentAsInt += n;
+				    }
+				    stmt.setInt(1, contentAsInt);
 //					stmt.setBytes(1, word.getContent().getBytes("ISO-8859-1"));
 					stmt.setString(2, word.getLanguage());
 					stmt.executeUpdate();

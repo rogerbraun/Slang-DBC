@@ -595,266 +595,324 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     /*
      * TODO: Der Rückgabewert sollte nur die Chapter ID sein, da alles andere gleich bleibt. (CAVE: Vermutung)
      */
-    public synchronized Chapter saveChapter(Chapter chapter) throws DBC_SaveException, SQLException {
-	if(chapter==null)
-	    throw new NullPointerException();
-	
-	logger.entering(DBC_Server.class.getName(), "saveChapter", chapter);
+	public synchronized Chapter saveChapter( Chapter chapter ) throws DBC_SaveException, SQLException
+	{
+		if (chapter == null)
+			throw new NullPointerException();
 
-	PreparedStatement stmt = null;
-	ResultSet res = null;
+		logger.entering(DBC_Server.class.getName(), "saveChapter", chapter);
 
-	chapter.calculateIndicies(key);
+		PreparedStatement stmt = null;
+		ResultSet res = null;
 
-	try {
-	    connection.setAutoCommit(false);
+		chapter.calculateIndicies(key);
 
-	    stmt = connection.prepareStatement(
+		try
+		{
+			connection.setAutoCommit(false);
 
-		    "SELECT * FROM chapters WHERE book = ? AND `index` = ?",
+			stmt = connection.prepareStatement(
 
-		    ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE
-	    );
+			"SELECT * FROM chapters WHERE book = ? AND `index` = ?",
 
-	    stmt.setInt(1, chapter.getBookID());
-	    stmt.setInt(2, chapter.getIndex());
+			ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
-	    res = stmt.executeQuery();
+			stmt.setInt(1, chapter.getBookID());
+			stmt.setInt(2, chapter.getIndex());
 
-	    // Kapitel wurde schon gespeichert -> lösche es
-	    if ( res.next() ) {
-		//logger.info("l\u00f6sche altes Kapitel");
-		logger.info("L\u00f6sche altes Kapitel");
-		res.deleteRow();
-		connection.commit();
-	    }
-
-	    //res.beforeFirst(); // due to MySQL Bug #19451
-	    res.moveToInsertRow();
-	    res.updateInt("book", chapter.getBookID());
-	    res.updateInt("index", chapter.getIndex());
-	    res.updateString("title", chapter.getTitle());
-	    res.updateTimestamp("date", new Timestamp(System.currentTimeMillis())); // TODO don't instantiate with currentMills
-	    res.insertRow();
-
-	    // Wiederhole die Anfrage
-	    res = stmt.executeQuery();
-
-	    if (res.next())
-		chapter.setDB_ID(key, res.getInt("id"));
-	    else {
-		connection.rollback();
-		throw new DBC_SaveException("Kapitel "
-			+ chapter.getTitle()
-			+ "konnte nicht in der "
-			+ "DB gespeichert werden!");
-	    }
-	    logger.info("Lege neues Kapitel an");
-
-	    Vector words = chapter.getWords();
-	    logger.info("Speichere " + words.size() + " W\u00f6rter");
-
-	    for (int i = 0; i < words.size(); i++) {
-			Word word = (Word) words.get(i);
-	
-			if (word.getDB_ID() == -1) {
-			    // Insert word first if not exists
-			    stmt = connection.prepareStatement(
-				    "INSERT IGNORE INTO words " +
-				    "(content, language) " +
-				    "VALUES(?, ?)",
-				    ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);	   
-			    stmt.setBytes(1, word.getContent().getBytes("ISO-8859-1"));
-			    stmt.setString(2, word.getLanguage());  
-			    stmt.executeUpdate();
-			    res = stmt.getGeneratedKeys();
-	
-			    int wordId = 0;
-			    if( res.next() ) {
-			    	wordId = res.getInt(1);
-			    }
-			    else {
-					stmt = connection.prepareStatement(
-						"SELECT id FROM words WHERE content = ? AND language = ?",
-						ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-					stmt.setBytes(1, word.getContent().getBytes("ISO-8859-1"));
-					stmt.setString(2, word.getLanguage());
-		
-					res = stmt.executeQuery();
-					if( res.next() ) {
-					    wordId = res.getInt(1);
-					}
-			    }
-	
-			    if( wordId > 0 ) {
-			    	word.setDB_ID(key, wordId);
-			    }
-			    else {
-					connection.rollback();
-					throw new DBC_SaveException("Wort "
-						+ word
-						+ " konnte nicht in der "
-						+ "DB gespeichert werden!");
-			    }
-	
-			    // speichere Wort im Kapitel
-			    stmt = connection.prepareStatement(
-				    "INSERT INTO words_in_chapter (chapter, word, position) VALUES(?, ?, ?)",
-				    ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-			    stmt.setInt(1, word.getChapter().getDB_ID());
-			    stmt.setInt(2, word.getDB_ID());
-			    stmt.setInt(3, word.getStartPosition());
-			    int rowCount = stmt.executeUpdate();
-	
-			    if( rowCount != 0 ) {
-				logger.finer("+");
-			    }
-			}
-			else {
-			    logger.finer("-");
-			}
-	    }
-
-	    Vector signs = chapter.getSigns();
-
-	    logger.info("Speichere " + signs.size() + " Satzzeichen");
-
-	    stmt = connection.prepareStatement("INSERT IGNORE INTO signs (sign) VALUES(?)");
-
-	    for (int i = 0; i < signs.size(); i++) {
-			Sign sign = (Sign) signs.get(i);
-			if (sign.getDB_ID() == -1) {
-			    stmt.setString(1, sign.getContent());
-			    stmt.addBatch();
-			}
-	    }
-	    int [] counts = stmt.executeBatch();
-
-	    // setze entsprechende DB Id im Objekt
-	    stmt = connection.prepareStatement("SELECT id FROM signs WHERE sign = ?");
-
-	    for (int i = 0; i < signs.size(); i++) {
-			Sign sign = (Sign) signs.get(i);
-	
-			if (sign.getDB_ID() == -1) {
-			    stmt.setString(1, sign.getContent());
-			    res = stmt.executeQuery();
-
-			    if (res.next()) {
-				sign.setDB_ID(key, res.getInt(1));
-				logger.finer("-");
-			    }
-			    else {
-				connection.rollback();
-				throw new DBC_SaveException("Satzzeichen "
-					+ sign
-					+ " konnte nicht in der "
-					+ "DB gespeichert werden!");
-			    }
-			}
-	    }
-
-	    // speichere Satzzeichen im Kapitel
-	    stmt = connection.prepareStatement("INSERT INTO signs_in_chapter (chapter, sign, position) VALUES(?, ?, ?)");
-
-	    for (int i = 0; i < signs.size(); i++) {	  
-			Sign sign = (Sign) signs.get(i);
-	
-			stmt.setInt(1, sign.getChapter().getDB_ID());
-			stmt.setInt(2, sign.getDB_ID());
-			stmt.setInt(3, sign.getStartPosition());
-			stmt.addBatch();
-	    }
-	    counts = stmt.executeBatch();
-
-	    // Speichere Absätze
-	    Vector paragraphs = chapter.getParagraphs();
-	    logger.info("Speichere " + paragraphs.size() + " Abs\u00e4tze");
-
-	    stmt = connection.prepareStatement(
-		    "INSERT INTO paragraphs_in_chapter (chapter, position) VALUES (?, ?)");
-	    
-	    for (int i = 0; i < paragraphs.size(); i++) {
-			Integer p = (Integer) paragraphs.get(i);
-			stmt.setInt(1, chapter.getDB_ID());
-			stmt.setInt(2, p.intValue());
-			stmt.addBatch();
-		}
-	    int [] updateCounts = stmt.executeBatch();
-
-	    String logMessage = "";
-	    for(int i = 0; i < paragraphs.size(); i++) {
-	    	logMessage += (updateCounts[i]!=0)?"+":"-";
-	    }
-	    logger.finer(logMessage);
-
-	    // Speichere Äußerungseinheiten
-	    Vector ius = chapter.getIllocutionUnits();
-	    logger.info("Speichere " + ius.size() + " Aeußerungseinheiten");
-
-	    stmt = connection.prepareStatement(
-		    "INSERT INTO illocution_units (chapter, start, end, kriterium) VALUES (?, ?, ?, ?)");
-	    
-	    for (int i = 0; i < ius.size(); i++) {
-			IllocutionUnit iu = (IllocutionUnit) ius.get(i);
-			stmt.setInt(1, chapter.getDB_ID());
-			stmt.setInt(2, iu.getStartPosition());
-			stmt.setInt(3, iu.getEndPosition());
-			stmt.setString(4, iu.getKriterium());
-			stmt.addBatch();
-	    }
-	    updateCounts = stmt.executeBatch();
-
-	    stmt = connection.prepareStatement(
-		    "SELECT id FROM illocution_units WHERE chapter = ? AND start = ? AND end = ? AND kriterium = ?");
-	    for (int i = 0; i < ius.size(); i++) {
-			IllocutionUnit iu = (IllocutionUnit) ius.get(i);			   
-			stmt.setInt(1, chapter.getDB_ID());
-			stmt.setInt(2, iu.getStartPosition());
-			stmt.setInt(3, iu.getEndPosition());
-			stmt.setString(4, iu.getKriterium());
 			res = stmt.executeQuery();
-	
-			if ( res.next() )
-			    iu.setDB_ID(key, res.getInt(1));
-			else {
-			    logger.severe("Fehler beim Speichern einer Äußerungseinheit => Rollback");
-			    connection.rollback();
-			    throw new DBC_SaveException("Äußerungseinheit "
-				    + iu
-				    + " konnte nicht in der DB gespeichert werden!");
-			}
-	
-			if( ! res.isLast() ) {
-			    logger.warning("Doppelte Einträge in der illocution_units Tabelle gefunden");
-			}
-			logger.finer("+");
-	    }
-	    logger.info("Fertig");
 
-	    connection.commit();
+			// Kapitel wurde schon gespeichert -> lösche es
+			if (res.next())
+			{
+				// logger.info("l\u00f6sche altes Kapitel");
+				logger.info("L\u00f6sche altes Kapitel");
+				res.deleteRow();
+				connection.commit();
+			}
+
+			// res.beforeFirst(); // due to MySQL Bug #19451
+			res.moveToInsertRow();
+			res.updateInt("book", chapter.getBookID());
+			res.updateInt("index", chapter.getIndex());
+			res.updateString("title", chapter.getTitle());
+			res.updateTimestamp("date", new Timestamp(System.currentTimeMillis())); // TODO
+																					// don't
+																					// instantiate
+																					// with
+																					// currentMills
+			res.insertRow();
+
+			// Wiederhole die Anfrage
+			res = stmt.executeQuery();
+
+			if (res.next())
+				chapter.setDB_ID(key, res.getInt("id"));
+			else
+			{
+				connection.rollback();
+				throw new DBC_SaveException("Kapitel " + chapter.getTitle() + "konnte nicht in der "
+						+ "DB gespeichert werden!");
+			}
+			logger.info("Lege neues Kapitel an");
+
+			Vector words = chapter.getWords();
+			logger.info("Speichere " + words.size() + " W\u00f6rter");
+			Word word;
+			
+			for (int i = 0; i < words.size(); i++)
+			{
+				word = (Word) words.get(i);
+				
+				stmt = null;
+				
+				if (word.getDB_ID() == -1)
+				{
+					// Insert word first if not exists
+					stmt = connection.prepareStatement("INSERT IGNORE INTO words " + "(content, language) "
+							+ "VALUES(?, ?)", ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+					
+					byte[] pro = word.getContent().getBytes("ISO-8859-1");
+					int proAsInt = 0;
+				       for (int j = 0; j < pro.length; j++) {
+				           int n = (pro[j] < 0 ? (int)pro[j] + 256 : (int)pro[j]) << (8 * j);
+				           proAsInt += n;
+				       }
+				       stmt.setInt(1, proAsInt);
+				       
+//					stmt.setBytes(1, word.getContent().getBytes("ISO-8859-1"));
+					stmt.setString(2, word.getLanguage());
+					stmt.executeUpdate();
+					res = stmt.getGeneratedKeys();
+					
+					Integer.valueOf(word.getContent());
+
+					int wordId = 0;
+					if (res.next())
+					{
+						wordId = res.getInt(1);
+					}
+					else
+					{
+						stmt = connection.prepareStatement("SELECT id FROM words WHERE content = ? AND language = ?",
+								ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+
+						byte[] pro1 = word.getContent().getBytes("ISO-8859-1");
+						int proAsInt1 = 0;
+					       for (int j = 0; j < pro1.length; j++) {
+					           int n = (pro1[j] < 0 ? (int)pro1[j] + 256 : (int)pro1[j]) << (8 * j);
+					           proAsInt1 += n;
+					       }
+					       stmt.setInt(1, proAsInt1);
+					       
+//						stmt.setBytes(1, word.getContent().getBytes("ISO-8859-1"));
+						stmt.setString(2, word.getLanguage());
+
+						res = stmt.executeQuery();
+						if (res.next())
+						{
+							wordId = res.getInt(1);
+						}
+					}
+
+					if (wordId > 0)
+					{
+						word.setDB_ID(key, wordId);
+					}
+					else
+					{
+						connection.rollback();
+						throw new DBC_SaveException("Wort " + word + " konnte nicht in der " + "DB gespeichert werden!");
+					}
+
+					// speichere Wort im Kapitel
+					stmt = connection.prepareStatement(
+							"INSERT INTO words_in_chapter (chapter, word, position) VALUES(?, ?, ?)",
+							ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+					stmt.setInt(1, word.getChapter().getDB_ID());
+					stmt.setInt(2, word.getDB_ID());
+					stmt.setInt(3, word.getStartPosition());
+					int rowCount = stmt.executeUpdate();
+
+					if (rowCount != 0)
+					{
+						logger.finer("+");
+					}
+				}
+				else
+				{
+					logger.finer("-");
+				}
+			}
+
+			Vector signs = chapter.getSigns();
+
+			logger.info("Speichere " + signs.size() + " Satzzeichen");
+
+			stmt = connection.prepareStatement("INSERT IGNORE INTO signs (sign) VALUES(?)");
+
+			Sign sign;
+			
+			for (int i = 0; i < signs.size(); i++)
+			{
+				sign = (Sign) signs.get(i);
+				if (sign.getDB_ID() == -1)
+				{
+					stmt.setString(1, sign.getContent());
+					stmt.addBatch();
+				}
+			}
+			int[] counts = stmt.executeBatch();
+
+			// setze entsprechende DB Id im Objekt
+			stmt = connection.prepareStatement("SELECT id FROM signs WHERE sign = ?");
+			sign = null;
+			
+			for (int i = 0; i < signs.size(); i++)
+			{
+				sign = (Sign) signs.get(i);
+
+				if (sign.getDB_ID() == -1)
+				{
+					stmt.setString(1, sign.getContent());
+					res = stmt.executeQuery();
+
+					if (res.next())
+					{
+						sign.setDB_ID(key, res.getInt(1));
+						logger.finer("-");
+					}
+					else
+					{
+						connection.rollback();
+						throw new DBC_SaveException("Satzzeichen " + sign + " konnte nicht in der "
+								+ "DB gespeichert werden!");
+					}
+				}
+			}
+
+			// speichere Satzzeichen im Kapitel
+			stmt = connection
+					.prepareStatement("INSERT INTO signs_in_chapter (chapter, sign, position) VALUES(?, ?, ?)");
+
+			sign = null;
+			
+			for (int i = 0; i < signs.size(); i++)
+			{
+				sign = (Sign) signs.get(i);
+
+				stmt.setInt(1, sign.getChapter().getDB_ID());
+				stmt.setInt(2, sign.getDB_ID());
+				stmt.setInt(3, sign.getStartPosition());
+				stmt.addBatch();
+			}
+			counts = stmt.executeBatch();
+
+			// Speichere Absätze
+			Vector paragraphs = chapter.getParagraphs();
+			logger.info("Speichere " + paragraphs.size() + " Abs\u00e4tze");
+
+			stmt = connection.prepareStatement("INSERT INTO paragraphs_in_chapter (chapter, position) VALUES (?, ?)");
+
+			Integer p;
+			
+			for (int i = 0; i < paragraphs.size(); i++)
+			{
+				p = (Integer) paragraphs.get(i);
+				stmt.setInt(1, chapter.getDB_ID());
+				stmt.setInt(2, p.intValue());
+				stmt.addBatch();
+			}
+			int[] updateCounts = stmt.executeBatch();
+
+			String logMessage = "";
+			for (int i = 0; i < paragraphs.size(); i++)
+			{
+				logMessage += (updateCounts[i] != 0) ? "+" : "-";
+			}
+			logger.finer(logMessage);
+
+			// Speichere Äußerungseinheiten
+			Vector ius = chapter.getIllocutionUnits();
+			logger.info("Speichere " + ius.size() + " Aeußerungseinheiten");
+
+			stmt = connection
+					.prepareStatement("INSERT INTO illocution_units (chapter, start, end, kriterium) VALUES (?, ?, ?, ?)");
+
+			IllocutionUnit iu;
+			
+			for (int i = 0; i < ius.size(); i++)
+			{
+				iu = (IllocutionUnit) ius.get(i);
+				stmt.setInt(1, chapter.getDB_ID());
+				stmt.setInt(2, iu.getStartPosition());
+				stmt.setInt(3, iu.getEndPosition());
+				stmt.setString(4, iu.getKriterium());
+				stmt.addBatch();
+			}
+			updateCounts = stmt.executeBatch();
+
+			stmt = connection
+					.prepareStatement("SELECT id FROM illocution_units WHERE chapter = ? AND start = ? AND end = ? AND kriterium = ?");
+			
+			iu = null;
+			
+			for (int i = 0; i < ius.size(); i++)
+			{
+				iu = (IllocutionUnit) ius.get(i);
+				stmt.setInt(1, chapter.getDB_ID());
+				stmt.setInt(2, iu.getStartPosition());
+				stmt.setInt(3, iu.getEndPosition());
+				stmt.setString(4, iu.getKriterium());
+				res = stmt.executeQuery();
+
+				if (res.next())
+					iu.setDB_ID(key, res.getInt(1));
+				else
+				{
+					logger.severe("Fehler beim Speichern einer Äußerungseinheit => Rollback");
+					connection.rollback();
+					throw new DBC_SaveException("Äußerungseinheit " + iu
+							+ " konnte nicht in der DB gespeichert werden!");
+				}
+
+				if (!res.isLast())
+				{
+					logger.warning("Doppelte Einträge in der illocution_units Tabelle gefunden");
+				}
+				logger.finer("+");
+			}
+			logger.info("Fertig");
+
+			connection.commit();
+		}
+		catch (SQLException e)
+		{
+			logger.severe(e.getLocalizedMessage());
+			throw e;
+		}
+		catch (UnsupportedEncodingException e)
+		{
+			logger.warning(e.getMessage());
+		}
+
+		finally
+		{
+			try
+			{
+				connection.setAutoCommit(true);
+				if (res != null)
+					res.close();
+				if (stmt != null)
+					stmt.close();
+			}
+			catch (SQLException e)
+			{
+				logger.warning(e.getLocalizedMessage());
+			}
+		}
+		return chapter;
 	}
-	catch ( SQLException e ) {
-	    logger.severe(e.getLocalizedMessage());
-	    throw e;
-	} catch (UnsupportedEncodingException e) {
-	    logger.warning(e.getMessage());
-	}
-	
-	finally {
-		try {
-			connection.setAutoCommit(true);
-			if (res  != null)
-			    res.close();
-			if (stmt  != null)
-			    stmt.close();
-	    }
-	    catch (SQLException e) {
-		logger.warning(e.getLocalizedMessage());
-	    }
-	}
-	return chapter;
-    }
 
     public synchronized void deleteChapter(Integer chapterID)
     throws Exception {
@@ -875,6 +933,16 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		}
     }
     
+	public synchronized void deleteBook( Integer bookID ) throws Exception
+	{
+		Statement stmt = connection.createStatement();
+		ResultSet res = stmt.executeQuery("SELECT * " + "FROM books WHERE id = " + bookID);
+		if (res.next())
+		{
+			stmt.execute("delete FROM chapters WHERE book = " + bookID);
+			stmt.execute("delete FROM books WHERE id = " + bookID);
+		}
+	}
 	/**
 	 * Laedt alle Direkten Reden aus der Datenbank, die zu diesem Kapitel
 	 * gespeichert wurden.

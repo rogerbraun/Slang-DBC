@@ -283,6 +283,17 @@ public class DBC implements DBC_KeyAcceptor {
 		//Message answer = connection.call(new Message(key, "deleteChapter", new Integer(id)));
 		connection.call(new Message(key, "deleteChapter", new Integer(id)));
 	}
+
+	/**
+	 * Loescht ein Kapitel aus der Datenbank
+	 * 
+	 * @see #deleteChapter(int)
+	 */
+	public void deleteBook(int id)
+	throws Exception {
+		//Message answer = connection.call(new Message(key, "deleteChapter", new Integer(id)));
+		connection.call(new Message(key, "deleteBook", new Integer(id)));
+	}
 	
 	/**
 	 * Laedt alle Direkten Reden aus der Datenbank, die zu diesem Kapitel

@@ -84,7 +84,7 @@ import de.uni_tuebingen.wsi.ct.slang2.dbc.tools.pathselector.PathNode;
 /**
  * The DBC_Server communicates to the mySQL server.
  */
-public class DBC_Server implements Runnable, DBC_KeyAcceptor {
+public class DBC_Server_withSAVE_CHAPTER_EDIT implements Runnable, DBC_KeyAcceptor {
 
     static DBC_Key	key;
     private DBC_Cache  chapterCache;
@@ -102,7 +102,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
     public static final String minimalClientVersion = "3.1";
 
-    DBC_Server(String host, int port, String name, String user, String password)
+    DBC_Server_withSAVE_CHAPTER_EDIT(String host, int port, String name, String user, String password)
     throws DBC_ConnectionException {
 
 	this.db_host = host;
@@ -595,15 +595,12 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     /*
      * TODO: Der Rückgabewert sollte nur die Chapter ID sein, da alles andere gleich bleibt. (CAVE: Vermutung)
      */
-    public synchronized Chapter saveChapter(Chapter chapter) throws DBC_SaveException, SQLException
+	public synchronized Chapter saveChapter( Chapter chapter ) throws DBC_SaveException, SQLException
 	{
-
 		if (chapter == null)
-		{
 			throw new NullPointerException();
-		}
 
-		logger.entering(DBC_Server.class.getName(), "saveChapter", chapter);
+		logger.entering(DBC_Server_withSAVE_CHAPTER_EDIT.class.getName(), "saveChapter", chapter);
 
 		PreparedStatement stmt = null;
 		ResultSet res = null;
@@ -661,20 +658,35 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 			Vector words = chapter.getWords();
 			logger.info("Speichere " + words.size() + " W\u00f6rter");
-
+			Word word;
+			
 			for (int i = 0; i < words.size(); i++)
 			{
-				Word word = (Word) words.get(i);
-
+				word = (Word) words.get(i);
+				
+				stmt = null;
+				
 				if (word.getDB_ID() == -1)
 				{
 					// Insert word first if not exists
 					stmt = connection.prepareStatement("INSERT IGNORE INTO words " + "(content, language) "
 							+ "VALUES(?, ?)", ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+					
+//					byte[] content = new byte[0];
+//					content = word.getContent().getBytes("ISO-8859-1");
+//					int contentAsInt = 0;
+//				    for (int j = 0; j < content.length; j++) {
+//				    	int n = (content[j] < 0 ? (int)content[j] + 256 : (int)content[j]) << (8 * j);
+//				        contentAsInt += n;
+//				    }
+//				    stmt.setInt(1, contentAsInt);
+					
 					stmt.setBytes(1, word.getContent().getBytes("ISO-8859-1"));
 					stmt.setString(2, word.getLanguage());
 					stmt.executeUpdate();
 					res = stmt.getGeneratedKeys();
+					
+					Integer.valueOf(word.getContent());
 
 					int wordId = 0;
 					if (res.next())
@@ -685,6 +697,16 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 					{
 						stmt = connection.prepareStatement("SELECT id FROM words WHERE content = ? AND language = ?",
 								ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+
+//						byte[] content1 = new byte[0];
+//						content1 = word.getContent().getBytes("ISO-8859-1");
+//						int contentAsInt1 = 0;
+//					    for (int j = 0; j < content.length; j++) {
+//					    	int n = (content1[j] < 0 ? (int)content1[j] + 256 : (int)content1[j]) << (8 * j);
+//					        contentAsInt1 += n;
+//					    }
+//					    stmt.setInt(1, contentAsInt1);
+					       
 						stmt.setBytes(1, word.getContent().getBytes("ISO-8859-1"));
 						stmt.setString(2, word.getLanguage());
 
@@ -723,8 +745,6 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				{
 					logger.finer("-");
 				}
-				
-				stmt.close();
 			}
 
 			Vector signs = chapter.getSigns();
@@ -733,9 +753,11 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 			stmt = connection.prepareStatement("INSERT IGNORE INTO signs (sign) VALUES(?)");
 
+			Sign sign;
+			
 			for (int i = 0; i < signs.size(); i++)
 			{
-				Sign sign = (Sign) signs.get(i);
+				sign = (Sign) signs.get(i);
 				if (sign.getDB_ID() == -1)
 				{
 					stmt.setString(1, sign.getContent());
@@ -746,10 +768,11 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 			// setze entsprechende DB Id im Objekt
 			stmt = connection.prepareStatement("SELECT id FROM signs WHERE sign = ?");
-
+			sign = null;
+			
 			for (int i = 0; i < signs.size(); i++)
 			{
-				Sign sign = (Sign) signs.get(i);
+				sign = (Sign) signs.get(i);
 
 				if (sign.getDB_ID() == -1)
 				{
@@ -774,9 +797,11 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			stmt = connection
 					.prepareStatement("INSERT INTO signs_in_chapter (chapter, sign, position) VALUES(?, ?, ?)");
 
+			sign = null;
+			
 			for (int i = 0; i < signs.size(); i++)
 			{
-				Sign sign = (Sign) signs.get(i);
+				sign = (Sign) signs.get(i);
 
 				stmt.setInt(1, sign.getChapter().getDB_ID());
 				stmt.setInt(2, sign.getDB_ID());
@@ -791,9 +816,11 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 			stmt = connection.prepareStatement("INSERT INTO paragraphs_in_chapter (chapter, position) VALUES (?, ?)");
 
+			Integer p;
+			
 			for (int i = 0; i < paragraphs.size(); i++)
 			{
-				Integer p = (Integer) paragraphs.get(i);
+				p = (Integer) paragraphs.get(i);
 				stmt.setInt(1, chapter.getDB_ID());
 				stmt.setInt(2, p.intValue());
 				stmt.addBatch();
@@ -814,9 +841,11 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			stmt = connection
 					.prepareStatement("INSERT INTO illocution_units (chapter, start, end, kriterium) VALUES (?, ?, ?, ?)");
 
+			IllocutionUnit iu;
+			
 			for (int i = 0; i < ius.size(); i++)
 			{
-				IllocutionUnit iu = (IllocutionUnit) ius.get(i);
+				iu = (IllocutionUnit) ius.get(i);
 				stmt.setInt(1, chapter.getDB_ID());
 				stmt.setInt(2, iu.getStartPosition());
 				stmt.setInt(3, iu.getEndPosition());
@@ -827,9 +856,12 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 
 			stmt = connection
 					.prepareStatement("SELECT id FROM illocution_units WHERE chapter = ? AND start = ? AND end = ? AND kriterium = ?");
+			
+			iu = null;
+			
 			for (int i = 0; i < ius.size(); i++)
 			{
-				IllocutionUnit iu = (IllocutionUnit) ius.get(i);
+				iu = (IllocutionUnit) ius.get(i);
 				stmt.setInt(1, chapter.getDB_ID());
 				stmt.setInt(2, iu.getStartPosition());
 				stmt.setInt(3, iu.getEndPosition());
@@ -903,6 +935,16 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		}
     }
     
+	public synchronized void deleteBook( Integer bookID ) throws Exception
+	{
+		Statement stmt = connection.createStatement();
+		ResultSet res = stmt.executeQuery("SELECT * " + "FROM books WHERE id = " + bookID);
+		if (res.next())
+		{
+			stmt.execute("delete FROM chapters WHERE book = " + bookID);
+			stmt.execute("delete FROM books WHERE id = " + bookID);
+		}
+	}
 	/**
 	 * Laedt alle Direkten Reden aus der Datenbank, die zu diesem Kapitel
 	 * gespeichert wurden.

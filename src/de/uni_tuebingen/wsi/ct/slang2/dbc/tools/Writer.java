@@ -217,4 +217,5 @@ public class Writer implements DBC_KeyAcceptor {
    public void setKey(DBC_Key key) {
        this.key = key;
    }
+   
 }

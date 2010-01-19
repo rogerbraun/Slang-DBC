@@ -882,6 +882,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			}
 		}
 		return chapter;
+		
+		//testkommentar
 	}
 
     public synchronized void deleteChapter(Integer chapterID)

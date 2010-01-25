@@ -598,6 +598,12 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     public synchronized Chapter saveChapter(Chapter chapter) throws DBC_SaveException, SQLException
 	{
 
+		long timeA = 0;
+		long timeB = 0;
+		
+		Stopwatch a = new Stopwatch();
+		Stopwatch b = new Stopwatch();
+		
 		if (chapter == null)
 		{
 			throw new NullPointerException();
@@ -659,72 +665,115 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			}
 			logger.info("Lege neues Kapitel an");
 
-			Vector words = chapter.getWords();
+			Vector<Word> words = chapter.getWords();
+			Map<String,Integer> checkedWordsMap = new HashMap<String,Integer>();
+			
 			logger.info("Speichere " + words.size() + " W\u00f6rter");
-
+			
 			for (int i = 0; i < words.size(); i++)
 			{
 				Word word = (Word) words.get(i);
 
-				if (word.getDB_ID() == -1)
+				
+				if (word.getDB_ID() == -1 )
 				{
-					// Insert word first if not exists
-					stmt = connection.prepareStatement("INSERT IGNORE INTO words " + "(content, language) "
-							+ "VALUES(?, ?)", ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-					stmt.setBytes(1, word.getContent().getBytes("ISO-8859-1"));
-					stmt.setString(2, word.getLanguage());
-					stmt.executeUpdate();
-					res = stmt.getGeneratedKeys();
-
-					int wordId = 0;
-					if (res.next())
+					/*
+					 * Wort schon geprüft?
+					 */
+					if( checkedWordsMap.containsKey( word.getContent()) )
 					{
-						wordId = res.getInt(1);
+						int word_ID = checkedWordsMap.get( word.getContent() );
+						word.setDB_ID(key, word_ID);
+						
+						// speichere Wort im Kapitel
+						stmt = connection.prepareStatement(
+								"INSERT INTO words_in_chapter (chapter, word, position) VALUES(?, ?, ?)",
+								ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+						stmt.setInt(1, word.getChapter().getDB_ID());
+						stmt.setInt(2, word.getDB_ID());
+						stmt.setInt(3, word.getStartPosition());
+						int rowCount = stmt.executeUpdate();
+
+						if (rowCount != 0)
+						{
+							logger.finer("+");
+						}
 					}
+					
+					/*
+					 * Ermittle ob Wort in DB + Wort ID
+					 */
 					else
 					{
-						stmt = connection.prepareStatement("SELECT id FROM words WHERE content = ? AND language = ?",
-								ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+						a.start();
+						
+						// Insert word first if not exists
+						stmt = connection.prepareStatement("INSERT IGNORE INTO words " + "(content, language) "
+								+ "VALUES(?, ?)", ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE, Statement.RETURN_GENERATED_KEYS );
 						stmt.setBytes(1, word.getContent().getBytes("ISO-8859-1"));
 						stmt.setString(2, word.getLanguage());
+						stmt.executeUpdate();
+						res = stmt.getGeneratedKeys();
 
-						res = stmt.executeQuery();
+						a.stop();
+						timeA += a.getElapsedTimeMilliSecs();
+						
+						int wordId = 0;
 						if (res.next())
 						{
 							wordId = res.getInt(1);
 						}
-					}
+						else
+						{
+							b.start();
+							stmt = connection.prepareStatement("SELECT id FROM words WHERE content = ? AND language = ?",
+									ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+							stmt.setBytes(1, word.getContent().getBytes("ISO-8859-1"));
+							stmt.setString(2, word.getLanguage());
 
-					if (wordId > 0)
-					{
-						word.setDB_ID(key, wordId);
-					}
-					else
-					{
-						connection.rollback();
-						throw new DBC_SaveException("Wort " + word + " konnte nicht in der " + "DB gespeichert werden!");
-					}
+							res = stmt.executeQuery();
+							if (res.next())
+							{
+								wordId = res.getInt(1);
+							}
+							
+							b.stop();
+							timeB += b.getElapsedTimeMilliSecs();
+							
+						}
 
-					// speichere Wort im Kapitel
-					stmt = connection.prepareStatement(
-							"INSERT INTO words_in_chapter (chapter, word, position) VALUES(?, ?, ?)",
-							ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-					stmt.setInt(1, word.getChapter().getDB_ID());
-					stmt.setInt(2, word.getDB_ID());
-					stmt.setInt(3, word.getStartPosition());
-					int rowCount = stmt.executeUpdate();
+						if (wordId > 0)
+						{
+							word.setDB_ID(key, wordId);
+						}
+						else
+						{
+							connection.rollback();
+							throw new DBC_SaveException("Wort " + word + " konnte nicht in der " + "DB gespeichert werden!");
+						}
 
-					if (rowCount != 0)
-					{
-						logger.finer("+");
+						// speichere Wort im Kapitel
+						stmt = connection.prepareStatement(
+								"INSERT INTO words_in_chapter (chapter, word, position) VALUES(?, ?, ?)",
+								ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+						stmt.setInt(1, word.getChapter().getDB_ID());
+						stmt.setInt(2, word.getDB_ID());
+						stmt.setInt(3, word.getStartPosition());
+						int rowCount = stmt.executeUpdate();
+
+						if (rowCount != 0)
+						{
+							logger.finer("+");
+						}
+						
+						checkedWordsMap.put( word.getContent(), word.getDB_ID() );
+
 					}
 				}
 				else
 				{
 					logger.finer("-");
 				}
-				
-				stmt.close();
 			}
 
 			Vector signs = chapter.getSigns();
@@ -881,6 +930,17 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				logger.warning(e.getLocalizedMessage());
 			}
 		}
+	
+		logger.info("Seconds\n"+
+				"INSERT INTO IGNORE Duration: "+(timeA/1000)+"\n"+
+				"SELECT ID Duartion: "+(timeB/1000)+"\n"
+				);
+		
+		logger.info("Minutes\n"+
+		"INSERT INTO IGNORE Duration: "+(timeA/1000/60)+"\n"+
+		"SELECT ID Duartion: "+(timeB/1000/60)+"\n"
+		);
+		
 		return chapter;
 	}
 
@@ -902,6 +962,17 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 		    stmt.execute("delete FROM chapters WHERE id = "+chapterID);
 		}
     }
+    
+	public synchronized void deleteBook( Integer bookID ) throws Exception
+	{
+		Statement stmt = connection.createStatement();
+		ResultSet res = stmt.executeQuery("SELECT * " + "FROM books WHERE id = " + bookID);
+		
+		if( res.next() )
+		{
+			stmt.execute("delete FROM books WHERE id = " + bookID);
+		}	
+	}
     
 	/**
 	 * Laedt alle Direkten Reden aus der Datenbank, die zu diesem Kapitel

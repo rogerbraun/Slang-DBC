@@ -467,12 +467,12 @@ public class Chapter
     * 
     * @see Word
     */
-   public Vector getWords() {
-      Vector words = new Vector((int) (tokens.size() * 0.9));
+   public Vector<Word> getWords() {
+      Vector<Word> words = new Vector<Word>((int) (tokens.size() * 0.9));
       for (int i = 0; i < tokens.size(); i++) {
          Token t = (Token) tokens.get(i);
          if (t instanceof Word)
-            words.add(t);
+            words.add( (Word) t);
       }
       return words;
    }

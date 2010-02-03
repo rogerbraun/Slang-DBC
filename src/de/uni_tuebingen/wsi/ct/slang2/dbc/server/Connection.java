@@ -83,14 +83,14 @@ public class Connection implements Runnable {
             out.flush();
          }
          catch (Exception e) {
+        	 System.err.println(e.getMessage());
         	 connection_status = STATUS_CLOSE;
          }
-
          if( connection_status != STATUS_CLOSE ) {
 	         try {
 	            Thread.sleep(500);
 	         }
-	         catch (InterruptedException e) {
+	         catch (Exception e) {
 	        	 connection_status = STATUS_CLOSE;
 	         }
          }

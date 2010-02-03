@@ -4,6 +4,8 @@
 
 package de.uni_tuebingen.wsi.ct.slang2.dbc.tools;
 
+import javax.swing.JOptionPane;
+
 import de.uni_tuebingen.wsi.ct.slang2.dbc.client.DBC;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Book;
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Chapter;
@@ -202,17 +204,20 @@ public class Writer implements DBC_KeyAcceptor {
 
       chapter.calculateIndicies(key);
 
-      try {
-         dbc.open();
-         dbc.saveBook(key, book);
-         chapter.setBookID(key, book.getDB_ID());
-         dbc.saveChapter(key, chapter);
-         dbc.close();
-      }
-      catch (Exception e) {
-         e.printStackTrace();
-      }
-   }
+		try
+		{
+			dbc.open();
+			dbc.saveBook(key, book);
+			chapter.setBookID(key, book.getDB_ID());
+			dbc.saveChapter(key, chapter);
+			dbc.close();
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(null, "Fehler: " + e.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+		}
+	}
 
    public void setKey(DBC_Key key) {
        this.key = key;

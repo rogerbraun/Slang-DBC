@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Vector;
 
+import javax.swing.JOptionPane;
+
 import com.mysql.jdbc.MysqlDataTruncation;
 
 import de.uni_tuebingen.wsi.ct.slang2.dbc.data.Book;
@@ -129,8 +131,12 @@ public class DBC implements DBC_KeyAcceptor {
 				// The "real" exception might be wraped in an InvocationTargetException
 				Throwable t = e.getCause();
 				if (t!=null)
+				{
 					message = t.getMessage();			   
+				}
+				JOptionPane.showMessageDialog(null, "Verbindungsaufbau fehlgeschlagen: "+message,"Warnung!",JOptionPane.ERROR_MESSAGE);
 				throw new DBC_ConnectionException("Verbindungsaufbau fehlgeschlagen: "+message);
+				
 			}
 		}
 	}

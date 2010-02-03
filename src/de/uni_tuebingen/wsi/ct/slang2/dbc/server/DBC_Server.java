@@ -4612,7 +4612,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
     		res.close();
     	}
 	    catch (Exception e) {
-	    	e.printStackTrace();		
+	    	e.printStackTrace();
 	    }
 	    
 	    return toChange;

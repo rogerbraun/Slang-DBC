@@ -553,7 +553,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			+ chapter.getDB_ID());
 		while (res.next())
 		  //  chapter.addIllocutionUnit(key, res.getInt("id"), res.getInt("start"), res.getInt("end"));
-			  chapter.addIllocutionUnit(key, res.getInt("id"), res.getInt("start"), res.getInt("end"), res.getString("kriterium"));
+			  chapter.addIllocutionUnit(key, res.getInt("id"), res.getInt("start"), res.getInt("end"), res.getString("kriterium"),res.getBoolean("startsParagraph"),res.getBoolean("startsNewline"));
 
 		chapter.calculateIndicies(key);
 		setChapter(chapter);
@@ -861,7 +861,7 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 			logger.info("Speichere " + ius.size() + " Aeuﬂerungseinheiten");
 
 			stmt = connection
-					.prepareStatement("INSERT INTO illocution_units (chapter, start, end, kriterium) VALUES (?, ?, ?, ?)");
+					.prepareStatement("INSERT INTO illocution_units (chapter, start, end, kriterium, startsParagraph, startsNewline) VALUES (?, ?, ?, ?, ?, ?)");
 
 			for (int i = 0; i < ius.size(); i++)
 			{
@@ -870,12 +870,14 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				stmt.setInt(2, iu.getStartPosition());
 				stmt.setInt(3, iu.getEndPosition());
 				stmt.setString(4, iu.getKriterium());
+				stmt.setBoolean(5, iu.isStartsParagraph());
+				stmt.setBoolean(6, iu.isStartsNewline());
 				stmt.addBatch();
 			}
 			updateCounts = stmt.executeBatch();
 
 			stmt = connection
-					.prepareStatement("SELECT id FROM illocution_units WHERE chapter = ? AND start = ? AND end = ? AND kriterium = ?");
+					.prepareStatement("SELECT id FROM illocution_units WHERE chapter = ? AND start = ? AND end = ? AND kriterium = ? AND startsParagraph = ? AND startsNewline = ?");
 			for (int i = 0; i < ius.size(); i++)
 			{
 				IllocutionUnit iu = (IllocutionUnit) ius.get(i);
@@ -883,6 +885,8 @@ public class DBC_Server implements Runnable, DBC_KeyAcceptor {
 				stmt.setInt(2, iu.getStartPosition());
 				stmt.setInt(3, iu.getEndPosition());
 				stmt.setString(4, iu.getKriterium());
+				stmt.setBoolean(5, iu.isStartsParagraph());
+				stmt.setBoolean(6, iu.isStartsNewline());
 				res = stmt.executeQuery();
 
 				if (res.next())

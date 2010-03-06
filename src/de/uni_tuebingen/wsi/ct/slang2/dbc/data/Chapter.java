@@ -183,10 +183,12 @@ public class Chapter
    public void addIllocutionUnit(DBC_Key key,
          int id,
          int startPosition,
-         int endPosition) {
+         int endPosition,
+         boolean startsParagraph,
+         boolean startsNewline ) {
       key.unlock();
       int index = getIllocutionUnitIndex(startPosition);
-      IllocutionUnit iu = new IllocutionUnit(id, this, index, startPosition, endPosition);
+      IllocutionUnit iu = new IllocutionUnit(id, this, index, startPosition, endPosition, startsParagraph, startsNewline);
       illocutionUnits.add(index, iu);
    }
 
@@ -197,10 +199,12 @@ public class Chapter
          int id,
          int startPosition,
          int endPosition,
-         String kriterium) {
+         String kriterium,
+         boolean paragraph,
+         boolean newline ) {
       key.unlock();
       int index = getIllocutionUnitIndex(startPosition);
-      IllocutionUnit iu = new IllocutionUnit(id, this, index, startPosition, endPosition, kriterium);
+      IllocutionUnit iu = new IllocutionUnit(id, this, index, startPosition, endPosition, kriterium,paragraph,newline);
       illocutionUnits.add(index, iu);
    }
    
@@ -210,7 +214,7 @@ public class Chapter
    public void addIllocutionUnit(DBC_Key handler,
          int startPosition,
          int endPosition) {
-      addIllocutionUnit(handler, -1, startPosition, endPosition, "");
+      addIllocutionUnit(handler, -1, startPosition, endPosition, "", false, false);
    }
    
    /**
@@ -219,8 +223,10 @@ public class Chapter
    public void addIllocutionUnit(DBC_Key handler,
          int startPosition,
          int endPosition,
-         String kriterium) {
-      addIllocutionUnit(handler, -1, startPosition, endPosition, kriterium);
+         String kriterium,
+         boolean paragraph,
+         boolean newline ) {
+      addIllocutionUnit(handler, -1, startPosition, endPosition, kriterium,paragraph, newline);
    }
 
    /**

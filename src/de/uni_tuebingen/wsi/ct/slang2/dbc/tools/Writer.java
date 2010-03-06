@@ -177,8 +177,8 @@ public class Writer implements DBC_KeyAcceptor {
     * @param kriterium
     * 		 Grund warum diese Äußerungseinheit definiert wurde
     */
-   public void addIllocutionUnit(int startPosition, int endPosition, String kriterium) {
-      chapter.addIllocutionUnit(key, startPosition, endPosition, kriterium);
+   public void addIllocutionUnit(int startPosition, int endPosition, String kriterium, boolean paragraph, boolean newline) {
+      chapter.addIllocutionUnit(key, startPosition, endPosition, kriterium,paragraph,newline);
    }
    
    /**

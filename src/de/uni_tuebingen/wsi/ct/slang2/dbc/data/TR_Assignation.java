@@ -171,7 +171,8 @@ Serializable {
     public static enum Konjugation {
     	INDIKATIV ("Indikativ"),
     	KONJUNKTIV ("Konjunktiv"),
-    	IMPERATIV ("Imperativ");
+    	IMPERATIV ("Imperativ"),
+    	INFINITIV ("Infinitiv");
     	private String name;
     	public String toString() {
     	    return this.name;
@@ -304,7 +305,8 @@ Serializable {
 		NEGATIONSWORT ("Negationswort"),
 		HILFSVERB ("Hilfsverb"),
 		PARTIKEL ("Partikel"),
-		CONNECTOR ("Connector");
+		CONNECTOR ("Connector"),
+		ADVERB ("Adverb");
 		private String name;
 		public String toString() {
 		    return this.name;

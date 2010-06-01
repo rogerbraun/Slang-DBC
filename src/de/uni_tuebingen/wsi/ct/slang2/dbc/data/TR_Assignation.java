@@ -221,7 +221,8 @@ Serializable {
     public static enum WordsubclassVerb {
 		STRONG ("Starkes Verb"),
 		WEAK ("Schwaches Verb"),
-		AUXILIARY ("Auxiliarverb");
+		AUXILIARY ("Auxiliarverb"),
+		PARTIZIP ("Partizip");
 		private String name;
 		protected static final Wordclass parent = Wordclass.VERB;
 		public String toString() {
@@ -267,7 +268,8 @@ Serializable {
 		RELATIVE ("Relative"),
 		INDEFINITE ("Indefinite"),
 		DEICTICON ("Deicticon"),
-		NEGATIVE ("Negative");
+		NEGATIVE ("Negative"),
+		INTERROGATIVE ("Interrogative");
 		private String name;
 //		protected static final Wordclass parent = Wordclass.PRONOUN;
 		public String toString() {
